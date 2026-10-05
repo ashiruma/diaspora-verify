@@ -32,7 +32,7 @@ export type PaymentDecisionStatus =
   | 'stopped' 
   | 'specialist_requested';
 
-export type CurrencyCode = 'KES' | 'USD' | 'GBP' | 'EUR';
+export type CurrencyCode = 'KES' | 'USD' | 'GBP' | 'EUR' | 'AED' | 'CAD' | 'AUD';
 
 export interface FieldAgent {
   id: string;
@@ -80,6 +80,7 @@ export interface EvidenceItem {
   verifiedByAgentId: string;
   tags: string[];
   uncertaintyFlag?: string; // what could not be confirmed
+  sha256Hash?: string; // Cryptographic integrity hash
 }
 
 export interface PhotoComparison {
@@ -208,3 +209,13 @@ export interface VerificationRequest {
 }
 
 export type ActiveRole = 'client' | 'operations' | 'field_agent';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  fullName: string;
+  role: ActiveRole;
+  phone?: string;
+  locationAbroad?: string;
+  mfaEnabled: boolean;
+}

@@ -27,7 +27,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
     currency, 
     setCurrency, 
     resetAllData,
-    requests 
+    requests,
+    isLiveConnected,
+    mfaEnabled,
+    toggleMFA
   } = useVerification();
 
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
@@ -59,7 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
     }
   ];
 
-  const currencies: CurrencyCode[] = ['KES', 'USD', 'GBP', 'EUR'];
+  const currencies: CurrencyCode[] = ['KES', 'USD', 'GBP', 'EUR', 'AED', 'CAD', 'AUD'];
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200">
@@ -75,11 +78,37 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex items-center gap-3 text-[11px]">
+            {/* Supabase Backend Live Status */}
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] ${
+              isLiveConnected 
+                ? 'bg-emerald-950 text-emerald-300 border border-emerald-700/60' 
+                : 'bg-slate-800 text-slate-400 border border-slate-700'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isLiveConnected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+              {isLiveConnected ? 'Supabase Postgres + RLS Active' : 'Offline Mode'}
+            </span>
+
+            {/* MFA Security Status */}
+            {(activeRole === 'operations' || activeRole === 'field_agent') && (
+              <button
+                onClick={toggleMFA}
+                title="Click to toggle MFA state"
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] transition-colors ${
+                  mfaEnabled 
+                    ? 'bg-blue-900/60 text-blue-200 border border-blue-500/50' 
+                    : 'bg-amber-900/50 text-amber-200 border border-amber-600/50 hover:bg-amber-800/60'
+                }`}
+              >
+                <ShieldCheck className="w-3 h-3 text-blue-400" />
+                <span>MFA: {mfaEnabled ? 'Verified (AAL2)' : 'Optional (Click to Enable)'}</span>
+              </button>
+            )}
+
             {pendingStopPaymentAlerts > 0 && (
               <span className="inline-flex items-center gap-1 text-amber-400 font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                {pendingStopPaymentAlerts} Active Stop-Payment Warning
+                {pendingStopPaymentAlerts} Stop-Payment Warning
               </span>
             )}
             <button 
@@ -92,7 +121,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
               className="text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
             >
               <RefreshCw className="w-3 h-3" />
-              <span className="hidden md:inline">Reset Demo</span>
+              <span className="hidden md:inline">Reset</span>
             </button>
           </div>
         </div>

@@ -495,6 +495,12 @@ export const FieldAgentView: React.FC = () => {
                   <span>{ev.timestamp}</span>
                   <span>{ev.locationTag}</span>
                 </div>
+                {ev.sha256Hash && (
+                  <div className="text-[9px] font-mono text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded flex items-center justify-between truncate" title={`SHA-256: ${ev.sha256Hash}`}>
+                    <span className="font-semibold">SHA-256:</span>
+                    <span className="truncate ml-1">{ev.sha256Hash.substring(0, 12)}...{ev.sha256Hash.substring(ev.sha256Hash.length - 6)}</span>
+                  </div>
+                )}
                 {ev.uncertaintyFlag && (
                   <div className="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-[10px] text-rose-900 font-semibold flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3 text-rose-600 flex-shrink-0" />

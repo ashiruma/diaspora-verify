@@ -37,6 +37,11 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
   const [agreedToBoundaries, setAgreedToBoundaries] = useState(false);
   const [urgency, setUrgency] = useState<'standard' | 'priority' | 'urgent'>('standard');
 
+  // Family Care Safeguarding State (Document 1, Section 5)
+  const [familyRelationship, setFamilyRelationship] = useState('Son / Daughter');
+  const [familyConsentConfirmed, setFamilyConsentConfirmed] = useState(false);
+  const [familyEmergencyContact, setFamilyEmergencyContact] = useState('');
+
   // Calculate quoted fee
   const baseFees: Record<ServiceCategory, number> = {
     construction: 14500,
@@ -69,6 +74,17 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
     if (!agreedToBoundaries) {
       alert('Please acknowledge the service boundaries to proceed.');
       return;
+    }
+
+    if (category === 'family') {
+      if (!familyConsentConfirmed) {
+        alert('Family Welfare requests require explicit confirmation of care recipient consent or legal guardian authority.');
+        return;
+      }
+      if (!familyEmergencyContact.trim()) {
+        alert('Please provide a named emergency contact and phone number in Kenya for family care requests.');
+        return;
+      }
     }
 
     const newId = createRequest({
@@ -348,6 +364,56 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                 </div>
               </div>
             </div>
+
+            {/* Family Care Consent & Safeguarding (Document 1, Section 5) */}
+            {category === 'family' && (
+              <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-300 space-y-3">
+                <div className="flex items-center gap-2 text-amber-950 font-bold text-xs">
+                  <Lock className="w-4 h-4 text-amber-700" />
+                  <span>Family Welfare Safeguarding & Consent Verification</span>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-amber-950 mb-1">Your Relationship to Recipient</label>
+                    <select
+                      value={familyRelationship}
+                      onChange={(e) => setFamilyRelationship(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs outline-none"
+                    >
+                      <option value="Son / Daughter">Son / Daughter</option>
+                      <option value="Parent">Parent</option>
+                      <option value="Sibling">Sibling</option>
+                      <option value="Grandchild">Grandchild</option>
+                      <option value="Legal Guardian">Legal Guardian</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-amber-950 mb-1">Emergency Medical / Family Contact in Kenya *</label>
+                    <input
+                      type="text"
+                      value={familyEmergencyContact}
+                      onChange={(e) => setFamilyEmergencyContact(e.target.value)}
+                      placeholder="Dr. Name or Next-of-Kin Phone"
+                      className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs outline-none"
+                    />
+                  </div>
+                </div>
+
+                <label className="flex items-start gap-2 pt-2 border-t border-amber-200/80 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={familyConsentConfirmed}
+                    onChange={(e) => setFamilyConsentConfirmed(e.target.checked)}
+                    className="mt-0.5 rounded text-amber-700 focus:ring-amber-500"
+                  />
+                  <span className="text-[11px] text-amber-950 font-medium">
+                    I confirm that the care recipient has granted consent for this welfare visit, or I hold appropriate legal guardian authority. I acknowledge DiasporaVerify does not provide clinical emergency response or medical care.
+                  </span>
+                </label>
+              </div>
+            )}
 
             <div className="flex justify-between pt-2">
               <button

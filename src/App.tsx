@@ -10,7 +10,9 @@ import { FieldAgentView } from './components/FieldAgentPortal/FieldAgentView';
 import { ReportsLibrary } from './components/ReportsLibrary';
 import { ServiceModelGuide } from './components/ServiceModelGuide';
 import { StandardReportModal } from './components/StandardReportModal';
+import { LegalAndCompliance } from './components/Legal/LegalAndCompliance';
 import { ShieldCheck } from './components/Icons';
+import { LandingPage } from './components/Marketing/LandingPage';
 
 
 const AppContent: React.FC = () => {
@@ -84,6 +86,13 @@ const AppContent: React.FC = () => {
             >
               Field Agent
             </button>
+            <button
+              onClick={() => { setActiveRole('client'); setCurrentTab('landing'); }}
+              className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${currentTab === 'landing' ? 'bg-emerald-700 text-white' : 'bg-white hover:bg-slate-50 text-slate-700'}`}
+            >
+              Landing
+            </button>
+          </div>
           </div>
         </div>
       </div>
@@ -129,6 +138,18 @@ const AppContent: React.FC = () => {
 
         {currentTab === 'service_model' && (
           <ServiceModelGuide onBookNow={() => setCurrentTab('new_request')} />
+        )}}
+{currentTab === 'landing' && (
+  <LandingPage
+    onGetStarted={() => setCurrentTab('new_request')}
+    onViewServices={() => setCurrentTab('service_model')}
+    onViewLegal={() => setCurrentTab('legal')}
+    currency={currencies[0]}
+  />
+)}
+
+        {currentTab === 'legal' && (
+          <LegalAndCompliance onBack={() => setCurrentTab('dashboard')} />
         )}
       </main>
 
@@ -194,6 +215,9 @@ const AppContent: React.FC = () => {
             </button>
             <button onClick={() => setCurrentTab('reports')} className="hover:text-white transition-colors">
               Standard Reports
+            </button>
+            <button onClick={() => setCurrentTab('legal')} className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">
+              Legal, Privacy & Compliance (Kenya DPA + GDPR)
             </button>
           </div>
         </div>

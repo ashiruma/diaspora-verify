@@ -818,7 +818,10 @@ export const CURRENCY_RATES: Record<string, { symbol: string; rateToKES: number 
   KES: { symbol: 'KES', rateToKES: 1 },
   USD: { symbol: '$', rateToKES: 0.0077 }, // 1 KES = 0.0077 USD (~130 KES per USD)
   GBP: { symbol: '£', rateToKES: 0.0060 }, // 1 KES = 0.0060 GBP (~165 KES per GBP)
-  EUR: { symbol: '€', rateToKES: 0.0071 }  // 1 KES = 0.0071 EUR (~140 KES per EUR)
+  EUR: { symbol: '€', rateToKES: 0.0071 }, // 1 KES = 0.0071 EUR (~140 KES per EUR)
+  AED: { symbol: 'AED', rateToKES: 0.0283 }, // 1 KES = 0.0283 AED (~35 KES per AED)
+  CAD: { symbol: 'C$', rateToKES: 0.0105 }, // 1 KES = 0.0105 CAD (~95 KES per CAD)
+  AUD: { symbol: 'A$', rateToKES: 0.0116 }  // 1 KES = 0.0116 AUD (~86 KES per AUD)
 };
 
 export const FORMAT_CURRENCY = (amountKES?: number | null, currency: string = 'KES'): string => {

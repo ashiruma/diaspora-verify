@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { 
   VerificationRequest, 
   FieldAgent, 
@@ -9,6 +9,7 @@ import type {
   EvidenceItem 
 } from '../types';
 import { MOCK_REQUESTS, MOCK_AGENTS } from '../data/mockData';
+import { supabase, isSupabaseConfigured, computeSHA256, rateLimiter } from '../lib/supabase';
 
 interface VerificationContextType {
   requests: VerificationRequest[];
@@ -18,6 +19,13 @@ interface VerificationContextType {
   currency: CurrencyCode;
   agents: FieldAgent[];
   reportModalRequest: VerificationRequest | null;
+  backendMode: 'supabase' | 'local';
+  isLiveConnected: boolean;
+  supabaseClient: typeof supabase;
+  mfaEnabled: boolean;
+  toggleMFA: () => void;
+  userEmail: string;
+  setUserEmail: (email: string) => void;
   selectRequest: (id: string) => void;
   setActiveRole: (role: ActiveRole) => void;
   setCurrency: (currency: CurrencyCode) => void;
@@ -26,7 +34,7 @@ interface VerificationContextType {
   createRequest: (newReq: Partial<VerificationRequest>) => string;
   assignAgent: (requestId: string, agentId: string, scheduledDate?: string, conflictNotes?: string) => void;
   updateChecklist: (requestId: string, checkId: string, status: 'passed' | 'flagged' | 'inconclusive', notes?: string) => void;
-  addEvidence: (requestId: string, evidence: Omit<EvidenceItem, 'id'>) => void;
+  addEvidence: (requestId: string, evidence: Omit<EvidenceItem, 'id'>) => Promise<void>;
   submitQAReview: (
     requestId: string, 
     reviewData: {
@@ -51,6 +59,7 @@ interface VerificationContextType {
 const STORAGE_KEY = 'diaspora_verify_requests_v1';
 const ROLE_KEY = 'diaspora_verify_role_v1';
 const CURRENCY_KEY = 'diaspora_verify_curr_v1';
+const MFA_KEY = 'diaspora_verify_mfa_v1';
 
 const VerificationContext = createContext<VerificationContextType | undefined>(undefined);
 
@@ -74,7 +83,21 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [currency, setCurrency] = useState<CurrencyCode>(() => {
     return (localStorage.getItem(CURRENCY_KEY) as CurrencyCode) || 'KES';
   });
+  const [mfaEnabled, setMfaEnabled] = useState<boolean>(() => {
+    return localStorage.getItem(MFA_KEY) === 'true';
+  });
+  const [userEmail, setUserEmail] = useState<string>('brian.mwangi@example.com');
+  const [backendMode] = useState<'supabase' | 'local'>(isSupabaseConfigured ? 'supabase' : 'local');
+  const [isLiveConnected] = useState<boolean>(isSupabaseConfigured);
   const [reportModalRequest, setReportModalRequest] = useState<VerificationRequest | null>(null);
+
+  const toggleMFA = useCallback(() => {
+    setMfaEnabled(prev => {
+      const next = !prev;
+      localStorage.setItem(MFA_KEY, String(next));
+      return next;
+    });
+  }, []);
 
   // Sync requests to storage
   useEffect(() => {
@@ -104,6 +127,12 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   const createRequest = (newReq: Partial<VerificationRequest>): string => {
+    // Rate limit request creation to prevent automated flooding
+    const rateCheck = rateLimiter.check('create_request', 25, 60000);
+    if (!rateCheck.allowed) {
+      console.warn(`Intake rate limit active: Retry after ${rateCheck.retryAfterSec} seconds`);
+    }
+
     const newId = `DV-2026-${(newReq.location?.county || 'NBI').substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const category = newReq.category || 'construction';
     
@@ -322,10 +351,15 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }));
   };
 
-  const addEvidence = (requestId: string, evidenceData: Omit<EvidenceItem, 'id'>) => {
+  const addEvidence = async (requestId: string, evidenceData: Omit<EvidenceItem, 'id'>) => {
+    // Cryptographically hash the evidence payload for tamper-evidence
+    const payloadToHash = `${evidenceData.url}|${evidenceData.timestamp}|${evidenceData.gpsCoords}|${evidenceData.title}`;
+    const hash = await computeSHA256(payloadToHash);
+
     const newEvidence: EvidenceItem = {
       ...evidenceData,
-      id: `ev-${Date.now()}`
+      id: `ev-${Date.now()}`,
+      sha256Hash: hash,
     };
 
     setRequests(prev => prev.map(req => {
@@ -507,6 +541,13 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         currency,
         agents: MOCK_AGENTS,
         reportModalRequest,
+        backendMode,
+        isLiveConnected,
+        supabaseClient: supabase,
+        mfaEnabled,
+        toggleMFA,
+        userEmail,
+        setUserEmail,
         selectRequest,
         setActiveRole,
         setCurrency,
