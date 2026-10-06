@@ -1,7 +1,7 @@
 import React from 'react';
-import { ShieldCheck, Building, MapPin, Car, Briefcase, Heart, Compass, CheckCircle2, AlertTriangle, Camera, Clock, FileText, Globe, Users, Eye, Phone, MessageSquare, ArrowRight } from '../Icons';
+import { ShieldCheck, Eye, CheckCircle2, MapPin, AlertTriangle, Users, Building, Car, Briefcase, Heart, Compass } from '../Icons';
 import { FORMAT_CURRENCY } from '../../data/mockData';
-import { CurrencyCode } from '../../types';
+import type { CurrencyCode } from '../../types';
 
 export const LandingPage: React.FC<{ onGetStarted: () => void; onViewServices: () => void; onViewLegal: () => void; currency: CurrencyCode }> = ({ onGetStarted, onViewServices, onViewLegal, currency }) => {
   return (
@@ -109,6 +109,7 @@ export const LandingPage: React.FC<{ onGetStarted: () => void; onViewServices: (
             ))}
           <p className="text-center text-sm text-slate-600 mt-4">All prices are indicative. Each task is quoted individually after intake.</p>
         </div>
+      </div>
       </section>
 
       {/* Sample Report Preview */}

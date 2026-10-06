@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ShieldCheck, CheckCircle2, AlertTriangle, ArrowRight } from '../Icons';
+import { ArrowRight } from '../Icons';
 import { FORMAT_CURRENCY } from '../../data/mockData';
-import { Invoice } from '../../types/invoice';
+import type { Invoice } from '../../types/invoice';
 
 export const InvoiceView: React.FC<{ invoice: Invoice; currency: string; onPaymentComplete: (invoiceId: string, ref: string) => void }> = ({ invoice, currency, onPaymentComplete }) => {
   const [paying, setPaying] = useState(false);

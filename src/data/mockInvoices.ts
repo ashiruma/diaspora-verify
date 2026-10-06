@@ -1,4 +1,4 @@
-import { Invoice } from '../types/invoice';
+import type { Invoice } from '../types/invoice';
 import { MOCK_REQUESTS } from './mockRequests'; // Assuming this exists
 
 export const MOCK_INVOICES: Invoice[] = [

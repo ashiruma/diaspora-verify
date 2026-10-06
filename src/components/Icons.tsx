@@ -400,3 +400,41 @@ export const Send: React.FC<IconProps> = ({ className = "w-5 h-5", size, ...prop
 );
 
 
+
+// Added missing Globe and MessageSquare icons
+export const Globe: React.FC<IconProps> = ({ className = "w-5 h-5", size, ...props }) => (
+  <svg
+    className={className}
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <circle cx="12" cy="12" r="10" />
+    <path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20" />
+  </svg>
+);
+
+export const MessageSquare: React.FC<IconProps> = ({ className = "w-5 h-5", size, ...props }) => (
+  <svg
+    className={className}
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z" />
+    <line x1="11" y1="11" x2="17" y2="11" />
+    <line x1="11" y1="15" x2="15" y2="15" />
+  </svg>
+);
