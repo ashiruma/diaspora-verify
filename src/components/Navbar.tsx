@@ -1,9 +1,8 @@
 // src/components/Navbar.tsx
 import React, { useState } from 'react';
 import { useVerification } from '../context/VerificationContext';
-import { ShieldCheck, User, Briefcase, Smartphone, Building, FileText, RefreshCw, ChevronDown } from './Icons';
+import { ShieldCheck, User, Briefcase, Smartphone, Building, FileText, ChevronDown } from './Icons';
 import type { ActiveRole, CurrencyCode } from '../types';
-import { hasStopPaymentWarning } from '../data/mockData';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 /**
@@ -20,17 +19,10 @@ export const Navbar: React.FC = () => {
     setActiveRole,
     currency,
     setCurrency,
-    resetAllData,
-    requests,
-    isLiveConnected,
-    mfaEnabled,
-    toggleMFA,
   } = useVerification();
 
   const navigate = useNavigate();
   const location = useLocation();
-
-  const pendingStopPaymentAlerts = requests.filter(hasStopPaymentWarning).length;
 
   const rolesConfig: { id: ActiveRole; label: string; sub: string; icon: React.ReactNode; color: string }[] = [
     {
@@ -75,54 +67,6 @@ export const Navbar: React.FC = () => {
             <span className="hidden sm:inline text-slate-400">
               “Your trusted eyes and hands on the ground in Kenya.”
             </span>
-          </div>
-          <div className="flex items-center gap-3 text-[11px]">
-            {/* Supabase Backend Live Status */}
-            <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] ${
-                isLiveConnected
-                  ? 'bg-emerald-950 text-emerald-300 border border-emerald-700/60'
-                  : 'bg-slate-800 text-slate-400 border border-slate-700'
-              }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${isLiveConnected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`}
-              />
-              {isLiveConnected ? 'Supabase Postgres + RLS Active' : 'Offline Mode'}
-            </span>
-            {/* MFA Security Status */}
-            {(activeRole === 'operations' || activeRole === 'field_agent') && (
-              <button
-                onClick={toggleMFA}
-                title="Click to toggle MFA state"
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] transition-colors ${
-                  mfaEnabled
-                    ? 'bg-blue-900/60 text-blue-200 border border-blue-500/50'
-                    : 'bg-amber-900/50 text-amber-200 border border-amber-600/50 hover:bg-amber-800/60'
-                }`}
-              >
-                <ShieldCheck className="w-3 h-3 text-blue-400" />
-                <span>MFA: {mfaEnabled ? 'Verified (AAL2)' : 'Optional (Click to Enable)'}</span>
-              </button>
-            )}
-            {pendingStopPaymentAlerts > 0 && (
-              <span className="inline-flex items-center gap-1 text-amber-400 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                {pendingStopPaymentAlerts} Stop-Payment Warning
-              </span>
-            )}
-            <button
-              onClick={() => {
-                if (confirm('Reset mock data back to clean initial state?')) {
-                  resetAllData();
-                }
-              }}
-              title="Reset demo data"
-              className="text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
-            >
-              <RefreshCw className="w-3 h-3" />
-              <span className="hidden md:inline">Reset</span>
-            </button>
           </div>
         </div>
       </div>
