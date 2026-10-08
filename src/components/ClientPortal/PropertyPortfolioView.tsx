@@ -8,13 +8,14 @@ import {
 } from '../Icons';
 import { KENYA_COUNTIES } from '../../data/mockData';
 import type { PropertyRecord } from '../../types';
+import { EmptyState } from '../ui/EmptyState';
 
 interface PropertyPortfolioViewProps {
   onNewVerificationForProperty?: (prop: PropertyRecord) => void;
 }
 
 export const PropertyPortfolioView: React.FC<PropertyPortfolioViewProps> = ({ onNewVerificationForProperty }) => {
-  const { properties, addProperty, updatePropertyInspection } = useVerification();
+  const { properties, addProperty, updatePropertyInspection, currentUser } = useVerification();
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedPropId, setSelectedPropId] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export const PropertyPortfolioView: React.FC<PropertyPortfolioViewProps> = ({ on
 
     const beacons = beaconNumbersInput.split(',').map(b => b.trim()).filter(Boolean);
     const newId = addProperty({
-      clientId: 'usr-client-01',
+      clientId: currentUser?.clientId || currentUser?.id || 'client-live',
       title,
       propertyType,
       county,
@@ -141,13 +142,34 @@ export const PropertyPortfolioView: React.FC<PropertyPortfolioViewProps> = ({ on
         </div>
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
           <div className="text-[10px] uppercase font-bold text-slate-400">Next Scheduled Visit</div>
-          <div className="text-sm font-bold text-slate-900 mt-1">28 Oct 2026</div>
-          <div className="text-[11px] text-amber-600 font-medium">Kitengela Acacia 4-Bed</div>
+          <div className="text-sm font-bold text-slate-900 mt-1">
+            {properties.find(p => p.nextInspectionDate)?.nextInspectionDate || 'None Scheduled'}
+          </div>
+          <div className="text-[11px] text-amber-600 font-medium truncate">
+            {properties.find(p => p.nextInspectionDate)?.title || 'Add property to schedule'}
+          </div>
         </div>
       </div>
 
       {/* Property Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {properties.length === 0 ? (
+        <EmptyState
+          icon={<MapPin className="w-8 h-8 text-slate-400" />}
+          title="No Properties in Your Portfolio Yet"
+          description="Catalog your plots, construction sites, and properties across Kenya to track recurring on-ground inspections, boundaries, and beacon coordinates."
+          action={
+            <button
+              onClick={() => setAddModalOpen(true)}
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition cursor-pointer"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Add Your First Property</span>
+            </button>
+          }
+          className="bg-white border-slate-200 py-16"
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {properties.map((prop) => (
           <div
             key={prop.id}
@@ -243,6 +265,7 @@ export const PropertyPortfolioView: React.FC<PropertyPortfolioViewProps> = ({ on
           </div>
         ))}
       </div>
+      )}
 
       {/* Add Property Modal */}
       {addModalOpen && (

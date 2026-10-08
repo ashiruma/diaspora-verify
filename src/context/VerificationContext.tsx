@@ -22,7 +22,7 @@ export { DEMO_USERS, ADDITIONAL_DEMO_USERS, AUTH_USER_KEY, REGISTERED_USERS_KEY 
 import { MOCK_REQUESTS, MOCK_AGENTS, MOCK_DISPUTES, MOCK_ORGANIZATIONS } from '../data/mockData';
 import { MOCK_PROPERTIES } from '../services/propertyService';
 import { INITIAL_AUDIT_LOGS, createAuditLog } from '../services/auditService';
-import { INITIAL_NOTIFICATIONS, createNotification } from '../services/notificationService';
+import { createNotification } from '../services/notificationService';
 import { canTransition, mapStatusToStage } from '../services/stateMachine';
 import { calculateConfidenceScore } from '../services/confidenceScorer';
 import { calculateFeeBreakdown } from '../services/paymentService';
@@ -122,49 +122,35 @@ interface VerificationContextType {
   activeOrgId: string;
   setActiveOrgId: (id: string) => void;
 
+  seedSampleData: () => void;
   resetAllData: () => void;
 }
 
-const STORAGE_KEY = 'diaspora_verify_requests_v2';
-const ROLE_KEY = 'diaspora_verify_role_v2';
-const CURRENCY_KEY = 'diaspora_verify_curr_v2';
-const MFA_KEY = 'diaspora_verify_mfa_v2';
-const PROPERTIES_KEY = 'diaspora_verify_properties_v2';
-const DISPUTES_KEY = 'diaspora_verify_disputes_v2';
+const STORAGE_KEY = 'diaspora_verify_real_requests_v3';
+const ROLE_KEY = 'diaspora_verify_role_v3';
+const CURRENCY_KEY = 'diaspora_verify_curr_v3';
+const MFA_KEY = 'diaspora_verify_mfa_v3';
+const PROPERTIES_KEY = 'diaspora_verify_real_properties_v3';
+const DISPUTES_KEY = 'diaspora_verify_real_disputes_v3';
 
 const VerificationContext = createContext<VerificationContextType | undefined>(undefined);
 
 export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize Requests with calculated confidence scores and requestStatus
+  // Initialize Requests with real data from localStorage or pristine empty list (zero placeholder data)
   const [requests, setRequests] = useState<VerificationRequest[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error('Failed to parse cached requests', e);
       }
     }
-    return MOCK_REQUESTS.map(req => {
-      const status: DetailedRequestStatus = 
-        req.qaReview?.publishedToClient ? 'REPORT_READY' :
-        req.evidence?.length > 0 ? 'UNDER_REVIEW' :
-        req.assignedAgent ? 'ACCEPTED' : 'PAID';
-      
-      const enrichedReq: VerificationRequest = {
-        ...req,
-        requestStatus: req.requestStatus || status,
-        pricing: {
-          ...req.pricing,
-          feeBreakdown: calculateFeeBreakdown(req.category, req.urgency, req.location.county, req.pricing.currency)
-        }
-      };
-      enrichedReq.confidenceScore = calculateConfidenceScore(enrichedReq);
-      return enrichedReq;
-    });
+    return [];
   });
 
-  const [activeRequestId, setActiveRequestId] = useState<string>('DV-2026-KJD-0104');
+  const [activeRequestId, setActiveRequestId] = useState<string>('');
   
   const [currentUser, setCurrentUser] = useState<AuthenticatedUser | null>(() => {
     const savedAuth = localStorage.getItem(AUTH_USER_KEY);
@@ -363,31 +349,21 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   const setActiveRole = (role: ActiveRole) => {
+    // Strict Role Security Invariant: Only administrators are permitted to switch active views
+    if (!currentUser || normalizeRole(currentUser.role) !== 'admin') {
+      console.warn('Unauthorized role switch attempt blocked. Only administrators can change role views.');
+      return;
+    }
     setActiveRoleState(role);
-    const norm = normalizeRole(role);
-    let targetUser: AuthenticatedUser = currentUser || DEMO_USERS[norm];
-    if (norm === 'admin') {
-      targetUser = currentUser?.role === 'admin' ? currentUser : DEMO_USERS.admin;
-    } else if (norm === 'agent') {
-      targetUser = currentUser?.role === 'agent' ? currentUser : DEMO_USERS.agent;
-      setViewAsSession({ active: false, viewRole: 'client', targetId: '', targetName: '', targetEmail: '', startedAt: '' });
-    } else {
-      targetUser = currentUser?.role === 'client' ? currentUser : DEMO_USERS.client;
-      setViewAsSession({ active: false, viewRole: 'client', targetId: '', targetName: '', targetEmail: '', startedAt: '' });
-    }
-
-    if (currentUser) {
-      setCurrentUser(targetUser);
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(targetUser));
-      const log = createAuditLog(
-        'ROLE_SWITCHED',
-        { id: currentUser.id, name: currentUser.name, role: activeRole },
-        'user_session',
-        role,
-        { previousRole: activeRole, nextRole: role }
-      );
-      setAuditLogs(prev => [log, ...prev]);
-    }
+    localStorage.setItem(ROLE_KEY, role);
+    const log = createAuditLog(
+      'ADMIN_VIEW_ROLE_CHANGED',
+      { id: currentUser.id, name: currentUser.name, role: currentUser.role },
+      'admin_session',
+      role,
+      { nextViewRole: role }
+    );
+    setAuditLogs(prev => [log, ...prev]);
   };
 
   const [currency, setCurrency] = useState<CurrencyCode>(() => {
@@ -401,24 +377,30 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [isLiveConnected] = useState<boolean>(isSupabaseConfigured);
   const [reportModalRequest, setReportModalRequest] = useState<VerificationRequest | null>(null);
 
-  // Additional 2.0 Entities State
+  // Additional Real Entities State (Zero Placeholder Data)
   const [properties, setProperties] = useState<PropertyRecord[]>(() => {
     const saved = localStorage.getItem(PROPERTIES_KEY);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+      try { 
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) { console.error(e); }
     }
-    return MOCK_PROPERTIES;
+    return [];
   });
 
   const [disputes, setDisputes] = useState<DisputeRecord[]>(() => {
     const saved = localStorage.getItem(DISPUTES_KEY);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+      try { 
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) { console.error(e); }
     }
-    return MOCK_DISPUTES;
+    return [];
   });
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [organizations] = useState<OrganizationRecord[]>(MOCK_ORGANIZATIONS);
   const [activeOrgId, setActiveOrgId] = useState<string>('org-001');
 
@@ -451,51 +433,47 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     localStorage.setItem(DISPUTES_KEY, JSON.stringify(disputes));
   }, [disputes]);
 
-  const activeRequest = requests.find(r => r.id === activeRequestId) || requests[0];
+  const activeRequest = requests.find(r => r.id === activeRequestId) || requests[0] || undefined;
 
   const clientRequests = React.useMemo(() => {
     if (!currentUser) return [];
     const targetEmail = viewAsSession.active && viewAsSession.viewRole === 'client'
       ? viewAsSession.targetEmail
-      : normalizeRole(activeRole) === 'client'
-      ? (currentUser.email || userEmail)
-      : userEmail;
+      : currentUser.email;
 
     return requests.filter(r => 
       r.client?.email?.toLowerCase() === targetEmail?.toLowerCase() ||
-      ((currentUser.email?.toLowerCase().includes('jane.doe') || currentUser.email?.toLowerCase().includes('david.mwangi')) &&
-       (r.client?.email?.toLowerCase().includes('david.mwangi') || r.client?.name?.toLowerCase().includes('david mwangi'))) ||
+      (currentUser.clientId && (r as any).client_id === currentUser.clientId) ||
       (viewAsSession.active && viewAsSession.viewRole === 'client' && r.client?.name?.toLowerCase() === viewAsSession.targetName?.toLowerCase())
     );
-  }, [requests, viewAsSession, activeRole, currentUser, userEmail]);
+  }, [requests, viewAsSession, currentUser]);
 
   const agentRequests = React.useMemo(() => {
     if (!currentUser) return [];
     const targetAgentId = viewAsSession.active && viewAsSession.viewRole === 'agent'
       ? viewAsSession.targetId
-      : normalizeRole(activeRole) === 'agent'
-      ? (currentUser.agentId || 'agt-01')
-      : 'agt-01';
+      : (currentUser.agentId || '');
 
     return requests.filter(r => 
-      r.assignedAgent?.id === targetAgentId ||
-      ((currentUser.agentId === 'agt-018' || currentUser.email?.toLowerCase().includes('brian.omondi')) &&
-       (r.assignedAgent?.id === 'agt-01' || r.assignedAgent?.id === 'agt-018')) ||
+      (targetAgentId && r.assignedAgent?.id === targetAgentId) ||
       (r.assignedAgent?.email?.toLowerCase() === currentUser.email?.toLowerCase()) ||
       (viewAsSession.active && viewAsSession.viewRole === 'agent' && r.assignedAgent?.name?.toLowerCase() === viewAsSession.targetName?.toLowerCase())
     );
-  }, [requests, viewAsSession, activeRole, currentUser]);
+  }, [requests, viewAsSession, currentUser]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setCommandMenuOpen(prev => !prev);
+        // Strict boundary: Only Admin can open the Operations Command Menu
+        if (currentUser && normalizeRole(currentUser.role) === 'admin') {
+          setCommandMenuOpen(prev => !prev);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [currentUser]);
 
   const selectRequest = (id: string) => {
     setActiveRequestId(id);
@@ -778,10 +756,10 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       status: 'partly_observed',
       urgency,
       client: newReq.client || {
-        name: 'Diaspora Client',
-        locationAbroad: 'London, UK',
-        email: userEmail,
-        phone: '+44 7700 900000',
+        name: currentUser?.name || 'Diaspora Client',
+        locationAbroad: currentUser?.locationAbroad || 'Diaspora Abroad',
+        email: currentUser?.email || 'client@diasporaverify.com',
+        phone: currentUser?.phone || '',
         preferredCurrency: currency,
       },
       location: newReq.location || {
@@ -1271,14 +1249,43 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     ]);
   };
 
+  const seedSampleData = useCallback(() => {
+    if (!currentUser || normalizeRole(currentUser.role) !== 'admin') {
+      console.warn('Unauthorized: Only administrators can load sample test cases.');
+      return;
+    }
+    const enriched = MOCK_REQUESTS.map(req => {
+      const status: DetailedRequestStatus = 
+        req.qaReview?.publishedToClient ? 'REPORT_READY' :
+        req.evidence?.length > 0 ? 'UNDER_REVIEW' :
+        req.assignedAgent ? 'ACCEPTED' : 'PAID';
+      const enrichedReq: VerificationRequest = {
+        ...req,
+        requestStatus: req.requestStatus || status,
+        pricing: {
+          ...req.pricing,
+          feeBreakdown: calculateFeeBreakdown(req.category, req.urgency, req.location.county, req.pricing.currency)
+        }
+      };
+      enrichedReq.confidenceScore = calculateConfidenceScore(enrichedReq);
+      return enrichedReq;
+    });
+    setRequests(enriched);
+    setProperties(MOCK_PROPERTIES);
+    setDisputes(MOCK_DISPUTES);
+    setActiveRequestId(enriched[0]?.id || '');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(enriched));
+    localStorage.setItem(PROPERTIES_KEY, JSON.stringify(MOCK_PROPERTIES));
+  }, [currentUser]);
+
   const resetAllData = () => {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(PROPERTIES_KEY);
     localStorage.removeItem(DISPUTES_KEY);
-    setRequests(MOCK_REQUESTS);
-    setProperties(MOCK_PROPERTIES);
-    setDisputes(MOCK_DISPUTES);
-    setActiveRequestId('DV-2026-KJD-0104');
+    setRequests([]);
+    setProperties([]);
+    setDisputes([]);
+    setActiveRequestId('');
   };
 
   return (
@@ -1343,6 +1350,7 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         organizations,
         activeOrgId,
         setActiveOrgId,
+        seedSampleData,
         resetAllData,
       }}
     >

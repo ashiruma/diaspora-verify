@@ -50,7 +50,9 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
     resolveDispute,
     auditLogs,
     advanceRequestStatus,
-    startViewAs
+    startViewAs,
+    seedSampleData,
+    resetAllData
   } = useVerification();
 
   const [selectedReqId, setSelectedReqId] = useState<string>(requests[0]?.id || '');
@@ -834,7 +836,14 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredTriageRequests.map(req => {
+                  {filteredTriageRequests.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-slate-500 text-xs">
+                        No verification requests found in this view. As diaspora clients submit intake requests, they will populate here for triage, verifier dispatch, and payment verification.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredTriageRequests.map(req => {
                     const hasStop = hasStopPaymentWarning(req);
                     const urgency = req.urgency || 'standard';
 
@@ -951,7 +960,8 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                         </td>
                       </tr>
                     );
-                  })}
+                  })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1768,6 +1778,44 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Admin Diagnostics & Sandbox Controls */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-purple-600" />
+                <span>Admin Diagnostics & Sandbox Controls</span>
+              </h3>
+              <p className="text-xs text-slate-500">
+                Authorized HQ Admin tools to simulate end-to-end workflows or restore a pristine zero-data state.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  seedSampleData();
+                  alert('Sample benchmark test case loaded for Admin QA evaluation.');
+                }}
+                className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow-sm cursor-pointer"
+              >
+                Load Sample Test Case (Admin QA / Demo)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('Are you sure you want to purge all local requests and restore pristine production state?')) {
+                    resetAllData();
+                    alert('All collections purged to pristine production state.');
+                  }
+                }}
+                className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition cursor-pointer"
+              >
+                Purge to Pristine Production State
+              </button>
             </div>
           </div>
         </div>

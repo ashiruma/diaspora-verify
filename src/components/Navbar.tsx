@@ -19,7 +19,7 @@ import {
   LogIn,
   UserPlus
 } from './Icons';
-import type { ActiveRole, CurrencyCode } from '../types';
+import type { CurrencyCode } from '../types';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AdminPreviewBanner } from './AdminPreviewBanner';
 import { normalizeRole } from '../auth/authorization';
@@ -32,7 +32,6 @@ export const Navbar: React.FC = () => {
 
   const {
     activeRole,
-    setActiveRole,
     currency,
     setCurrency,
     notifications,
@@ -44,7 +43,8 @@ export const Navbar: React.FC = () => {
     startViewAs,
     setCommandMenuOpen,
     agents,
-    requests
+    requests,
+    clientRequests,
   } = useVerification();
 
   const navigate = useNavigate();
@@ -53,45 +53,12 @@ export const Navbar: React.FC = () => {
   const unreadCount = notifications.filter(n => !n.read).length;
   const currentNormalizedRole = normalizeRole(activeRole);
 
-  const rolesConfig: { id: ActiveRole; label: string; sub: string; icon: React.ReactNode; color: string }[] = [
-    {
-      id: 'client',
-      label: 'Diaspora Client',
-      sub: 'Diaspora Abroad (London / Dallas)',
-      icon: <User className="w-4 h-4 text-emerald-600" />, 
-      color: 'border-emerald-500 bg-emerald-50 text-emerald-900',
-    },
-    {
-      id: 'agent',
-      label: 'Field Verifier (Agent)',
-      sub: 'Ground Mobile Mode',
-      icon: <Smartphone className="w-4 h-4 text-amber-600" />, 
-      color: 'border-amber-500 bg-amber-50 text-amber-900',
-    },
-    {
-      id: 'admin',
-      label: 'Operations Center (Admin)',
-      sub: 'Nairobi HQ Triage & QA Desk',
-      icon: <Briefcase className="w-4 h-4 text-blue-600" />, 
-      color: 'border-blue-500 bg-blue-50 text-blue-900',
-    },
-  ];
-
   const currencies: CurrencyCode[] = ['KES', 'USD', 'GBP', 'EUR', 'AED', 'CAD', 'AUD'];
 
   const handleNav = (path: string) => {
     navigate(path);
     setNotifMenuOpen(false);
     setRoleMenuOpen(false);
-  };
-
-  const handleRoleSwitch = (newRole: ActiveRole) => {
-    setActiveRole(newRole);
-    setRoleMenuOpen(false);
-    const norm = normalizeRole(newRole);
-    if (norm === 'admin') navigate('/admin');
-    else if (norm === 'agent') navigate('/agent');
-    else navigate('/dashboard');
   };
 
   // Role-Specific Navigation Links
@@ -438,46 +405,91 @@ export const Navbar: React.FC = () => {
                     <div className="absolute right-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 text-left space-y-1">
                       <div className="px-3 py-2 border-b border-slate-100 mb-1">
                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          Switch Role Portal
+                          {currentNormalizedRole === 'admin' 
+                            ? 'HQ Operations Administrator' 
+                            : currentNormalizedRole === 'agent' 
+                            ? 'Field Agent Workspace' 
+                            : 'Diaspora Client Workspace'}
                         </div>
                         <div className="text-xs font-semibold text-slate-800 mt-0.5 truncate">
                           {currentUser?.email}
                         </div>
                       </div>
 
-                      {rolesConfig.map((r) => {
-                        const isSelected = currentNormalizedRole === normalizeRole(r.id);
-                        return (
-                          <button
-                            key={r.id}
-                            onClick={() => handleRoleSwitch(r.id)}
-                            className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start gap-2.5 ${
-                              isSelected ? r.color + ' border' : 'hover:bg-slate-50 text-slate-700'
-                            }`}
-                          >
-                            <div className="mt-0.5">{r.icon}</div>
-                            <div className="flex-1">
-                              <div className="text-xs font-bold flex items-center justify-between">
-                                <span>{r.label}</span>
-                                {isSelected && <span className="text-[10px] font-black">ACTIVE</span>}
-                              </div>
-                              <div className="text-[10px] text-slate-500 mt-0.5">{r.sub}</div>
-                            </div>
-                          </button>
-                        );
-                      })}
-
+                      {/* Admin-Only Controls */}
                       {currentNormalizedRole === 'admin' && (
-                        <div className="pt-2 border-t border-slate-100 mt-1">
+                        <div className="space-y-1">
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              navigate('/admin');
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 hover:bg-slate-50 flex items-center justify-between"
+                          >
+                            <span>Operations Command Desk</span>
+                            <span className="text-[10px] text-blue-600 font-bold">HQ</span>
+                          </button>
                           <button
                             onClick={() => {
                               setRoleMenuOpen(false);
                               setViewAsModalOpen(true);
                             }}
-                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-amber-900 hover:bg-amber-50 flex items-center justify-between"
+                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-amber-900 bg-amber-50/60 hover:bg-amber-100/70 border border-amber-200 flex items-center justify-between"
                           >
                             <span>Launch "View As" Preview...</span>
-                            <span className="text-[10px] text-amber-700">Audit-logged</span>
+                            <span className="text-[10px] text-amber-700 font-bold">Audited</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Client-Only Quick Navigation */}
+                      {currentNormalizedRole === 'client' && (
+                        <div className="space-y-0.5">
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              navigate('/dashboard');
+                            }}
+                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Dashboard Overview</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              navigate('/requests');
+                            }}
+                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>My Requests ({clientRequests.length})</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              navigate('/properties');
+                            }}
+                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                          >
+                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                            <span>My Properties</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Agent-Only Quick Navigation */}
+                      {currentNormalizedRole === 'agent' && (
+                        <div className="space-y-0.5">
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              navigate('/agent');
+                            }}
+                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                          >
+                            <Smartphone className="w-3.5 h-3.5 text-amber-600" />
+                            <span>Assigned Field Tasks</span>
                           </button>
                         </div>
                       )}

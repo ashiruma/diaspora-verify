@@ -20,6 +20,8 @@ import {
 import { StatusBadge } from '../CommonBadges';
 import { FORMAT_CURRENCY } from '../../data/mockData';
 import type { PaymentDecisionStatus } from '../../types';
+import { Link } from 'react-router-dom';
+import { EmptyState } from '../ui/EmptyState';
 
 export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> = () => {
   const { 
@@ -57,8 +59,21 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
 
   if (!request) {
     return (
-      <div className="p-8 text-center text-slate-500">
-        No construction project found.
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 text-left">
+        <EmptyState
+          icon={<Building className="w-8 h-8 text-slate-400" />}
+          title="No Construction Verifications Found"
+          description="You do not have any active or past construction milestone inspections. Submit a verification request to track your foundation, walling, or roofing progress with photo comparisons and stop-payment advisories."
+          action={
+            <Link
+              to="/new-request"
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-2 shadow-md transition"
+            >
+              <span>Request Construction Verification</span>
+            </Link>
+          }
+          className="bg-white border-slate-200 py-16"
+        />
       </div>
     );
   }

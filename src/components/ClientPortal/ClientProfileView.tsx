@@ -15,9 +15,9 @@ export const ClientProfileView: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser, setCurrentUser, logout, mfaEnabled, toggleMFA, auditLogs } = useVerification();
 
-  const [name, setName] = useState(currentUser?.name || 'David Mwangi');
-  const [phone, setPhone] = useState(currentUser?.phone || '+44 7700 900142');
-  const [locationAbroad, setLocationAbroad] = useState(currentUser?.locationAbroad || 'London, United Kingdom');
+  const [name, setName] = useState(currentUser?.name || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [locationAbroad, setLocationAbroad] = useState(currentUser?.locationAbroad || '');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   if (!currentUser) {
@@ -69,7 +69,7 @@ export const ClientProfileView: React.FC = () => {
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center font-bold text-lg font-display">
-              {currentUser.name?.charAt(0) || 'D'}
+              {currentUser.name?.charAt(0) || 'U'}
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900">{currentUser.name}</h2>

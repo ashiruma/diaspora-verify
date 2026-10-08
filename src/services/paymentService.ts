@@ -46,6 +46,12 @@ export const COUNTY_TRAVEL_FEES_KES: Record<string, number> = {
   'Other': 5000,
 };
 
+export const KENYA_COUNTIES = [
+  'Nairobi', 'Kajiado', 'Kiambu', 'Machakos', 'Nakuru', 'Uasin Gishu', 
+  'Mombasa', 'Kilifi', 'Kisumu', 'Murang\'a', 'Kirinyaga', 'Nyeri', 
+  'Meru', 'Kakamega', 'Laikipia', 'Trans Nzoia'
+];
+
 /**
  * Calculates a fully transparent fee breakdown for any verification request.
  */

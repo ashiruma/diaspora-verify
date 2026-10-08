@@ -11,13 +11,13 @@ import { FORMAT_CURRENCY, hasStopPaymentWarning } from '../../data/mockData';
 import { useNavigate } from 'react-router-dom';
 
 export const ClientPaymentsView: React.FC = () => {
-  const { clientRequests, currency, payInvoice } = useVerification();
+  const { clientRequests, currency, payInvoice, currentUser } = useVerification();
   const navigate = useNavigate();
 
   const [selectedPaymentReq, setSelectedPaymentReq] = useState<any>(null);
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'card' | 'bank'>('mpesa');
-  const [phoneNumber, setPhoneNumber] = useState('+254 712 345 678');
+  const [phoneNumber, setPhoneNumber] = useState(currentUser?.phone || '');
   const [isProcessing, setIsProcessing] = useState(false);
   const [receiptModalReq, setReceiptModalReq] = useState<any>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -34,7 +34,7 @@ export const ClientPaymentsView: React.FC = () => {
 
   const handleOpenPay = (req: any) => {
     setSelectedPaymentReq(req);
-    setPhoneNumber(req.client?.phone || '+254 712 345 678');
+    setPhoneNumber(req.client?.phone || currentUser?.phone || '');
     setPayModalOpen(true);
   };
 
@@ -144,7 +144,14 @@ export const ClientPaymentsView: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {clientRequests.map((req) => {
+                {clientRequests.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-slate-500 text-xs">
+                      No invoices or payment transactions recorded yet. When you submit a verification request, your transparent fee invoice will appear here.
+                    </td>
+                  </tr>
+                ) : (
+                  clientRequests.map((req) => {
                   const isPaid = req.pricing.quoteStatus === 'paid';
                   const isStop = hasStopPaymentWarning(req);
 
@@ -207,7 +214,8 @@ export const ClientPaymentsView: React.FC = () => {
                       </td>
                     </tr>
                   );
-                })}
+                })
+                )}
               </tbody>
             </table>
           </div>

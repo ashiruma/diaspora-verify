@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Retrieve Supabase credentials supporting Vite and Next.js naming conventions
 const supabaseUrl = 
@@ -13,15 +13,69 @@ const supabaseAnonKey =
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
-export const supabase = isSupabaseConfigured 
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    })
-  : null;
+let _clientPromise: Promise<SupabaseClient | null> | null = null;
+let _clientInstance: SupabaseClient | null = null;
+
+export async function getSupabase(): Promise<SupabaseClient | null> {
+  if (_clientInstance) return _clientInstance;
+  if (!isSupabaseConfigured) return null;
+  if (!_clientPromise) {
+    _clientPromise = import('@supabase/supabase-js').then(({ createClient }) => {
+      _clientInstance = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      });
+      return _clientInstance;
+    }).catch(() => null);
+  }
+  return _clientPromise;
+}
+
+// Lazy client proxy ensuring zero static bundle weight until auth actions run
+export const supabase = isSupabaseConfigured ? ({
+  auth: {
+    getSession: async () => {
+      const client = await getSupabase();
+      return client ? client.auth.getSession() : { data: { session: null }, error: null };
+    },
+    onAuthStateChange: (callback: (event: any, session: any) => void) => {
+      let activeSub: { unsubscribe: () => void } | null = null;
+      let isUnsubscribed = false;
+      getSupabase().then(client => {
+        if (!client || isUnsubscribed) return;
+        const res = client.auth.onAuthStateChange(callback);
+        activeSub = res.data?.subscription || null;
+      });
+      return {
+        data: {
+          subscription: {
+            unsubscribe: () => {
+              isUnsubscribed = true;
+              if (activeSub) activeSub.unsubscribe();
+            }
+          }
+        }
+      };
+    },
+    signInWithPassword: async (credentials: any) => {
+      const client = await getSupabase();
+      if (!client) throw new Error('Supabase client failed to initialize');
+      return client.auth.signInWithPassword(credentials);
+    },
+    signUp: async (credentials: any) => {
+      const client = await getSupabase();
+      if (!client) throw new Error('Supabase client failed to initialize');
+      return client.auth.signUp(credentials);
+    },
+    signOut: async () => {
+      const client = await getSupabase();
+      if (client) return client.auth.signOut();
+    }
+  }
+} as unknown as SupabaseClient) : null;
 
 /**
  * Computes a SHA-256 cryptographic digest of any string or ArrayBuffer.

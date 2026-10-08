@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-route
 import { VerificationProvider, useVerification } from './context/VerificationContext';
 import { Navbar } from './components/Navbar';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 // Route-level code splitting & dynamic imports
 const LandingPage = lazy(() => import('./components/Marketing/LandingPage').then(m => ({ default: m.LandingPage })));
@@ -51,8 +52,9 @@ function AppRoutes() {
   return (
     <>
       <Navbar />
-      <Suspense fallback={<RouteLoadingFallback />}>
-        <Routes>
+      <ErrorBoundary>
+        <Suspense fallback={<RouteLoadingFallback />}>
+          <Routes>
           {/* Authentication Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -220,6 +222,7 @@ function AppRoutes() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
 
       {/* Global Ctrl+K / Cmd+K Search Command Menu */}
       <Suspense fallback={null}>

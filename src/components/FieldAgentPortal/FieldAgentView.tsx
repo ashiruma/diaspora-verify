@@ -14,13 +14,14 @@ import {
   DollarSign,
   Award,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Smartphone
 } from '../Icons';
 import { StatusBadge } from '../CommonBadges';
+import { EmptyState } from '../ui/EmptyState';
 
 export const FieldAgentView: React.FC = () => {
   const { 
-    requests,
     agentRequests,
     currentUser, 
     activeRequest, 
@@ -32,7 +33,7 @@ export const FieldAgentView: React.FC = () => {
     advanceRequestStatus
   } = useVerification();
 
-  const agentJobs = agentRequests.length > 0 ? agentRequests : requests.filter(r => r.assignedAgent?.id === 'agt-01');
+  const agentJobs = agentRequests;
   const [selectedReqId, setSelectedReqId] = useState<string>(
     agentJobs[0]?.id || activeRequest?.id || ''
   );
@@ -70,18 +71,19 @@ export const FieldAgentView: React.FC = () => {
   const [declineReason, setDeclineReason] = useState('');
   const [showDeclineForm, setShowDeclineForm] = useState(false);
 
-  const req = agentJobs.find(r => r.id === selectedReqId) || agentJobs[0] || requests[0];
+  const req = agentJobs.find(r => r.id === selectedReqId) || agentJobs[0];
   const agent = req?.assignedAgent || {
-    id: currentUser?.agentId || 'agt-01',
-    name: currentUser?.name || 'Eng. Evans Kiptoo',
-    phone: currentUser?.phone || '+254 722 419 802',
-    email: currentUser?.email || 'evans.kiptoo@diasporaverify.co.ke',
+    id: currentUser?.agentId || currentUser?.id || 'agent-live',
+    name: currentUser?.name || 'Field Verifier',
+    phone: currentUser?.phone || 'Field Phone Verified',
+    email: currentUser?.email || 'verifier@diasporaverify.co.ke',
     countyCoverage: ['Kiambu', 'Nairobi', 'Machakos', 'Kajiado'],
-    badgeLevel: 'Senior Structural Inspector (BORAQS Reg)',
+    badgeLevel: 'Senior Structural Inspector (BORAQS Reg)' as const,
     conflictClearanceSigned: true,
   };
 
   const handleSetChecklistStatus = (checkId: string, status: 'passed' | 'flagged' | 'inconclusive') => {
+    if (!req) return;
     updateChecklist(req.id, checkId, status);
     setToastMessage(`Checklist item updated to "${status.toUpperCase()}".`);
   };
@@ -92,6 +94,7 @@ export const FieldAgentView: React.FC = () => {
   };
 
   const handleSaveItemNote = (checkId: string, currentStatus: any) => {
+    if (!req) return;
     updateChecklist(req.id, checkId, currentStatus, itemNoteText);
     setEditingCheckId(null);
     setToastMessage('Observation note saved to checklist item.');
@@ -99,9 +102,10 @@ export const FieldAgentView: React.FC = () => {
 
   // Perform GPS Check-In
   const handleExecuteCheckIn = async () => {
+    if (!req) return;
     setIsCheckingIn(true);
     try {
-      const liveGPS = req.location.gpsCoords || '-1.2612, 36.8044';
+      const liveGPS = req.location?.gpsCoords || '-1.2612, 36.8044';
       const result = await performCheckIn(req.id, liveGPS, checkInNotes);
       if (result.success) {
         setToastMessage(`✓ GPS Ground Check-in recorded! Verified distance: ${result.distanceMeters}m from site marker.`);
@@ -117,6 +121,7 @@ export const FieldAgentView: React.FC = () => {
 
   // Handle Assignment Accept
   const handleAcceptAssignment = () => {
+    if (!req) return;
     if (!conflictCertified) {
       setToastMessage('Mandatory: You must certify zero conflict of interest before accepting this assignment.');
       return;
@@ -127,6 +132,7 @@ export const FieldAgentView: React.FC = () => {
 
   // Handle Assignment Reject
   const handleRejectAssignment = () => {
+    if (!req) return;
     if (!declineReason.trim()) {
       setToastMessage('Please provide a specific reason for declining or declaring conflict.');
       return;
@@ -139,6 +145,7 @@ export const FieldAgentView: React.FC = () => {
 
   // Handle Start Travelling
   const handleStartTravelling = () => {
+    if (!req) return;
     const res = advanceRequestStatus(req.id, 'TRAVELLING', 'Field agent departed for location.');
     if (res.success) {
       setToastMessage(`Status updated: Travelling to site for mission ${req.id}.`);
@@ -149,6 +156,7 @@ export const FieldAgentView: React.FC = () => {
 
   // Handle Final Mission Submission to QA Desk
   const handleSubmitMissionDossier = () => {
+    if (!req) return;
     if (req.evidence.length === 0) {
       setToastMessage('Mandatory: Upload at least 1 verified field photo before submitting mission dossier.');
       return;
@@ -164,6 +172,7 @@ export const FieldAgentView: React.FC = () => {
   // Submit Evidence with Progress & Offline Queue
   const handleAddEvidenceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!req) return;
     if (!photoTitle.trim()) {
       setToastMessage('Please enter a photo title or angle description.');
       return;
@@ -242,7 +251,7 @@ export const FieldAgentView: React.FC = () => {
     { label: 'Completed Masonry Walling', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=720&auto=format&fit=crop&q=75&fm=webp' },
   ];
 
-  const isAssignedPendingAcceptance = req.requestStatus === 'AGENT_ASSIGNED';
+  const isAssignedPendingAcceptance = req ? req.requestStatus === 'AGENT_ASSIGNED' : false;
   const activeJob = req;
   const upcomingJob = agentJobs.find(j => j.id !== req?.id);
   const agentFirstName = (currentUser?.name || agent.name || 'Agent').replace(/^(Eng\.|Dr\.|Mr\.|Ms\.)\s*/, '').split(' ')[0];
@@ -319,8 +328,17 @@ export const FieldAgentView: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. ACTIVE ASSIGNMENT — Primary Focus & Action */}
-      <div className="bg-white rounded-3xl border-2 border-slate-900 p-5 sm:p-6 shadow-sm space-y-4">
+      {!activeJob ? (
+        <EmptyState
+          icon={<Smartphone className="w-8 h-8 text-slate-400" />}
+          title="No Active Field Assignments"
+          description="You currently have zero pending site assignments. Once Nairobi HQ Operations verifies client payment and assigns a site verification to your profile, it will appear here with GPS navigation, checklist instructions, and evidence capture tools."
+          className="bg-white border-slate-200 py-16"
+        />
+      ) : (
+        <>
+          {/* 3. ACTIVE ASSIGNMENT — Primary Focus & Action */}
+          <div className="bg-white rounded-3xl border-2 border-slate-900 p-5 sm:p-6 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white">
@@ -1134,6 +1152,8 @@ export const FieldAgentView: React.FC = () => {
           )}
         </div>
       </div>
+        </>
+      )}
 
     </div>
   );

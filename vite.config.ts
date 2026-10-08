@@ -21,6 +21,9 @@ export default defineConfig({
             }
             return 'vendor-libs'
           }
+          if (id.includes('VerificationContext') || id.includes('mockData')) {
+            return 'app-context'
+          }
         },
       },
     },

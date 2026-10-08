@@ -15,8 +15,7 @@ import {
   CheckCircle2,
   Phone
 } from '../Icons';
-import { FORMAT_CURRENCY, KENYA_COUNTIES } from '../../data/mockData';
-import { calculateFeeBreakdown } from '../../services/paymentService';
+import { calculateFeeBreakdown, formatCurrency, KENYA_COUNTIES } from '../../services/paymentService';
 import type { CurrencyCode, ServiceCategory } from '../../types';
 
 interface LandingPageProps {
@@ -443,7 +442,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div>
                   <span className="text-[11px] text-slate-400 block">Indicative Comprehensive Fee</span>
                   <div className="text-2xl sm:text-3xl font-black text-emerald-400">
-                    {FORMAT_CURRENCY(feeBreakdown.totalKES, estCurrency)}
+                    {formatCurrency(feeBreakdown.totalKES, estCurrency)}
                   </div>
                 </div>
 
@@ -459,19 +458,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-400">
                 <div>
                   <span className="text-[10px] text-slate-500 block">Service Base Fee</span>
-                  <span className="font-semibold text-slate-200">{FORMAT_CURRENCY(feeBreakdown.serviceBaseFeeKES, estCurrency)}</span>
+                  <span className="font-semibold text-slate-200">{formatCurrency(feeBreakdown.serviceBaseFeeKES, estCurrency)}</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-500 block">County Travel Logistics</span>
-                  <span className="font-semibold text-slate-200">{FORMAT_CURRENCY(feeBreakdown.countyTravelFeeKES, estCurrency)}</span>
+                  <span className="font-semibold text-slate-200">{formatCurrency(feeBreakdown.countyTravelFeeKES, estCurrency)}</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-500 block">Calibrated Equipment QA</span>
-                  <span className="font-semibold text-slate-200">{FORMAT_CURRENCY(feeBreakdown.fieldOperationsFeeKES, estCurrency)}</span>
+                  <span className="font-semibold text-slate-200">{formatCurrency(feeBreakdown.fieldOperationsFeeKES, estCurrency)}</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-500 block">Nairobi HQ Platform QA</span>
-                  <span className="font-semibold text-slate-200">{FORMAT_CURRENCY(feeBreakdown.platformFeeKES, estCurrency)}</span>
+                  <span className="font-semibold text-slate-200">{formatCurrency(feeBreakdown.platformFeeKES, estCurrency)}</span>
                 </div>
               </div>
             </div>
