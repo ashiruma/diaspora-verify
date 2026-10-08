@@ -191,7 +191,7 @@ export function HomePage({
           {/* RIGHT COLUMN - REPORT CARD PREVIEW */}
           <div className="relative mx-auto w-full max-w-[500px]">
             {/* Floating location */}
-            <div className="absolute -left-5 top-10 z-20 hidden rounded-xl border border-white/10 bg-white p-3 shadow-2xl sm:flex">
+            <div className="absolute left-0 md:-left-5 top-10 z-20 hidden rounded-xl border border-white/10 bg-white p-3 shadow-2xl md:flex">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50">
                 <MapPin className="h-5 w-5 text-emerald-600" />
               </div>
@@ -267,7 +267,7 @@ export function HomePage({
             </div>
 
             {/* Floating verifier badge */}
-            <div className="absolute -bottom-5 -right-5 hidden rounded-xl border border-white/10 bg-white p-3 shadow-2xl sm:block">
+            <div className="absolute -bottom-5 right-0 md:-right-5 hidden rounded-xl border border-white/10 bg-white p-3 shadow-2xl md:block">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#061329] text-xs font-bold text-white">
                   JV

@@ -144,27 +144,27 @@ export const Navbar: React.FC = () => {
 
       {/* Admin Presence Bar: Displayed when an authenticated Admin is viewing public pages */}
       {isAuthenticated && currentUser && currentNormalizedRole === 'admin' && isPublicPage && (
-        <div className="bg-[#061329] text-slate-300 text-xs py-1.5 px-4 sm:px-6 border-b border-slate-800">
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+        <div className="bg-[#061329] text-slate-300 text-xs py-1.5 px-3 sm:px-6 border-b border-slate-800 w-full max-w-full overflow-hidden">
+          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 max-w-full">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
                 ADMIN ACTIVE
               </span>
-              <span className="text-slate-300 text-xs font-medium">
+              <span className="text-slate-300 text-xs font-medium truncate">
                 Viewing Public Site as <strong className="text-white">{currentUser.name}</strong> ({currentNormalizedRole.toUpperCase()})
               </span>
             </div>
-            <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-3 text-xs shrink-0">
               <button
                 onClick={() => handleNav('/admin')}
                 className="font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <span>Return to Operations Desk →</span>
               </button>
-              <span className="text-slate-600">|</span>
+              <span className="text-slate-600 hidden sm:inline">|</span>
               <button
                 onClick={() => handleNav('/cockpit')}
-                className="text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="text-slate-300 hover:text-white transition-colors cursor-pointer hidden sm:inline"
               >
                 <span>Financial Cockpit ↗</span>
               </button>
@@ -175,18 +175,18 @@ export const Navbar: React.FC = () => {
 
       {/* Public Trust Anchor Bar (Displayed only for unauthenticated guests) */}
       {!isAuthenticated || !currentUser ? (
-        <div className="bg-[#061329] text-slate-300 text-xs py-1.5 px-4 sm:px-6 border-b border-slate-800/80">
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide bg-emerald-400/10 text-emerald-300 border border-emerald-400/30">
+        <div className="bg-[#061329] text-slate-300 text-xs py-1.5 px-3 sm:px-6 border-b border-slate-800/80 w-full max-w-full overflow-hidden">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide bg-emerald-400/10 text-emerald-300 border border-emerald-400/30 shrink-0">
                 KENYA GROUND VERIFICATION
               </span>
-              <span className="hidden sm:inline text-slate-300 text-[11px]">
+              <span className="hidden sm:inline text-slate-300 text-[11px] truncate">
                 Independent on-ground due diligence
               </span>
             </div>
 
-            <div className="flex items-center gap-4 text-[11px]">
+            <div className="flex items-center gap-2 sm:gap-4 text-[11px] shrink-0">
               <button 
                 onClick={() => handleAnchorNav('#how-it-works', '/service-model')} 
                 className="text-slate-300 hover:text-white transition-colors cursor-pointer"
@@ -196,11 +196,11 @@ export const Navbar: React.FC = () => {
               <span className="text-slate-700">|</span>
               <button 
                 onClick={() => handleNav('/legal')} 
-                className="text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="text-slate-300 hover:text-white transition-colors cursor-pointer hidden xs:inline"
               >
                 Legal & Compliance
               </button>
-              <span className="text-slate-700">|</span>
+              <span className="text-slate-700 hidden xs:inline">|</span>
               <button 
                 onClick={() => handleNav('/')} 
                 className="text-emerald-300 hover:text-emerald-200 font-bold transition-colors cursor-pointer"
@@ -213,34 +213,34 @@ export const Navbar: React.FC = () => {
       ) : null}
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16 gap-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 w-full max-w-full overflow-hidden">
+        <div className="flex items-center justify-between h-16 gap-2 sm:gap-3 min-w-0">
           
           {/* Logo & Brand */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
             <button
               onClick={() => handleNav(!isAuthenticated || !currentUser ? '/' : currentNormalizedRole === 'admin' ? '/admin' : currentNormalizedRole === 'agent' ? '/agent' : '/dashboard')}
-              className="flex items-center gap-2.5 text-left group cursor-pointer"
+              className="flex items-center gap-2 sm:gap-2.5 text-left group cursor-pointer"
             >
-              <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs group-hover:bg-emerald-700 transition-colors">
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs group-hover:bg-emerald-700 transition-colors shrink-0">
+                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-lg font-bold font-display tracking-tight text-slate-900">
+                  <span className="text-base sm:text-lg font-bold font-display tracking-tight text-slate-900">
                     Diaspora<span className="text-emerald-700">Verify</span>
                   </span>
                   {isAuthenticated && currentUser ? (
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 hidden sm:inline-block">
                       {currentNormalizedRole.toUpperCase()}
                     </span>
                   ) : (
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 hidden sm:inline-block">
                       KENYA PILOT
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-slate-400 font-medium hidden sm:block">
+                <p className="text-[10px] text-slate-400 font-medium hidden md:block">
                   Field Verification & Safeguarding
                 </p>
               </div>
@@ -248,7 +248,7 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 py-1">
+          <nav className="hidden xl:flex items-center gap-1 py-1">
             {!isAuthenticated || !currentUser ? (
               <>
                 <button
@@ -375,7 +375,7 @@ export const Navbar: React.FC = () => {
                 {currentNormalizedRole === 'admin' && (
                   <button
                     onClick={() => setCommandMenuOpen(true)}
-                    className="hidden md:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-slate-600 transition-colors cursor-pointer"
+                    className="hidden xl:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-slate-600 transition-colors cursor-pointer"
                     title="Search records (Ctrl+K or ⌘K)"
                   >
                     <Search className="w-3.5 h-3.5 text-slate-400" />
@@ -390,7 +390,7 @@ export const Navbar: React.FC = () => {
                 {currentNormalizedRole === 'admin' && (
                   <button
                     onClick={() => setViewAsModalOpen(true)}
-                    className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-900 border border-amber-200/90 hover:bg-amber-500/20 whitespace-nowrap transition-colors cursor-pointer"
+                    className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-900 border border-amber-200/90 hover:bg-amber-500/20 whitespace-nowrap transition-colors cursor-pointer"
                     title="View Experience as Client or Agent"
                   >
                     <Eye className="w-3.5 h-3.5 text-amber-700" />
@@ -466,7 +466,7 @@ export const Navbar: React.FC = () => {
                     <div className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
                       {currentUser?.name?.[0]?.toUpperCase() || 'U'}
                     </div>
-                    <div className="text-left hidden md:block leading-tight">
+                    <div className="text-left hidden xl:block leading-tight">
                       <div className="text-xs font-bold text-slate-900 truncate max-w-[110px]">
                         {currentUser?.name?.split(' ')[0] || 'Account'}
                       </div>
@@ -645,7 +645,7 @@ export const Navbar: React.FC = () => {
                 {/* Mobile Menu Toggle Button */}
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="md:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                  className="xl:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
                   aria-label="Toggle navigation menu"
                 >
                   {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -659,7 +659,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1 shadow-lg animate-in fade-in duration-150">
+        <div className="xl:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1 shadow-lg animate-in fade-in duration-150">
           {!isAuthenticated || !currentUser ? (
             <>
               <button

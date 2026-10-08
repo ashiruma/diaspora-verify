@@ -41,7 +41,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
   const firstName = currentUser?.name?.split(' ')[0] || 'Client';
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans text-left">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8 font-sans text-left">
       
       {/* 1. Header & Primary Dominant Quick Action */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-200/80">
@@ -68,7 +68,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
       </div>
 
       {/* 2. Restrained Operational Summary Bar (No excessive statistics) */}
-      <div className="flex flex-wrap items-center gap-6 py-3 px-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs text-xs">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-6 py-3 px-3.5 sm:px-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs text-xs">
         <div className="flex items-center gap-2.5">
           <span className="text-slate-400 font-medium">Active Requests:</span>
           <span className="font-bold text-slate-900 font-mono text-sm bg-slate-100 px-2 py-0.5 rounded-md">
@@ -87,7 +87,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
 
         <div className="h-4 w-px bg-slate-200 hidden sm:block" />
 
-        <div className="text-slate-400 flex items-center gap-1.5 ml-auto text-[11px]">
+        <div className="text-slate-400 hidden sm:flex items-center gap-1.5 ml-auto text-[11px]">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
           <span>Independent on-ground due diligence</span>
         </div>
@@ -130,7 +130,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
             {activeRequests.map((req) => (
               <div
                 key={req.id}
-                className="bg-white rounded-2xl border border-slate-200/90 hover:border-slate-300 p-5 shadow-xs transition-all duration-150 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="bg-white rounded-2xl border border-slate-200/90 hover:border-slate-300 p-4 sm:p-5 shadow-xs transition-all duration-150 flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
                 {/* Left: ID, Service, Location & Title */}
                 <div className="space-y-1.5 max-w-xl">

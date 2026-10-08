@@ -446,10 +446,10 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
     }));
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 py-6 font-sans">
+    <div className="space-y-6 max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 font-sans">
       
       {/* Top Operational Counters (Operations Center Command Overview) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Counter 1: Requiring Attention */}
         <button 
           onClick={() => {
@@ -460,7 +460,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
               handleTabChange('operations');
             }
           }}
-          className="bg-white rounded-2xl border border-rose-200 hover:border-rose-300 p-4 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
+          className="bg-white rounded-2xl border border-rose-200 hover:border-rose-300 p-3.5 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
         >
           <div className="flex items-center justify-between text-xs font-semibold text-rose-800">
             <span>Requiring Attention</span>
@@ -478,7 +478,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
         {/* Counter 2: Overdue / Critical SLA */}
         <button 
           onClick={() => handleTabChange('requests')}
-          className="bg-white rounded-2xl border border-amber-200 hover:border-amber-300 p-4 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
+          className="bg-white rounded-2xl border border-amber-200 hover:border-amber-300 p-3.5 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
         >
           <div className="flex items-center justify-between text-xs font-semibold text-amber-800">
             <span>Overdue / Critical SLA</span>
@@ -495,7 +495,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
         {/* Counter 3: Awaiting QA Review */}
         <button 
           onClick={() => handleTabChange('reports')}
-          className="bg-white rounded-2xl border border-blue-200 hover:border-blue-300 p-4 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
+          className="bg-white rounded-2xl border border-blue-200 hover:border-blue-300 p-3.5 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
         >
           <div className="flex items-center justify-between text-xs font-semibold text-blue-800">
             <span>Awaiting Review</span>
@@ -512,7 +512,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
         {/* Counter 4: Open Disputes */}
         <button 
           onClick={() => handleTabChange('disputes')}
-          className="bg-white rounded-2xl border border-purple-200 hover:border-purple-300 p-4 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
+          className="bg-white rounded-2xl border border-purple-200 hover:border-purple-300 p-3.5 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
         >
           <div className="flex items-center justify-between text-xs font-semibold text-purple-800">
             <span>Open Disputes</span>
@@ -528,7 +528,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
       </div>
 
       {/* Operations Header & Tab Switcher */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
