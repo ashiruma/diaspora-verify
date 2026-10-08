@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useVerification } from '../../context/VerificationContext';
 import { 
@@ -54,35 +54,27 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
   } = useVerification();
 
   const [selectedReqId, setSelectedReqId] = useState<string>(requests[0]?.id || '');
-  const [activeTab, setActiveTab] = useState<OperationsTab>('operations');
-
-  // Sync activeTab with ?tab= search param
   const tabParam = searchParams.get('tab');
-  useEffect(() => {
-    if (tabParam === 'requests' || tabParam === 'triage') {
-      setActiveTab('requests');
-    } else if (tabParam === 'assignments') {
-      setActiveTab('assignments');
-    } else if (tabParam === 'agents') {
-      setActiveTab('agents');
-    } else if (tabParam === 'clients') {
-      setActiveTab('clients');
-    } else if (tabParam === 'reports' || tabParam === 'qa') {
-      setActiveTab('reports');
-    } else if (tabParam === 'payments') {
-      setActiveTab('payments');
-    } else if (tabParam === 'disputes') {
-      setActiveTab('disputes');
-    } else if (tabParam === 'analytics' || tabParam === 'map') {
-      setActiveTab('analytics');
-    } else if (tabParam === 'services') {
-      setActiveTab('services');
-    } else if (tabParam === 'settings' || tabParam === 'audit') {
-      setActiveTab('settings');
-    } else {
-      setActiveTab('operations');
-    }
-  }, [tabParam]);
+  const getTabFromParam = (param: string | null): OperationsTab => {
+    if (param === 'requests' || param === 'triage') return 'requests';
+    if (param === 'assignments') return 'assignments';
+    if (param === 'agents') return 'agents';
+    if (param === 'clients') return 'clients';
+    if (param === 'reports' || param === 'qa') return 'reports';
+    if (param === 'payments') return 'payments';
+    if (param === 'disputes') return 'disputes';
+    if (param === 'analytics' || param === 'map') return 'analytics';
+    if (param === 'services') return 'services';
+    if (param === 'settings' || param === 'audit') return 'settings';
+    return 'operations';
+  };
+
+  const [activeTab, setActiveTab] = useState<OperationsTab>(() => getTabFromParam(tabParam));
+  const [prevTabParam, setPrevTabParam] = useState(tabParam);
+  if (tabParam !== prevTabParam) {
+    setPrevTabParam(tabParam);
+    setActiveTab(getTabFromParam(tabParam));
+  }
 
   const handleTabChange = (tab: OperationsTab) => {
     setActiveTab(tab);
@@ -1406,6 +1398,10 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                   <img
                     src={agt.avatarUrl}
                     alt={agt.name}
+                    width={48}
+                    height={48}
+                    loading="lazy"
+                    decoding="async"
                     className="w-12 h-12 rounded-full object-cover border border-slate-200"
                   />
                   <div>
@@ -1833,6 +1829,10 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                         <img
                           src={agt.avatarUrl}
                           alt={agt.name}
+                          width={36}
+                          height={36}
+                          loading="lazy"
+                          decoding="async"
                           className="w-9 h-9 rounded-full object-cover border border-slate-200"
                         />
                         <div>

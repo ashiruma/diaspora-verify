@@ -34,6 +34,10 @@ export const Avatar: React.FC<AvatarProps> = ({
         <img
           src={src}
           alt={name}
+          width={size === 'sm' ? 28 : size === 'lg' ? 48 : 36}
+          height={size === 'sm' ? 28 : size === 'lg' ? 48 : 36}
+          loading="lazy"
+          decoding="async"
           className={`${sizeClasses[size]} rounded-full object-cover ring-2 ring-white ${className}`}
         />
       ) : (

@@ -20,8 +20,8 @@ export const MOCK_PROPERTIES: PropertyRecord[] = [
     inspectionHistoryCount: 3,
     notes: 'Active building project. Requires photographic milestone comparisons and cement inventory reconciliations.',
     verifiedImages: [
-      'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?w=720&auto=format&fit=crop&q=75&fm=webp',
+      'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=720&auto=format&fit=crop&q=75&fm=webp'
     ]
   },
   {
@@ -43,7 +43,7 @@ export const MOCK_PROPERTIES: PropertyRecord[] = [
     inspectionHistoryCount: 2,
     notes: 'Tea bushes and perimeter cypress fencing. Verifying farm manager crop sales and fertilizer delivery.',
     verifiedImages: [
-      'https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=800&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=720&auto=format&fit=crop&q=75&fm=webp'
     ]
   },
   {
@@ -65,7 +65,7 @@ export const MOCK_PROPERTIES: PropertyRecord[] = [
     inspectionHistoryCount: 1,
     notes: 'Vacant plot. Risk of perimeter encroachment or illegal quarrying. Needs quarterly boundary beacon check.',
     verifiedImages: [
-      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=720&auto=format&fit=crop&q=75&fm=webp'
     ]
   }
 ];

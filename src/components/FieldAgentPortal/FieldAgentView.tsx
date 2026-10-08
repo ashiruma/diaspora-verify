@@ -42,7 +42,7 @@ export const FieldAgentView: React.FC = () => {
   const [photoAngle, setPhotoAngle] = useState('Repeat Camera Angle 1 (North-East Perimeter)');
   const [photoNotes, setPhotoNotes] = useState('');
   const [photoUncertainty, setPhotoUncertainty] = useState('');
-  const [simulatedImageUrl, setSimulatedImageUrl] = useState('https://images.unsplash.com/photo-1541888946425-d0fbb1861593?w=800&auto=format&fit=crop&q=80');
+  const [simulatedImageUrl, setSimulatedImageUrl] = useState('https://images.unsplash.com/photo-1541888946425-d0fbb1861593?w=720&auto=format&fit=crop&q=75&fm=webp');
 
   // Active editing checklist item
   const [editingCheckId, setEditingCheckId] = useState<string | null>(null);
@@ -236,10 +236,10 @@ export const FieldAgentView: React.FC = () => {
 
   // Sample photo choices for simulated camera
   const samplePhotos = [
-    { label: 'Slab / Columns Underway', url: 'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?w=800&auto=format&fit=crop&q=80' },
-    { label: 'Cement / Materials Shed', url: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&auto=format&fit=crop&q=80' },
-    { label: 'Perimeter Boundary Fence', url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80' },
-    { label: 'Completed Masonry Walling', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80' },
+    { label: 'Slab / Columns Underway', url: 'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?w=720&auto=format&fit=crop&q=75&fm=webp' },
+    { label: 'Cement / Materials Shed', url: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=720&auto=format&fit=crop&q=75&fm=webp' },
+    { label: 'Perimeter Boundary Fence', url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=720&auto=format&fit=crop&q=75&fm=webp' },
+    { label: 'Completed Masonry Walling', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=720&auto=format&fit=crop&q=75&fm=webp' },
   ];
 
   const isAssignedPendingAcceptance = req.requestStatus === 'AGENT_ASSIGNED';
@@ -931,6 +931,10 @@ export const FieldAgentView: React.FC = () => {
             <img
               src={simulatedImageUrl}
               alt="Live Viewfinder"
+              width={640}
+              height={360}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover opacity-90"
             />
             
@@ -1059,7 +1063,15 @@ export const FieldAgentView: React.FC = () => {
           {req.evidence.map((ev) => (
             <div key={ev.id} className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50 p-2.5 space-y-2 shadow-sm">
               <div className="h-36 rounded-xl overflow-hidden bg-slate-900">
-                <img src={ev.url} alt={ev.title} className="w-full h-full object-cover" />
+                <img
+                  src={ev.url}
+                  alt={ev.title}
+                  width={360}
+                  height={144}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="space-y-1">
                 <div className="font-bold text-xs text-slate-900 line-clamp-1">{ev.title}</div>

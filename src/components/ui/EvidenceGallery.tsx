@@ -83,8 +83,11 @@ export const EvidenceGallery: React.FC<EvidenceGalleryProps> = ({
                 <img
                   src={item.url}
                   alt={item.title}
+                  width={320}
+                  height={180}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   loading="lazy"
+                  decoding="async"
                 />
 
                 <div className="absolute top-2 left-2">

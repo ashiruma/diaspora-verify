@@ -613,6 +613,10 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
                   <img
                     src={req.assignedAgent.avatarUrl}
                     alt={req.assignedAgent.name}
+                    width={48}
+                    height={48}
+                    loading="lazy"
+                    decoding="async"
                     className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow-sm"
                   />
                   <div>

@@ -16,9 +16,8 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ isOpen, onClose }) => 
 
   useEffect(() => {
     if (isOpen) {
-      setQuery('');
-      setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      const timer = setTimeout(() => inputRef.current?.focus(), 50);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -140,7 +139,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ isOpen, onClose }) => 
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, selectedIndex, filteredItems]);
+  }, [isOpen, selectedIndex, filteredItems, onClose]);
 
   if (!isOpen) return null;
 

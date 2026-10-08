@@ -197,6 +197,7 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const [commandMenuOpen, setCommandMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
 
   const login = useCallback((user: AuthenticatedUser, remember: boolean = true) => {
     setCurrentUser(user);
@@ -417,7 +418,6 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return MOCK_DISPUTES;
   });
 
-  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [organizations] = useState<OrganizationRecord[]>(MOCK_ORGANIZATIONS);
   const [activeOrgId, setActiveOrgId] = useState<string>('org-001');

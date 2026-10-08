@@ -357,7 +357,15 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
               {request.evidence.map((ev) => (
                 <div key={ev.id} className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 space-y-2 p-2">
                   <div className="h-44 rounded-lg overflow-hidden bg-slate-900">
-                    <img src={ev.url} alt={ev.title} className="w-full h-full object-cover" />
+                    <img
+                      src={ev.url}
+                      alt={ev.title}
+                      width={400}
+                      height={176}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div className="px-1 text-xs space-y-1">
                     <div className="font-bold text-slate-900">{ev.title}</div>

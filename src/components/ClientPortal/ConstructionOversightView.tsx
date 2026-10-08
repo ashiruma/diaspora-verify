@@ -344,6 +344,8 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
                       <img
                         src={currentComparison.currentPhotoUrl}
                         alt="Current Visit"
+                        loading="lazy"
+                        decoding="async"
                         className="absolute inset-0 w-full h-full object-cover"
                       />
                       <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur text-white px-2.5 py-1 rounded-md text-[11px] font-bold z-10 border border-white/20">
@@ -358,6 +360,8 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
                         <img
                           src={currentComparison.previousPhotoUrl}
                           alt="Previous Baseline"
+                          loading="lazy"
+                          decoding="async"
                           className="absolute inset-0 w-full h-full object-cover"
                         />
                         <div className="absolute top-3 left-3 bg-emerald-950/80 backdrop-blur text-emerald-200 px-2.5 py-1 rounded-md text-[11px] font-bold z-10 border border-emerald-500/30">
@@ -401,6 +405,8 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
                         <img
                           src={currentComparison.previousPhotoUrl}
                           alt="Previous"
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -415,6 +421,8 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
                         <img
                           src={currentComparison.currentPhotoUrl}
                           alt="Current"
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover"
                         />
                       </div>

@@ -21,10 +21,22 @@ export const EvidenceViewerModal: React.FC<EvidenceViewerModalProps> = ({
   const [showMetadata, setShowMetadata] = useState(true);
   const [copiedHash, setCopiedHash] = useState(false);
 
-  useEffect(() => {
+  const handleNext = React.useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % (items.length || 1));
+    setZoomLevel(1);
+  }, [items.length]);
+
+  const handlePrev = React.useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + (items.length || 1)) % (items.length || 1));
+    setZoomLevel(1);
+  }, [items.length]);
+
+  const [prevInitialIndex, setPrevInitialIndex] = useState(initialIndex);
+  if (initialIndex !== prevInitialIndex) {
+    setPrevInitialIndex(initialIndex);
     setCurrentIndex(initialIndex);
     setZoomLevel(1);
-  }, [initialIndex, isOpen]);
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -35,21 +47,11 @@ export const EvidenceViewerModal: React.FC<EvidenceViewerModalProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentIndex, items.length]);
+  }, [isOpen, handleNext, handlePrev, onClose]);
 
   if (!isOpen || items.length === 0) return null;
 
   const currentItem = items[currentIndex] || items[0];
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % items.length);
-    setZoomLevel(1);
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
-    setZoomLevel(1);
-  };
 
   const handleCopyHash = () => {
     if (currentItem.sha256Hash) {
@@ -173,6 +175,9 @@ export const EvidenceViewerModal: React.FC<EvidenceViewerModalProps> = ({
               <img
                 src={currentItem.url}
                 alt={currentItem.title}
+                width={800}
+                height={600}
+                decoding="async"
                 className="max-h-[80vh] max-w-full object-contain rounded-lg shadow-2xl select-none"
               />
             </div>

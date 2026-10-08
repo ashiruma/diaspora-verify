@@ -59,7 +59,7 @@ export const PropertyPortfolioView: React.FC<PropertyPortfolioViewProps> = ({ on
       nextInspectionDate: new Date(Date.now() + 86400000 * (monitoringPlan === 'Monthly' ? 30 : monitoringPlan === 'Quarterly' ? 90 : 180)).toISOString().substring(0, 10),
       notes,
       verifiedImages: [
-        'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80'
+        'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=720&auto=format&fit=crop&q=75&fm=webp'
       ]
     });
 
@@ -158,8 +158,12 @@ export const PropertyPortfolioView: React.FC<PropertyPortfolioViewProps> = ({ on
             {/* Visual Cover */}
             <div className="relative h-44 bg-slate-100 overflow-hidden">
               <img
-                src={prop.verifiedImages?.[0] || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80'}
+                src={prop.verifiedImages?.[0] || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=720&auto=format&fit=crop&q=75&fm=webp'}
                 alt={prop.title}
+                width={400}
+                height={176}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
               <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
