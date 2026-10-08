@@ -20,7 +20,9 @@ import { StatusBadge } from '../CommonBadges';
 
 export const FieldAgentView: React.FC = () => {
   const { 
-    requests, 
+    requests,
+    agentRequests,
+    currentUser, 
     activeRequest, 
     updateChecklist, 
     addEvidence,
@@ -30,7 +32,10 @@ export const FieldAgentView: React.FC = () => {
     advanceRequestStatus
   } = useVerification();
 
-  const [selectedReqId, setSelectedReqId] = useState<string>(activeRequest?.id || requests[0]?.id || '');
+  const agentJobs = agentRequests.length > 0 ? agentRequests : requests.filter(r => r.assignedAgent?.id === 'agt-01');
+  const [selectedReqId, setSelectedReqId] = useState<string>(
+    agentJobs[0]?.id || activeRequest?.id || ''
+  );
 
   // Evidence upload form state
   const [photoTitle, setPhotoTitle] = useState('');
@@ -65,12 +70,12 @@ export const FieldAgentView: React.FC = () => {
   const [declineReason, setDeclineReason] = useState('');
   const [showDeclineForm, setShowDeclineForm] = useState(false);
 
-  const req = requests.find(r => r.id === selectedReqId) || requests[0];
-  const agent = req.assignedAgent || {
-    id: 'agt-01',
-    name: 'Eng. Peter Mwangi',
-    phone: '+254 712 345 678',
-    email: 'p.mwangi@diaspora-verify.ke',
+  const req = agentJobs.find(r => r.id === selectedReqId) || agentJobs[0] || requests[0];
+  const agent = req?.assignedAgent || {
+    id: currentUser.agentId || 'agt-01',
+    name: currentUser.name || 'Eng. Evans Kiptoo',
+    phone: currentUser.phone || '+254 722 419 802',
+    email: currentUser.email || 'evans.kiptoo@diasporaverify.co.ke',
     countyCoverage: ['Kiambu', 'Nairobi', 'Machakos', 'Kajiado'],
     badgeLevel: 'Senior Structural Inspector (BORAQS Reg)',
     conflictClearanceSigned: true,
@@ -238,82 +243,228 @@ export const FieldAgentView: React.FC = () => {
   ];
 
   const isAssignedPendingAcceptance = req.requestStatus === 'AGENT_ASSIGNED';
+  const activeJob = req;
+  const upcomingJob = agentJobs.find(j => j.id !== req?.id);
+  const agentFirstName = (currentUser.name || agent.name || 'Agent').replace(/^(Eng\.|Dr\.|Mr\.|Ms\.)\s*/, '').split(' ')[0];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6 text-left font-sans">
       
-      {/* Top Banner */}
-      <div className="bg-slate-900 text-white rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+      {/* 1. Header: Good morning, [Agent] */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200">
+        <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              FIELD VERIFIER APP • MOBILE GROUND MODE
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-200">
+              Field Verifier Workspace
             </span>
-            <span className="text-xs text-slate-400">Nairobi Operations Network</span>
+            <span className="text-[11px] text-slate-500 font-mono flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              GPS Calibrated
+            </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold font-display text-white mt-1">
-            Ground Verification & Evidence Capture
+          <h1 className="text-2xl font-bold font-display text-slate-900 tracking-tight">
+            Good morning, {agentFirstName}
           </h1>
-          <p className="text-xs text-slate-300 max-w-xl">
-            Execute inspection checklist, capture calibrated repeat-angle photographs, log verified materials, and flag on-ground uncertainties.
+          <p className="text-xs text-slate-500">
+            What do you need to do today? You have <strong>{agentJobs.length} assignments</strong> scheduled on your route.
           </p>
         </div>
 
-        {/* Live GPS Telemetry Indicator */}
-        <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-3 text-xs space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-bold text-white">Verifier: {agent.name}</span>
-          </div>
-          <div className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-            GPS: {req.location.gpsCoords}
+        <div className="flex items-center gap-2 text-xs">
+          <div className="bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 font-semibold flex items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Nairobi Hub</span>
           </div>
         </div>
       </div>
 
-      {/* Agent Trust & Earnings Dashboard */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold mb-1">
-              <Award className="w-4 h-4 text-amber-500" />
-              <span>Verifier Rating</span>
+      {/* 2. Today's Earnings & Performance Summary (Restrained, no admin clutter) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Today's Earnings */}
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
+          <div className="space-y-0.5">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+              <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Today's Earnings</span>
             </div>
-            <div className="text-lg font-bold text-slate-900">4.96 <span className="text-xs text-amber-600">★★★★★</span></div>
-            <div className="text-[10px] text-slate-500">54 verified field audits</div>
+            <div className="text-xl font-bold text-slate-900 font-mono">
+              KES 14,500
+            </div>
+            <div className="text-[10px] text-emerald-700 font-medium">
+              Instant M-Pesa B2C payout upon QA clearance
+            </div>
+          </div>
+          <span className="text-xs font-bold px-2 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
+            Active Tier
+          </span>
+        </div>
+
+        {/* Performance Summary */}
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
+          <div className="space-y-0.5">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+              <Award className="w-3.5 h-3.5 text-amber-500" />
+              <span>Performance Summary</span>
+            </div>
+            <div className="text-xl font-bold text-slate-900 flex items-center gap-1">
+              4.96 <span className="text-amber-500 text-sm">★★★★★</span>
+            </div>
+            <div className="text-[10px] text-slate-500">
+              54 verified audits · 100% Conflict clearance
+            </div>
+          </div>
+          <span className="text-xs font-bold px-2 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">
+            Top Rated
+          </span>
+        </div>
+      </div>
+
+      {/* 3. ACTIVE ASSIGNMENT — Primary Focus & Action */}
+      <div className="bg-white rounded-3xl border-2 border-slate-900 p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white">
+              ACTIVE ASSIGNMENT
+            </span>
+            <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+              {activeJob.id}
+            </span>
+          </div>
+          <StatusBadge status={activeJob.status} size="sm" />
+        </div>
+
+        <div>
+          <h2 className="text-lg font-bold text-slate-900">
+            {activeJob.title}
+          </h2>
+          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1">
+            <span className="flex items-center gap-1 text-slate-700 font-medium">
+              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+              {activeJob.location.town}, {activeJob.location.county} ({activeJob.location.landmark || 'Site Beacon'})
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              Scheduled: {activeJob.scheduledVisitDate || 'Today'}
+            </span>
+          </div>
+        </div>
+
+        {/* Primary Action Button: Start Assignment */}
+        <div className="pt-2 flex flex-col sm:flex-row items-center gap-2.5">
+          {isAssignedPendingAcceptance ? (
+            <button
+              onClick={() => {
+                setConflictCertified(true);
+                handleAcceptAssignment();
+              }}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-slate-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+            >
+              <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />
+              <span>Accept & Start Assignment</span>
+            </button>
+          ) : activeJob.requestStatus === 'ACCEPTED' ? (
+            <button
+              onClick={handleStartTravelling}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+            >
+              <Clock className="w-4 h-4 stroke-[2.5]" />
+              <span>Start Assignment (Depart to Site)</span>
+            </button>
+          ) : activeJob.requestStatus === 'TRAVELLING' ? (
+            <button
+              onClick={handleExecuteCheckIn}
+              disabled={isCheckingIn}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+            >
+              <MapPin className="w-4 h-4 stroke-[2.5]" />
+              <span>{isCheckingIn ? 'Validating GPS Proximity...' : 'Start Assignment (Execute Check-In)'}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                const el = document.getElementById('evidence-capture-section');
+                el?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-slate-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+            >
+              <Camera className="w-4 h-4 text-emerald-400 stroke-[2.5]" />
+              <span>Capture Field Evidence & Audit</span>
+            </button>
+          )}
+
+          <a
+            href={`tel:${activeJob.contactOnGround.phone}`}
+            className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <Phone className="w-3.5 h-3.5 text-slate-500" />
+            <span>Call On-Site Contact ({activeJob.contactOnGround.name})</span>
+          </a>
+        </div>
+      </div>
+
+      {/* 4. UPCOMING ASSIGNMENT */}
+      {upcomingJob && (
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Upcoming Assignment
+            </span>
+            <span className="font-mono text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+              {upcomingJob.id}
+            </span>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold mb-1">
-              <DollarSign className="w-4 h-4 text-emerald-600" />
-              <span>Earnings (This Month)</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">{upcomingJob.title}</h3>
+              <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                <MapPin className="w-3 h-3 text-slate-400" />
+                {upcomingJob.location.town}, {upcomingJob.location.county} · Scheduled: {upcomingJob.scheduledVisitDate || 'Next'}
+              </p>
             </div>
-            <div className="text-lg font-bold text-emerald-700">KES 82,500</div>
-            <div className="text-[10px] text-slate-500">M-Pesa B2C instant ready</div>
-          </div>
 
-          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold mb-1">
-              <ShieldCheck className="w-4 h-4 text-blue-600" />
-              <span>Independence Pledge</span>
-            </div>
-            <div className="text-xs font-bold text-slate-900 flex items-center gap-1">
-              <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" /> Cleared & Signed
-            </div>
-            <div className="text-[10px] text-slate-500">Zero contractor affiliation</div>
+            <button
+              onClick={() => setSelectedReqId(upcomingJob.id)}
+              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
+            >
+              <span>Switch to this Task →</span>
+            </button>
           </div>
+        </div>
+      )}
 
-          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold mb-1">
-              <MapPin className="w-4 h-4 text-purple-600" />
-              <span>Licensed Counties</span>
-            </div>
-            <div className="text-xs font-bold text-slate-900 truncate">
-              Kiambu, Nairobi, Kajiado
-            </div>
-            <div className="text-[10px] text-slate-500">4 active counties</div>
-          </div>
+      {/* 5. TODAY'S ASSIGNMENTS LIST */}
+      <div className="space-y-2">
+        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
+          Today's Assignments ({agentJobs.length} Total):
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {agentJobs.map((r) => {
+            const isSelected = r.id === activeJob.id;
+            return (
+              <button
+                key={r.id}
+                onClick={() => setSelectedReqId(r.id)}
+                className={`p-3.5 rounded-2xl border text-left transition-all ${
+                  isSelected
+                    ? 'border-slate-900 bg-slate-50 ring-2 ring-slate-900/10'
+                    : 'border-slate-200 bg-white hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="font-mono font-bold text-slate-900">{r.id}</span>
+                  <StatusBadge status={r.status} size="sm" />
+                </div>
+                <div className="font-semibold text-xs text-slate-900 truncate">
+                  {r.title}
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
+                  <span>{r.location.county}</span>
+                  <span className="font-medium">{r.scheduledVisitDate || 'Today'}</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -336,16 +487,16 @@ export const FieldAgentView: React.FC = () => {
       {/* Task Selector */}
       <div className="space-y-1.5">
         <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
-          Select Assigned Mission ({requests.length} Available):
+          Your Assigned Missions ({agentJobs.length} Today):
         </label>
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
-          {requests.map(r => (
+          {agentJobs.map(r => (
             <button
               key={r.id}
               onClick={() => setSelectedReqId(r.id)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap border transition-all ${
+              className={`px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-semibold whitespace-nowrap border transition-all ${
                 r.id === req.id
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-500/20'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-900/10'
                   : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
               }`}
             >
@@ -707,7 +858,7 @@ export const FieldAgentView: React.FC = () => {
       </div>
 
       {/* Evidence Capture Camera & Offline Queue Bar */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
+      <div id="evidence-capture-section" className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">

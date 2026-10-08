@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useVerification } from '../../context/VerificationContext';
 import { 
   AlertTriangle, 
@@ -13,14 +14,32 @@ import {
   Clock,
   ShieldAlert,
   Search,
-  Filter
+  Filter,
+  User
 } from '../Icons';
-import { StatusBadge, ProcessStageBadge } from '../CommonBadges';
+import { StatusBadge, ProcessStageBadge, CategoryIcon } from '../CommonBadges';
 import type { VerificationStatus } from '../../types';
 import { FORMAT_CURRENCY, hasStopPaymentWarning } from '../../data/mockData';
 import { calculateConfidenceScore } from '../../services/confidenceScorer';
+import { ROLE_PERMISSIONS } from '../../auth/authorization';
+
+export type OperationsTab = 
+  | 'operations' 
+  | 'requests' 
+  | 'assignments' 
+  | 'agents' 
+  | 'clients' 
+  | 'reports' 
+  | 'payments' 
+  | 'disputes' 
+  | 'analytics' 
+  | 'services' 
+  | 'settings';
 
 export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }> = ({ onOpenReport }) => {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const { 
     requests, 
     agents, 
@@ -30,11 +49,45 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
     disputes,
     resolveDispute,
     auditLogs,
-    advanceRequestStatus
+    advanceRequestStatus,
+    startViewAs
   } = useVerification();
 
   const [selectedReqId, setSelectedReqId] = useState<string>(requests[0]?.id || '');
-  const [activeTab, setActiveTab] = useState<'qa' | 'triage' | 'map' | 'agents' | 'services' | 'disputes' | 'audit'>('qa');
+  const [activeTab, setActiveTab] = useState<OperationsTab>('operations');
+
+  // Sync activeTab with ?tab= search param
+  const tabParam = searchParams.get('tab');
+  useEffect(() => {
+    if (tabParam === 'requests' || tabParam === 'triage') {
+      setActiveTab('requests');
+    } else if (tabParam === 'assignments') {
+      setActiveTab('assignments');
+    } else if (tabParam === 'agents') {
+      setActiveTab('agents');
+    } else if (tabParam === 'clients') {
+      setActiveTab('clients');
+    } else if (tabParam === 'reports' || tabParam === 'qa') {
+      setActiveTab('reports');
+    } else if (tabParam === 'payments') {
+      setActiveTab('payments');
+    } else if (tabParam === 'disputes') {
+      setActiveTab('disputes');
+    } else if (tabParam === 'analytics' || tabParam === 'map') {
+      setActiveTab('analytics');
+    } else if (tabParam === 'services') {
+      setActiveTab('services');
+    } else if (tabParam === 'settings' || tabParam === 'audit') {
+      setActiveTab('settings');
+    } else {
+      setActiveTab('operations');
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (tab: OperationsTab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
 
   // QA Review form state for selected request
   const activeReq = requests.find(r => r.id === selectedReqId) || requests[0];
@@ -224,20 +277,129 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
     return matchesSearch && matchesCategory;
   });
 
+  // 4 Top Operational Counters
+  const requiringAttentionList = requests.filter(r => hasStopPaymentWarning(r) || r.status === 'not_observed');
+  const overdueList = requests.filter(r => r.urgency === 'urgent' || (r.scheduledVisitDate && r.scheduledVisitDate < '2026-10-12' && r.requestStatus !== 'COMPLETED'));
+  const awaitingReviewList = requests.filter(r => (r.evidence?.length > 0 && !r.qaReview?.publishedToClient) || r.requestStatus === 'UNDER_REVIEW' || r.requestStatus === 'EVIDENCE_SUBMITTED');
+  const openDisputesList = disputes.filter(d => d.status === 'OPEN' || d.status === 'UNDER_REVIEW');
+
+  // Derived collections
+  const unassignedList = requests.filter(r => !r.assignedAgent || r.requestStatus === 'AGENT_ASSIGNED');
+  const clientsList = Array.from(
+    new Map(
+      requests.map((r) => [
+        r.client.email,
+        {
+          id: r.client.email,
+          name: r.client.name,
+          email: r.client.email,
+          location: r.client.locationAbroad,
+          phone: r.client.phone,
+          requestCount: requests.filter((x) => x.client.email === r.client.email).length,
+        },
+      ])
+    ).values()
+  );
+  const totalSettledKES = requests
+    .filter((r) => r.pricing.quoteStatus === 'paid')
+    .reduce((s, r) => s + r.pricing.serviceFeeKES, 0);
+  const totalPendingKES = requests
+    .filter((r) => r.pricing.quoteStatus !== 'paid')
+    .reduce((s, r) => s + r.pricing.serviceFeeKES, 0);
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 py-6 font-sans">
+    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 py-6 font-sans">
       
-      {/* Operations Header */}
+      {/* Top Operational Counters (Operations Center Command Overview) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Counter 1: Requiring Attention */}
+        <button 
+          onClick={() => {
+            if (requiringAttentionList[0]) {
+              handleSelectRequest(requiringAttentionList[0].id);
+              handleTabChange('reports');
+            } else {
+              handleTabChange('operations');
+            }
+          }}
+          className="bg-white rounded-2xl border border-rose-200 hover:border-rose-300 p-4 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
+        >
+          <div className="flex items-center justify-between text-xs font-semibold text-rose-800">
+            <span>Requiring Attention</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-slate-900 group-hover:text-rose-700 transition-colors">
+            {requiringAttentionList.length}
+          </div>
+          <div className="text-[11px] text-slate-500 flex items-center gap-1">
+            <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+            <span>Stop-payment & severe alerts</span>
+          </div>
+        </button>
+
+        {/* Counter 2: Overdue / Critical SLA */}
+        <button 
+          onClick={() => handleTabChange('requests')}
+          className="bg-white rounded-2xl border border-amber-200 hover:border-amber-300 p-4 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
+        >
+          <div className="flex items-center justify-between text-xs font-semibold text-amber-800">
+            <span>Overdue / Critical SLA</span>
+            <Clock className="w-4 h-4 text-amber-600" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-slate-900 group-hover:text-amber-700 transition-colors">
+            {overdueList.length}
+          </div>
+          <div className="text-[11px] text-slate-500">
+            Missions exceeding turnaround target
+          </div>
+        </button>
+
+        {/* Counter 3: Awaiting QA Review */}
+        <button 
+          onClick={() => handleTabChange('reports')}
+          className="bg-white rounded-2xl border border-blue-200 hover:border-blue-300 p-4 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
+        >
+          <div className="flex items-center justify-between text-xs font-semibold text-blue-800">
+            <span>Awaiting Review</span>
+            <FileText className="w-4 h-4 text-blue-600" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-slate-900 group-hover:text-blue-700 transition-colors">
+            {awaitingReviewList.length}
+          </div>
+          <div className="text-[11px] text-slate-500">
+            Ground evidence submitted for QA
+          </div>
+        </button>
+
+        {/* Counter 4: Open Disputes */}
+        <button 
+          onClick={() => handleTabChange('disputes')}
+          className="bg-white rounded-2xl border border-purple-200 hover:border-purple-300 p-4 sm:p-5 shadow-xs text-left transition-all space-y-1.5 group cursor-pointer"
+        >
+          <div className="flex items-center justify-between text-xs font-semibold text-purple-800">
+            <span>Open Disputes</span>
+            <AlertTriangle className="w-4 h-4 text-purple-600" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-slate-900 group-hover:text-purple-700 transition-colors">
+            {openDisputesList.length}
+          </div>
+          <div className="text-[11px] text-slate-500">
+            Client appeals pending investigation
+          </div>
+        </button>
+      </div>
+
+      {/* Operations Header & Tab Switcher */}
       <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
-              NAIROBI OPERATIONS DESK
+              NAIROBI HQ OPERATIONS DESK
             </span>
-            <span className="text-xs text-slate-400">Controlled Request Register</span>
+            <span className="text-xs text-slate-400">Controlled Operations Register</span>
           </div>
           <h1 className="text-2xl font-bold font-display text-white">
-            Operations, Assignment & QA Review
+            Operations Center & Register
           </h1>
           <p className="text-xs text-slate-300 max-w-2xl">
             Triage client requests, assign vetted local verifiers, verify conflicts of interest, 
@@ -245,64 +407,33 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex flex-wrap items-center bg-slate-800 p-1.5 rounded-2xl border border-slate-700 text-xs font-semibold gap-1">
-          <button
-            onClick={() => setActiveTab('qa')}
-            className={`px-3 py-2 rounded-xl transition-all ${
-              activeTab === 'qa' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            QA Review & Publish
-          </button>
-          <button
-            onClick={() => setActiveTab('triage')}
-            className={`px-3 py-2 rounded-xl transition-all ${
-              activeTab === 'triage' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Intake Register ({requests.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('map')}
-            className={`px-3 py-2 rounded-xl transition-all ${
-              activeTab === 'map' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Kenya Map
-          </button>
-          <button
-            onClick={() => setActiveTab('agents')}
-            className={`px-3 py-2 rounded-xl transition-all ${
-              activeTab === 'agents' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Agents ({agents.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('services')}
-            className={`px-3 py-2 rounded-xl transition-all ${
-              activeTab === 'services' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Services & Pricing
-          </button>
-          <button
-            onClick={() => setActiveTab('disputes')}
-            className={`px-3 py-2 rounded-xl transition-all ${
-              activeTab === 'disputes' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Disputes ({disputes.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('audit')}
-            className={`px-3 py-2 rounded-xl transition-all ${
-              activeTab === 'audit' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Audit Trail ({auditLogs.length})
-          </button>
+        {/* Tab Switcher - All 11 Sections per Specification */}
+        <div className="flex items-center bg-slate-800 p-1.5 rounded-2xl border border-slate-700 text-xs font-semibold gap-1 max-w-full overflow-x-auto">
+          {[
+            { id: 'operations' as OperationsTab, label: 'Operations' },
+            { id: 'requests' as OperationsTab, label: `Requests (${requests.length})` },
+            { id: 'assignments' as OperationsTab, label: `Assignments (${unassignedList.length})` },
+            { id: 'agents' as OperationsTab, label: `Agents (${agents.length})` },
+            { id: 'clients' as OperationsTab, label: `Clients (${clientsList.length})` },
+            { id: 'reports' as OperationsTab, label: 'Reports & QA' },
+            { id: 'payments' as OperationsTab, label: 'Payments' },
+            { id: 'disputes' as OperationsTab, label: `Disputes (${disputes.length})` },
+            { id: 'analytics' as OperationsTab, label: 'Analytics' },
+            { id: 'services' as OperationsTab, label: 'Services' },
+            { id: 'settings' as OperationsTab, label: 'Settings' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              className={`px-3 py-1.5 rounded-xl whitespace-nowrap transition-all cursor-pointer ${
+                activeTab === tab.id
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -323,7 +454,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
       )}
 
       {/* TAB 1: QA REVIEW & PUBLISH */}
-      {activeTab === 'qa' && (
+      {activeTab === 'reports' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Left Column: Select Request Queue (4 cols) */}
@@ -663,8 +794,8 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
         </div>
       )}
 
-      {/* TAB 2: INTAKE REGISTER */}
-      {activeTab === 'triage' && (
+      {/* TAB 2: OPERATIONS & REQUESTS REGISTER */}
+      {(activeTab === 'operations' || activeTab === 'requests') && (
         <div className="space-y-4">
           <div className="bg-white p-4 rounded-3xl border border-slate-200 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 flex-1 max-w-md">
@@ -695,66 +826,140 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
                   <tr>
-                    <th className="p-3.5">Mission ID</th>
-                    <th className="p-3.5">Title & County</th>
-                    <th className="p-3.5">Stage</th>
-                    <th className="p-3.5">Assigned Verifier</th>
-                    <th className="p-3.5">Quote / Fee</th>
-                    <th className="p-3.5 text-right">Actions</th>
+                    <th className="p-3.5">Request ID</th>
+                    <th className="p-3.5">Client</th>
+                    <th className="p-3.5">Service</th>
+                    <th className="p-3.5">Agent</th>
+                    <th className="p-3.5">Location</th>
+                    <th className="p-3.5">Status</th>
+                    <th className="p-3.5">Priority</th>
+                    <th className="p-3.5 text-right">Controlled Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredTriageRequests.map(req => (
-                    <tr key={req.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="p-3.5 font-mono font-bold text-slate-700">
-                        {req.id}
-                      </td>
-                      <td className="p-3.5">
-                        <div className="font-bold text-slate-900">{req.title}</div>
-                        <div className="text-[11px] text-slate-500">{req.location.town}, {req.location.county}</div>
-                      </td>
-                      <td className="p-3.5">
-                        <ProcessStageBadge stage={req.stage} />
-                      </td>
-                      <td className="p-3.5">
-                        {req.assignedAgent ? (
-                          <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                            {req.assignedAgent.name}
+                  {filteredTriageRequests.map(req => {
+                    const hasStop = hasStopPaymentWarning(req);
+                    const urgency = req.urgency || 'standard';
+
+                    return (
+                      <tr key={req.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="p-3.5 font-mono font-bold text-slate-900">
+                          <button
+                            onClick={() => navigate(`/request/${req.id}`)}
+                            className="hover:underline text-emerald-800"
+                            title="Open detail view"
+                          >
+                            {req.id}
+                          </button>
+                        </td>
+                        <td className="p-3.5">
+                          <div className="font-bold text-slate-900">{req.client?.name || 'Client'}</div>
+                          <div className="text-[11px] text-slate-500 truncate max-w-[160px]">
+                            {req.client?.locationAbroad || req.client?.email}
                           </div>
-                        ) : (
-                          <span className="text-amber-600 font-semibold flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" /> Unassigned
+                        </td>
+                        <td className="p-3.5">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 capitalize bg-slate-100 px-2 py-0.5 rounded">
+                            <CategoryIcon category={req.category} className="w-3 h-3 text-slate-500" />
+                            <span>{req.category}</span>
                           </span>
-                        )}
-                      </td>
-                      <td className="p-3.5 font-bold text-slate-800">
-                        {FORMAT_CURRENCY(req.pricing.serviceFeeKES, currency)}
-                      </td>
-                      <td className="p-3.5 text-right space-x-2">
-                        <button
-                          onClick={() => handleOpenAssignModal(req.id)}
-                          className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl font-bold transition-colors"
-                        >
-                          {req.assignedAgent ? 'Reassign' : 'Deploy Agent'}
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleSelectRequest(req.id);
-                            setActiveTab('qa');
-                          }}
-                          className="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl font-bold transition-colors"
-                        >
-                          Review QA
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="p-3.5">
+                          {req.assignedAgent ? (
+                            <div className="font-semibold text-slate-900 flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                              <span>{req.assignedAgent.name}</span>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleOpenAssignModal(req.id)}
+                              className="text-amber-700 font-semibold flex items-center gap-1 hover:underline"
+                            >
+                              <Clock className="w-3.5 h-3.5 text-amber-600" /> Unassigned
+                            </button>
+                          )}
+                        </td>
+                        <td className="p-3.5">
+                          <div className="font-medium text-slate-900">{req.location.town}</div>
+                          <div className="text-[11px] text-slate-500">{req.location.county}</div>
+                        </td>
+                        <td className="p-3.5">
+                          <div className="space-y-1">
+                            <StatusBadge status={req.status} size="sm" />
+                            {hasStop && (
+                              <div className="text-[10px] font-bold text-rose-700 flex items-center gap-0.5">
+                                <ShieldAlert className="w-3 h-3" /> Stop-Payment
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-3.5">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                            urgency === 'urgent'
+                              ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                              : urgency === 'priority'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            {urgency}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                            <button
+                              onClick={() => navigate(`/request/${req.id}`)}
+                              className="px-2.5 py-1 text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg transition-colors"
+                              title="Open request details"
+                            >
+                              Open Request
+                            </button>
+                            <button
+                              onClick={() => {
+                                startViewAs('client', req.client?.email || req.id, req.client?.name || 'Client', req.client?.email || '');
+                                navigate('/dashboard');
+                              }}
+                              className="px-2.5 py-1 text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg transition-colors"
+                              title="Preview client view"
+                            >
+                              View Client
+                            </button>
+                            {req.assignedAgent ? (
+                              <button
+                                onClick={() => {
+                                  startViewAs('agent', req.assignedAgent!.id, req.assignedAgent!.name, req.assignedAgent?.email || '');
+                                  navigate('/agent');
+                                }}
+                                className="px-2.5 py-1 text-[11px] font-bold bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 rounded-lg transition-colors cursor-pointer"
+                                title="Preview agent view"
+                              >
+                                View Agent
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleOpenAssignModal(req.id)}
+                                className="px-2.5 py-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+                                title="Deploy ground verifier"
+                              >
+                                Deploy Agent
+                              </button>
+                            )}
+                            <button
+                              onClick={() => onOpenReport(req)}
+                              className="px-2.5 py-1 text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg transition-colors"
+                              title="Open verified audit report"
+                            >
+                              Open Report
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -762,8 +967,354 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
         </div>
       )}
 
-      {/* TAB 3: KENYA OPERATIONS MAP */}
-      {activeTab === 'map' && (
+      {/* TAB: ASSIGNMENTS & DISPATCH QUEUE */}
+      {activeTab === 'assignments' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <UserCheck className="w-5 h-5 text-blue-600" />
+                  <span>Ground Assignments & Dispatch Queue</span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Assign vetted, conflict-cleared ground verifiers to active diaspora verification missions.
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-xs font-bold font-mono">
+                {unassignedList.length} Awaiting Dispatch
+              </span>
+            </div>
+
+            {/* Unassigned missions queue */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                Missions Awaiting Ground Verifier Deployment
+              </h4>
+              {unassignedList.length === 0 ? (
+                <div className="py-8 text-center rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-400">
+                  All active verification requests currently have an assigned ground verifier.
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {unassignedList.map((req) => {
+                    const localMatches = agents.filter((a) => a.primaryCounties.includes(req.location.county));
+                    return (
+                      <div
+                        key={req.id}
+                        className="p-4 rounded-2xl border border-amber-200 bg-amber-50/40 hover:bg-amber-50/70 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                      >
+                        <div className="space-y-1 max-w-xl">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                              {req.id}
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 capitalize bg-white px-2 py-0.5 rounded border border-slate-200">
+                              <CategoryIcon category={req.category} className="w-3 h-3 text-slate-500" />
+                              <span>{req.category}</span>
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                              {req.urgency || 'standard'} Priority
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-bold text-slate-900">{req.title}</h4>
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>{req.location.town}, {req.location.county} County</span>
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                              <span>Target Date: {req.scheduledVisitDate || 'Immediate'}</span>
+                            </span>
+                            {localMatches.length > 0 && (
+                              <span className="text-emerald-700 font-semibold text-[11px]">
+                                ✓ {localMatches.length} vetted verifiers in {req.location.county}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => handleOpenAssignModal(req.id)}
+                            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
+                          >
+                            <UserCheck className="w-4 h-4" />
+                            <span>Deploy Ground Verifier</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Currently Assigned missions */}
+            <div className="space-y-3 pt-4 border-t border-slate-100">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                Active Ground Missions Deployed ({requests.filter(r => r.assignedAgent).length})
+              </h4>
+              <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white">
+                {requests.filter(r => r.assignedAgent).map((req) => (
+                  <div key={`assigned-${req.id}`} className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition-colors">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-slate-800">{req.id}</span>
+                        <StatusBadge status={req.status} size="sm" />
+                      </div>
+                      <div className="text-xs font-bold text-slate-900">{req.title}</div>
+                      <div className="text-[11px] text-slate-500 flex items-center gap-2">
+                        <span>Agent: <strong>{req.assignedAgent?.name}</strong></span>
+                        <span>•</span>
+                        <span>{req.location.town}, {req.location.county}</span>
+                        <span>•</span>
+                        <span>Visit: {req.scheduledVisitDate || 'Scheduled'}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleOpenAssignModal(req.id)}
+                        className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors"
+                      >
+                        Re-assign
+                      </button>
+                      <button
+                        onClick={() => {
+                          startViewAs('agent', req.assignedAgent!.id, req.assignedAgent!.name, req.assignedAgent?.email || '');
+                          navigate('/agent');
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 text-xs font-bold transition-colors"
+                      >
+                        View Agent View
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* TAB: CLIENTS DIRECTORY */}
+      {activeTab === 'clients' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <User className="w-5 h-5 text-emerald-600" />
+                  <span>Diaspora Clients Directory</span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Global diaspora principals commissioning field due diligence across Kenya.
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold font-mono">
+                {clientsList.length} Registered Accounts
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {clientsList.map((client) => {
+                const clientReqs = requests.filter((r) => r.client?.email === client.email);
+                return (
+                  <div
+                    key={client.id}
+                    className="p-5 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 shadow-xs space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="font-bold text-sm text-slate-900">{client.name}</h4>
+                          <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            {client.location}
+                          </span>
+                        </div>
+                        <span className="font-mono text-xs font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
+                          {clientReqs.length} Missions
+                        </span>
+                      </div>
+
+                      <div className="text-xs text-slate-500 space-y-1">
+                        <div className="truncate">Email: <strong className="text-slate-800">{client.email}</strong></div>
+                        <div>Phone: <strong className="text-slate-800">{client.phone}</strong></div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100 space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                          Recent Requests:
+                        </span>
+                        {clientReqs.slice(0, 2).map((cr) => (
+                          <div key={cr.id} className="text-[11px] flex items-center justify-between text-slate-600">
+                            <span className="font-mono font-semibold">{cr.id}</span>
+                            <span className="truncate max-w-[130px]">{cr.location.county}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          startViewAs('client', client.id, client.name, client.email);
+                          navigate('/dashboard');
+                        }}
+                        className="w-full py-2 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-colors cursor-pointer text-center"
+                      >
+                        View Client Experience
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: PAYMENTS & FINANCIAL RECONCILIATION */}
+      {activeTab === 'payments' && (
+        <div className="space-y-6">
+          {/* Financial summary overview */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Total Settled Fees
+              </span>
+              <div className="text-2xl font-bold font-mono text-emerald-800">
+                {FORMAT_CURRENCY(totalSettledKES, currency)}
+              </div>
+              <div className="text-[11px] text-emerald-600">
+                Earned service tariffs cleared to Nairobi HQ
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Pending Quotations / Invoices
+              </span>
+              <div className="text-2xl font-bold font-mono text-amber-800">
+                {FORMAT_CURRENCY(totalPendingKES, currency)}
+              </div>
+              <div className="text-[11px] text-amber-600">
+                Awaiting client settlement prior to agent dispatch
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Commingled Funds Risk
+              </span>
+              <div className="text-2xl font-bold font-mono text-slate-900">
+                0.00 KES
+              </div>
+              <div className="text-[11px] text-slate-500">
+                Strict Doc 1 Invariant: Zero contractor escrow held
+              </div>
+            </div>
+          </div>
+
+          {/* Invoices table */}
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Verification Invoices & Settlement Ledger
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Audit log of service tariffs, regional travel allowances, and M-Pesa / Card settlements.
+                </p>
+              </div>
+              <span className="text-xs font-mono font-bold text-slate-500">
+                {requests.length} Total Invoices
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                  <tr>
+                    <th className="p-3.5">Invoice / Request</th>
+                    <th className="p-3.5">Client</th>
+                    <th className="p-3.5">Service Category</th>
+                    <th className="p-3.5">Total Amount</th>
+                    <th className="p-3.5">Status</th>
+                    <th className="p-3.5">Advisory Risk</th>
+                    <th className="p-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {requests.map((req) => {
+                    const isPaid = req.pricing.quoteStatus === 'paid';
+                    const hasStop = hasStopPaymentWarning(req);
+                    return (
+                      <tr key={`pay-${req.id}`} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="p-3.5 font-mono font-bold text-slate-900">
+                          {req.id}
+                        </td>
+                        <td className="p-3.5">
+                          <div className="font-bold text-slate-900">{req.client?.name}</div>
+                          <div className="text-[11px] text-slate-500">{req.client?.locationAbroad}</div>
+                        </td>
+                        <td className="p-3.5 capitalize font-medium text-slate-700">
+                          {req.category}
+                        </td>
+                        <td className="p-3.5 font-mono font-bold text-slate-900">
+                          {FORMAT_CURRENCY(req.pricing.serviceFeeKES, currency)}
+                        </td>
+                        <td className="p-3.5">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                            isPaid
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : 'bg-amber-100 text-amber-800 border border-amber-200'
+                          }`}>
+                            {req.pricing.quoteStatus}
+                          </span>
+                        </td>
+                        <td className="p-3.5">
+                          {hasStop ? (
+                            <span className="text-[10px] font-bold text-rose-700 flex items-center gap-0.5">
+                              <ShieldAlert className="w-3.5 h-3.5" /> Stop-Payment Alert
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 font-medium">Standard</span>
+                          )}
+                        </td>
+                        <td className="p-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => navigate(`/request/${req.id}`)}
+                              className="px-2.5 py-1 text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg transition-colors"
+                            >
+                              Open Request
+                            </button>
+                            <button
+                              onClick={() => {
+                                startViewAs('client', req.client?.email || req.id, req.client?.name || 'Client', req.client?.email || '');
+                                navigate('/dashboard');
+                              }}
+                              className="px-2.5 py-1 text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg transition-colors"
+                            >
+                              View Client
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: ANALYTICS & KENYA OPERATIONS MAP */}
+      {activeTab === 'analytics' && (
         <div className="space-y-6">
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -881,6 +1432,18 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                     Conflict Clearance Signed
                   </span>
                   <span className="text-slate-400 font-mono">{agt.id}</span>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      startViewAs('agent', agt.id, agt.name, agt.email);
+                      navigate('/agent');
+                    }}
+                    className="w-full py-1.5 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-xs font-bold transition-colors cursor-pointer text-center"
+                  >
+                    View Agent Experience
+                  </button>
                 </div>
               </div>
             ))}
@@ -1117,9 +1680,53 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
         </div>
       )}
 
-      {/* TAB 6: IMMUTABLE AUDIT TRAIL */}
-      {activeTab === 'audit' && (
+      {/* TAB: SETTINGS & AUDIT TRAIL */}
+      {activeTab === 'settings' && (
         <div className="space-y-6">
+          {/* Sub-Roles Matrix Card */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                <span>Admin Sub-Roles & Granular Permissions Matrix</span>
+              </h3>
+              <p className="text-xs text-slate-500">
+                Least-privilege authorization matrix dividing administrative functions into specialized operational scopes (Doc 1 & 2 Standard).
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
+              {[
+                { role: 'super_admin' as const, label: 'Super Admin', desc: 'Full administrative sovereignty & configuration' },
+                { role: 'operations' as const, label: 'Operations Desk', desc: 'Request triage, verifier dispatch & dispute handling' },
+                { role: 'reviewer' as const, label: 'QA Reviewer', desc: 'Ground evidence audit, contradiction analysis & publication' },
+                { role: 'finance' as const, label: 'Finance & Accounts', desc: 'Invoice reconciliation, M-Pesa tariffs & audit analytics' },
+                { role: 'support' as const, label: 'Client Support', desc: 'Client account management & inquiry dispute triage' },
+              ].map((sub) => {
+                const perms = ROLE_PERMISSIONS[sub.role] || [];
+                return (
+                  <div key={sub.role} className="p-4 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-2 flex flex-col justify-between">
+                    <div>
+                      <div className="font-bold text-xs text-slate-900">{sub.label}</div>
+                      <p className="text-[10px] text-slate-500 leading-snug mt-1">{sub.desc}</p>
+                    </div>
+                    <div className="pt-2 border-t border-slate-200/80 space-y-1">
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
+                        Permissions ({perms.length}):
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {perms.map((p) => (
+                          <span key={p} className="text-[9px] font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200 text-slate-700">
+                            {p}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>

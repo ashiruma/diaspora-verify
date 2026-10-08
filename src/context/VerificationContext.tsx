@@ -15,6 +15,8 @@ import type {
   OrganizationRecord,
   CheckInRecord
 } from '../types';
+import type { AuthenticatedUser, ViewAsSession } from '../auth/authorization';
+import { normalizeRole } from '../auth/authorization';
 import { MOCK_REQUESTS, MOCK_AGENTS, MOCK_DISPUTES, MOCK_ORGANIZATIONS } from '../data/mockData';
 import { MOCK_PROPERTIES } from '../services/propertyService';
 import { INITIAL_AUDIT_LOGS, createAuditLog } from '../services/auditService';
@@ -26,11 +28,22 @@ import { supabase, isSupabaseConfigured, computeSHA256, rateLimiter } from '../l
 
 interface VerificationContextType {
   requests: VerificationRequest[];
+  clientRequests: VerificationRequest[];
+  agentRequests: VerificationRequest[];
   activeRequest: VerificationRequest | undefined;
   activeRequestId: string;
   activeRole: ActiveRole;
   currency: CurrencyCode;
   agents: FieldAgent[];
+  currentUser: AuthenticatedUser;
+  setCurrentUser: (user: AuthenticatedUser) => void;
+  viewAsSession: ViewAsSession;
+  startViewAs: (role: 'client' | 'agent', targetId: string, targetName: string, targetEmail?: string) => void;
+  exitViewAs: () => void;
+  commandMenuOpen: boolean;
+  setCommandMenuOpen: (open: boolean) => void;
+  toastMessage: string | null;
+  setToastMessage: (msg: string | null) => void;
   reportModalRequest: VerificationRequest | null;
   backendMode: 'supabase' | 'local';
   isLiveConnected: boolean;
@@ -138,10 +151,125 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     });
   });
 
+const DEFAULT_CLIENT_USER: AuthenticatedUser = {
+  id: 'usr-client-01',
+  email: 'david.mwangi.uk@gmail.com',
+  name: 'David Mwangi',
+  role: 'client',
+  clientId: 'usr-client-01',
+  phone: '+44 7700 900142',
+  locationAbroad: 'London, United Kingdom',
+  mfaEnabled: false
+};
+
+const DEFAULT_AGENT_USER: AuthenticatedUser = {
+  id: 'agt-01',
+  email: 'evans.kiptoo@diasporaverify.co.ke',
+  name: 'Eng. Evans Kiptoo',
+  role: 'agent',
+  agentId: 'agt-01',
+  phone: '+254 722 419 802',
+  mfaEnabled: true
+};
+
+const DEFAULT_ADMIN_USER: AuthenticatedUser = {
+  id: 'usr-ops-01',
+  email: 'amara.ops@diasporaverify.co.ke',
+  name: 'Amara Kiprotich',
+  role: 'admin',
+  subRole: 'super_admin',
+  phone: '+254 722 000 111',
+  mfaEnabled: true
+};
+
   const [activeRequestId, setActiveRequestId] = useState<string>('DV-2026-KJD-0104');
-  const [activeRole, setActiveRole] = useState<ActiveRole>(() => {
+  const [activeRole, setActiveRoleState] = useState<ActiveRole>(() => {
     return (localStorage.getItem(ROLE_KEY) as ActiveRole) || 'client';
   });
+  const [currentUser, setCurrentUser] = useState<AuthenticatedUser>(() => {
+    const savedRole = localStorage.getItem(ROLE_KEY) || 'client';
+    const norm = normalizeRole(savedRole);
+    if (norm === 'admin') return DEFAULT_ADMIN_USER;
+    if (norm === 'agent') return DEFAULT_AGENT_USER;
+    return DEFAULT_CLIENT_USER;
+  });
+
+  const [viewAsSession, setViewAsSession] = useState<ViewAsSession>({
+    active: false,
+    viewRole: 'client',
+    targetId: '',
+    targetName: '',
+    targetEmail: '',
+    startedAt: '',
+  });
+
+  const [commandMenuOpen, setCommandMenuOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const startViewAs = (role: 'client' | 'agent', targetId: string, targetName: string, targetEmail: string = '') => {
+    const session: ViewAsSession = {
+      active: true,
+      viewRole: role,
+      targetId,
+      targetName,
+      targetEmail,
+      startedAt: new Date().toISOString()
+    };
+    setViewAsSession(session);
+    const log = createAuditLog(
+      'ADMIN_VIEW_AS_STARTED',
+      { id: currentUser.id, name: currentUser.name, role: 'admin' },
+      role === 'client' ? 'client_experience' : 'agent_experience',
+      targetId,
+      { targetName, targetEmail, startedAt: session.startedAt }
+    );
+    setAuditLogs(prev => [log, ...prev]);
+  };
+
+  const exitViewAs = () => {
+    if (viewAsSession.active) {
+      const log = createAuditLog(
+        'ADMIN_VIEW_AS_ENDED',
+        { id: currentUser.id, name: currentUser.name, role: 'admin' },
+        viewAsSession.viewRole === 'client' ? 'client_experience' : 'agent_experience',
+        viewAsSession.targetId,
+        { targetName: viewAsSession.targetName, endedAt: new Date().toISOString() }
+      );
+      setAuditLogs(prev => [log, ...prev]);
+    }
+    setViewAsSession({
+      active: false,
+      viewRole: 'client',
+      targetId: '',
+      targetName: '',
+      targetEmail: '',
+      startedAt: '',
+    });
+  };
+
+  const setActiveRole = (role: ActiveRole) => {
+    setActiveRoleState(role);
+    const norm = normalizeRole(role);
+    if (norm === 'admin') {
+      setCurrentUser(DEFAULT_ADMIN_USER);
+    } else if (norm === 'agent') {
+      setCurrentUser(DEFAULT_AGENT_USER);
+      setViewAsSession({ active: false, viewRole: 'client', targetId: '', targetName: '', targetEmail: '', startedAt: '' });
+    } else {
+      setCurrentUser(DEFAULT_CLIENT_USER);
+      setViewAsSession({ active: false, viewRole: 'client', targetId: '', targetName: '', targetEmail: '', startedAt: '' });
+    }
+
+    const log = createAuditLog(
+      'ROLE_SWITCHED',
+      { id: currentUser.id, name: currentUser.name, role: activeRole },
+      'user_session',
+      role,
+      { previousRole: activeRole, nextRole: role }
+    );
+    setAuditLogs(prev => [log, ...prev]);
+  };
+
   const [currency, setCurrency] = useState<CurrencyCode>(() => {
     return (localStorage.getItem(CURRENCY_KEY) as CurrencyCode) || 'KES';
   });
@@ -205,6 +333,43 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [disputes]);
 
   const activeRequest = requests.find(r => r.id === activeRequestId) || requests[0];
+
+  const clientRequests = React.useMemo(() => {
+    const targetEmail = viewAsSession.active && viewAsSession.viewRole === 'client'
+      ? viewAsSession.targetEmail
+      : normalizeRole(activeRole) === 'client'
+      ? (currentUser.email || userEmail)
+      : userEmail;
+
+    return requests.filter(r => 
+      r.client?.email?.toLowerCase() === targetEmail.toLowerCase() ||
+      (viewAsSession.active && viewAsSession.viewRole === 'client' && r.client?.name?.toLowerCase() === viewAsSession.targetName.toLowerCase())
+    );
+  }, [requests, viewAsSession, activeRole, currentUser.email, userEmail]);
+
+  const agentRequests = React.useMemo(() => {
+    const targetAgentId = viewAsSession.active && viewAsSession.viewRole === 'agent'
+      ? viewAsSession.targetId
+      : normalizeRole(activeRole) === 'agent'
+      ? (currentUser.agentId || 'agt-01')
+      : 'agt-01';
+
+    return requests.filter(r => 
+      r.assignedAgent?.id === targetAgentId ||
+      (viewAsSession.active && viewAsSession.viewRole === 'agent' && r.assignedAgent?.name?.toLowerCase() === viewAsSession.targetName.toLowerCase())
+    );
+  }, [requests, viewAsSession, activeRole, currentUser.agentId]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandMenuOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const selectRequest = (id: string) => {
     setActiveRequestId(id);
@@ -994,11 +1159,22 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     <VerificationContext.Provider
       value={{
         requests,
+        clientRequests,
+        agentRequests,
         activeRequest,
         activeRequestId,
         activeRole,
         currency,
         agents: MOCK_AGENTS,
+        currentUser,
+        setCurrentUser,
+        viewAsSession,
+        startViewAs,
+        exitViewAs,
+        commandMenuOpen,
+        setCommandMenuOpen,
+        toastMessage,
+        setToastMessage,
         reportModalRequest,
         backendMode,
         isLiveConnected,

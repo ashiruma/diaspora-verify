@@ -20,6 +20,10 @@ import {
   DollarSign
 } from '../Icons';
 
+import { canUserAccessRequest } from '../../auth/authorization';
+import { ForbiddenView } from '../ForbiddenView';
+import { Timeline } from '../ui/Timeline';
+import { EvidenceGallery } from '../ui/EvidenceGallery';
 import { StatusBadge, ProcessStageBadge } from '../CommonBadges';
 import { FORMAT_CURRENCY, hasStopPaymentWarning } from '../../data/mockData';
 
@@ -37,16 +41,22 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
     selectRequest, 
     currency, 
     recordClientDecision, 
-    payInvoice 
+    payInvoice,
+    currentUser,
+    viewAsSession
   } = useVerification();
 
   const req = (id ? requests.find(r => r.id === id) : activeRequest) || activeRequest;
 
+  // IDOR & Horizontal Privilege Escalation Protection evaluated immediately
+  const accessCheck = req ? canUserAccessRequest(currentUser, req, viewAsSession) : { allowed: false, reason: 'Request not found' };
+
   useEffect(() => {
-    if (id && req && req.id !== activeRequest?.id) {
+    // Only update global activeRequest if the user is authorized to access this record!
+    if (id && req && req.id !== activeRequest?.id && accessCheck.allowed) {
       selectRequest(req.id);
     }
-  }, [id, req, activeRequest?.id, selectRequest]);
+  }, [id, req, activeRequest?.id, selectRequest, accessCheck.allowed]);
 
   const [decisionAction, setDecisionAction] = useState<string>('Approve Findings & Authorize Payment');
   const [decisionNote, setDecisionNote] = useState<string>('');
@@ -55,7 +65,7 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
   // Real Payment Flow State
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'card' | 'bank'>('mpesa');
-  const [paymentPhone, setPaymentPhone] = useState(req?.client?.phone || '+254 712 345 678');
+  const [paymentPhone, setPaymentPhone] = useState(accessCheck.allowed ? (req?.client?.phone || '+254 712 345 678') : '+254 712 345 678');
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvc, setCardCvc] = useState('');
@@ -64,12 +74,21 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
 
   if (!req) {
     return (
-      <div className="max-w-4xl mx-auto p-8 text-center">
-        <p className="text-slate-500">Request not found.</p>
-        <button onClick={onBack} className="mt-4 text-emerald-600 font-bold text-sm">
-          Return to Dashboard
-        </button>
-      </div>
+      <ForbiddenView
+        reason="The requested verification record could not be found."
+        targetResource={id || 'Unknown'}
+        onBack={onBack}
+      />
+    );
+  }
+
+  if (!accessCheck.allowed) {
+    return (
+      <ForbiddenView
+        reason={accessCheck.reason || 'You do not have authorization to view this verification record.'}
+        targetResource={req.id}
+        onBack={onBack}
+      />
     );
   }
 
@@ -196,56 +215,75 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
         </div>
       </div>
 
-      {/* 15-State Production State Machine Progress Bar */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
+      {/* 8-Stage Animated Lifecycle Timeline */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-2">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Platform Workflow State Machine
+              Field Verification Lifecycle
             </h2>
             <div className="text-sm font-bold text-slate-900">
-              Current Status: <span className="text-emerald-700">{req.requestStatus || 'UNDER_REVIEW'}</span>
+              Current Stage: <span className="text-emerald-700 capitalize">{req.requestStatus?.replace(/_/g, ' ') || 'Under Review'}</span>
             </div>
           </div>
           <div className="text-xs font-semibold text-slate-500">
-            Lifecycle: Step {req.stage === 'define' ? 1 : req.stage === 'assign' ? 2 : req.stage === 'act' ? 3 : req.stage === 'review' ? 4 : 5} of 5
+            Phase: <span className="capitalize font-bold text-slate-800">{req.stage}</span> (Step {req.stage === 'define' ? 1 : req.stage === 'assign' ? 2 : req.stage === 'act' ? 3 : req.stage === 'review' ? 4 : 5} of 5)
           </div>
         </div>
 
-        {/* State Machine Steps */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 text-center text-[10px] font-bold">
-          {[
-            { id: 'SUBMITTED', label: '1. Submitted' },
-            { id: 'PAID', label: '2. Fee Paid' },
-            { id: 'AGENT_ASSIGNED', label: '3. Assigned' },
-            { id: 'ON_SITE', label: '4. On Site' },
-            { id: 'EVIDENCE_SUBMITTED', label: '5. Evidence' },
-            { id: 'REPORT_READY', label: '6. Report Ready' },
-            { id: 'COMPLETED', label: '7. Completed' }
-          ].map((st, i) => {
-            const isDone = 
-              st.id === 'SUBMITTED' || 
-              (st.id === 'PAID' && req.pricing.quoteStatus === 'paid') ||
-              (st.id === 'AGENT_ASSIGNED' && req.assignedAgent) ||
-              (st.id === 'ON_SITE' && (req.checkInRecord || req.requestStatus === 'ON_SITE' || req.stage === 'review' || req.stage === 'decide')) ||
-              (st.id === 'EVIDENCE_SUBMITTED' && req.evidence.length > 0) ||
-              (st.id === 'REPORT_READY' && (req.qaReview?.publishedToClient || req.requestStatus === 'REPORT_READY' || req.requestStatus === 'COMPLETED')) ||
-              (st.id === 'COMPLETED' && req.requestStatus === 'COMPLETED');
-
-            return (
-              <div 
-                key={i} 
-                className={`p-2 rounded-xl border ${
-                  isDone 
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-900' 
-                    : 'border-slate-200 bg-slate-50 text-slate-400'
-                }`}
-              >
-                {isDone ? '✓ ' : ''}{st.label}
-              </div>
-            );
-          })}
-        </div>
+        <Timeline
+          steps={[
+            {
+              id: 't-1',
+              label: 'Submitted',
+              description: 'Intake scope defined',
+              timestamp: req.createdAt?.substring(0, 10),
+              status: 'completed'
+            },
+            {
+              id: 't-2',
+              label: 'Paid',
+              description: req.pricing.quoteStatus === 'paid' ? 'Fee settled' : 'Payment pending',
+              status: req.pricing.quoteStatus === 'paid' ? 'completed' : 'current'
+            },
+            {
+              id: 't-3',
+              label: 'Agent Assigned',
+              description: req.assignedAgent ? req.assignedAgent.name : 'Pending assignment',
+              status: req.assignedAgent ? 'completed' : req.pricing.quoteStatus === 'paid' ? 'current' : 'upcoming'
+            },
+            {
+              id: 't-4',
+              label: 'Accepted',
+              description: req.conflictOfInterestCheck.checked ? 'Conflict clear verified' : 'Awaiting signoff',
+              status: req.conflictOfInterestCheck.checked ? 'completed' : req.assignedAgent ? 'current' : 'upcoming'
+            },
+            {
+              id: 't-5',
+              label: 'On Site',
+              description: req.checkInRecord ? 'GPS confirmed' : req.scheduledVisitDate || 'Scheduled',
+              status: (req.checkInRecord || ['ON_SITE', 'VERIFYING', 'EVIDENCE_SUBMITTED', 'UNDER_REVIEW', 'REPORT_READY', 'COMPLETED'].includes(req.requestStatus || '')) ? 'completed' : req.conflictOfInterestCheck.checked ? 'current' : 'upcoming'
+            },
+            {
+              id: 't-6',
+              label: 'Evidence Submitted',
+              description: `${req.evidence?.length || 0} items captured`,
+              status: (req.evidence?.length > 0 || ['EVIDENCE_SUBMITTED', 'UNDER_REVIEW', 'REPORT_READY', 'COMPLETED'].includes(req.requestStatus || '')) ? 'completed' : req.checkInRecord ? 'current' : 'upcoming'
+            },
+            {
+              id: 't-7',
+              label: 'Under Review',
+              description: req.qaReview ? `By ${req.qaReview.reviewedBy}` : 'QA inspection',
+              status: req.qaReview ? 'completed' : (req.evidence?.length > 0) ? 'current' : 'upcoming'
+            },
+            {
+              id: 't-8',
+              label: 'Report Ready',
+              description: req.qaReview?.publishedToClient ? 'Dossier published' : 'Final review',
+              status: (req.qaReview?.publishedToClient || req.requestStatus === 'REPORT_READY' || req.requestStatus === 'COMPLETED') ? 'completed' : req.qaReview ? 'current' : 'upcoming'
+            }
+          ]}
+        />
       </div>
 
       {/* Check-In Telemetry Card (When on site) */}
@@ -401,33 +439,17 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
               ))}
             </div>
 
-            {/* Evidence Gallery */}
-            <div className="border-t border-slate-100 pt-4 space-y-3">
-              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                Captured Visual Evidence ({req.evidence.length})
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {req.evidence.map((ev) => (
-                  <div key={ev.id} className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50 p-2.5 space-y-2">
-                    <div className="h-36 rounded-xl overflow-hidden bg-slate-900">
-                      <img src={ev.url} alt={ev.title} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="text-xs space-y-1">
-                      <div className="font-bold text-slate-900 truncate">{ev.title}</div>
-                      <div className="text-[10px] text-slate-500">{ev.cameraAngle}</div>
-                      <div className="text-[10px] text-slate-400 font-mono flex items-center justify-between">
-                        <span>{ev.timestamp}</span>
-                        <span>{ev.locationTag}</span>
-                      </div>
-                      {ev.uncertaintyFlag && (
-                        <div className="p-1 rounded bg-rose-50 border border-rose-200 text-[10px] text-rose-800 font-semibold truncate">
-                          ⚠️ {ev.uncertaintyFlag}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+            {/* Authoritative Field Evidence Experience */}
+            <div className="border-t border-slate-100 pt-5 space-y-3">
+              <div>
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Authoritative Field Evidence ({req.evidence.length})
+                </h4>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Cryptographically sealed with SHA-256 integrity fingerprints and GPS telemetry. Click any item to inspect in high resolution.
+                </p>
               </div>
+              <EvidenceGallery items={req.evidence} requestId={req.id} />
             </div>
           </div>
 
@@ -645,6 +667,47 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
             <p className="text-[11px] text-slate-300 leading-snug">
               Deterministic calculation based on physical GPS check-in, photographic depth, and signed conflict clearance.
             </p>
+          </div>
+
+          {/* Official Verification Report Dossier */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4 text-xs">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold uppercase tracking-wider text-slate-400 text-xs">
+                Official Report Dossier
+              </h3>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                (req.qaReview?.publishedToClient || req.requestStatus === 'REPORT_READY' || req.requestStatus === 'COMPLETED')
+                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                  : 'bg-slate-100 text-slate-600'
+              }`}>
+                {(req.qaReview?.publishedToClient || req.requestStatus === 'REPORT_READY' || req.requestStatus === 'COMPLETED')
+                  ? 'Dossier Ready'
+                  : 'QA In Progress'}
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              {(req.qaReview?.publishedToClient || req.requestStatus === 'REPORT_READY' || req.requestStatus === 'COMPLETED')
+                ? 'Standard Field Audit Dossier certified by Nairobi QA desk. Includes cryptographic SHA-256 fingerprint, GPS breadcrumb, and contractor disbursement advisory.'
+                : 'Field observations and photographic evidence are currently undergoing contradiction analysis at the Nairobi QA Operations Desk.'}
+            </p>
+
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                onClick={() => onOpenReport(req)}
+                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-emerald-400" />
+                <span>View Report</span>
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <FileText className="w-3.5 h-3.5 text-slate-500" />
+                <span>Download Report (PDF)</span>
+              </button>
+            </div>
           </div>
 
           {/* Pricing & Service Terms */}

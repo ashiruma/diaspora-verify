@@ -293,7 +293,7 @@ export interface VerificationRequest {
   disputeId?: string;
 }
 
-export type ActiveRole = 'client' | 'operations' | 'field_agent' | 'corporate';
+export type ActiveRole = 'client' | 'agent' | 'admin' | 'operations' | 'field_agent' | 'corporate';
 
 export interface UserProfile {
   id: string;

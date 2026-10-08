@@ -1,349 +1,258 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useVerification } from '../../context/VerificationContext';
 import { 
-  ShieldCheck,
-  MapPin, 
-  Building, 
-  FileText, 
   Plus, 
-  AlertTriangle, 
-  DollarSign, 
-  CheckCircle2, 
-  Search, 
-  User
+  ArrowRight, 
+  MapPin, 
+  FileText,
+  Clock,
+  ExternalLink,
+  ShieldCheck
 } from '../Icons';
-
-import { StatusBadge, ProcessStageBadge, CategoryIcon } from '../CommonBadges';
-import { SERVICE_CATEGORIES_CONFIG, FORMAT_CURRENCY, hasStopPaymentWarning } from '../../data/mockData';
-import type { ServiceCategory } from '../../types';
-
+import { StatusBadge } from '../ui/StatusBadge';
+import { CategoryIcon } from '../CommonBadges';
+import { Button } from '../ui/Button';
+import { EmptyState } from '../ui/EmptyState';
+import { useNavigate } from 'react-router-dom';
 
 interface ClientDashboardProps {
   onSelectRequest: (id: string) => void;
-  onNavigateToConstruction: () => void;
+  onNavigateToConstruction?: () => void;
   onNavigateToNewRequest: () => void;
   onOpenReport: (req: any) => void;
 }
 
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({
   onSelectRequest,
-  onNavigateToConstruction,
   onNavigateToNewRequest,
   onOpenReport,
 }) => {
-  const { requests, currency, selectRequest } = useVerification();
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const { clientRequests, currentUser } = useVerification();
+  const navigate = useNavigate();
 
-  // Stats calculation
-  const totalRequests = requests.length;
-  const stopPaymentAlerts = requests.filter(hasStopPaymentWarning).length;
-  const verifiedEvidenceCount = requests.reduce((acc, r) => acc + r.evidence.length, 0);
-  const totalPaymentsAuditedKES = requests.reduce((acc, r) => acc + (r.paymentDecisionRecord?.contractorRequestedKES || 0), 0);
+  // Summary Metrics: Keep simple, do not create excessive statistics!
+  const activeRequests = clientRequests.filter(
+    (r) => r.requestStatus !== 'COMPLETED' && r.requestStatus !== 'CANCELLED'
+  );
+  const reportsAvailable = clientRequests.filter(
+    (r) => r.qaReview?.publishedToClient || r.requestStatus === 'REPORT_READY' || r.requestStatus === 'COMPLETED'
+  );
 
-  const filteredRequests = requests.filter(r => {
-    const matchesCategory = selectedCategory === 'all' || r.category === selectedCategory;
-    const matchesSearch = 
-      r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.location.county.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.location.town.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.id.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const firstName = currentUser?.name?.split(' ')[0] || 'Client';
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans text-left">
       
-      {/* Customer Facing Opener Hero (Direct from Document 1, Section 6) */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white rounded-3xl p-6 sm:p-10 shadow-xl border border-slate-700/50 relative overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-500/20 via-transparent to-transparent pointer-events-none" />
-        
-        <div className="max-w-3xl space-y-4 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold tracking-wide uppercase">
-            <span>🇰🇪 Trusted On-Ground Support For People Abroad</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl font-extrabold font-display tracking-tight text-white leading-tight">
-            “Living abroad should not mean relying on guesswork for everything happening back home.”
+      {/* 1. Header & Primary Dominant Quick Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-200/80">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold font-display text-slate-900 tracking-tight">
+            Good morning, {firstName}
           </h1>
-
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-            Tell us what you need checked or handled in Kenya. We will agree on the scope, 
-            assign the right vetted person on the ground, keep you updated with dated evidence, 
-            and give you clear findings and next steps. <strong>You remain in control of the decision.</strong>
+          <p className="text-xs sm:text-sm text-slate-500 max-w-xl leading-relaxed">
+            Here is the live status of your verification missions across Kenya. Your assigned field verifiers provide dated evidence and objective findings.
           </p>
-
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <button
-              onClick={onNavigateToNewRequest}
-              className="bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-slate-950 font-bold text-sm px-5 py-3 rounded-xl shadow-lg shadow-emerald-500/25 flex items-center gap-2 transition-all hover:scale-[1.02]"
-            >
-              <Plus className="w-4 h-4 stroke-[3]" />
-              Book a Ground Verification
-            </button>
-            <button
-              onClick={onNavigateToConstruction}
-              className="bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-3 rounded-xl backdrop-blur border border-white/10 flex items-center gap-2 transition-all"
-            >
-              <Building className="w-4 h-4 text-emerald-400" />
-              <span>Explore Construction Oversight Pilot</span>
-            </button>
-          </div>
         </div>
 
-        {/* 3 Pillars Footer */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-slate-700/60 pt-6 mt-8 text-xs text-slate-300">
-          <div className="flex items-start gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0 mt-0.5">
-              ✓
-            </div>
-            <div>
-              <div className="font-bold text-white">Independent Visit</div>
-              <p className="text-slate-400 text-[11px]">Separated from sellers and contractors. Clear boundaries.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0 mt-0.5">
-              ✓
-            </div>
-            <div>
-              <div className="font-bold text-white">Named Accountability</div>
-              <p className="text-slate-400 text-[11px]">Vetted field agents with signed conflict clearances.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0 mt-0.5">
-              ✓
-            </div>
-            <div>
-              <div className="font-bold text-white">Honest Reporting</div>
-              <p className="text-slate-400 text-[11px]">Clear record of what was observed and what could not be confirmed.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Key Metric Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Verifications</div>
-            <div className="text-2xl font-black text-slate-900 font-display">{totalRequests}</div>
-            <div className="text-[11px] text-emerald-600 font-medium">5 Kenyan Counties</div>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
-            <FileText className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Funds Under Audit</div>
-            <div className="text-2xl font-black text-slate-900 font-display">
-              {FORMAT_CURRENCY(totalPaymentsAuditedKES, currency)}
-            </div>
-            <div className="text-[11px] text-slate-500">Contractor Claims Verified</div>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700">
-            <DollarSign className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Evidence Items</div>
-            <div className="text-2xl font-black text-slate-900 font-display">{verifiedEvidenceCount}</div>
-            <div className="text-[11px] text-slate-500">Photos, GPS & Logs</div>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-700">
-            <CheckCircle2 className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className={`p-5 rounded-2xl border shadow-sm flex items-center justify-between ${
-          stopPaymentAlerts > 0 ? 'bg-amber-50 border-amber-300' : 'bg-white border-slate-200'
-        }`}>
-          <div className="space-y-1">
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Discrepancy Alerts</div>
-            <div className="text-2xl font-black text-amber-800 font-display">{stopPaymentAlerts}</div>
-            <div className="text-[11px] text-amber-700 font-semibold">Stop Payment Active</div>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-800">
-            <AlertTriangle className="w-6 h-6" />
-          </div>
-        </div>
-
-      </div>
-
-      {/* Service Portfolio Category Filter */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Your Active Requests & Assets</h2>
-            <p className="text-xs text-slate-500">Track progress across construction, land, vehicles, business, and family.</p>
-          </div>
-
-          {/* Search Input */}
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search request, county, ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Categories Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <button
-            onClick={() => setSelectedCategory('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
-              selectedCategory === 'all'
-                ? 'bg-slate-900 text-white border-slate-900'
-                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-            }`}
+        {/* One Dominant Quick Action */}
+        <div className="flex-shrink-0">
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={onNavigateToNewRequest}
+            leftIcon={<Plus className="w-4 h-4 stroke-[2.5]" />}
           >
-            All Requests ({requests.length})
-          </button>
+            New Verification
+          </Button>
+        </div>
+      </div>
 
-          {SERVICE_CATEGORIES_CONFIG.map(cat => {
-            const count = requests.filter(r => r.category === cat.id).length;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 border ${
-                  selectedCategory === cat.id
-                    ? 'bg-emerald-700 text-white border-emerald-700'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                <CategoryIcon category={cat.id as ServiceCategory} className="w-3.5 h-3.5" />
-                <span>{cat.shortName}</span>
-                <span className="text-[10px] opacity-75 font-mono">({count})</span>
-              </button>
-            );
-          })}
+      {/* 2. Restrained Operational Summary Bar (No excessive statistics) */}
+      <div className="flex flex-wrap items-center gap-6 py-3 px-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs text-xs">
+        <div className="flex items-center gap-2.5">
+          <span className="text-slate-400 font-medium">Active Requests:</span>
+          <span className="font-bold text-slate-900 font-mono text-sm bg-slate-100 px-2 py-0.5 rounded-md">
+            {activeRequests.length}
+          </span>
         </div>
 
-        {/* Request Cards Grid */}
-        <div className="space-y-4 pt-2">
-          {filteredRequests.map((req) => {
-            const isConstruction = req.category === 'construction';
-            const hasStopPayment = hasStopPaymentWarning(req);
+        <div className="h-4 w-px bg-slate-200 hidden sm:block" />
 
-            return (
-              <div
-                key={req.id}
-                className={`p-5 rounded-2xl border transition-all hover:shadow-md ${
-                  hasStopPayment
-                    ? 'border-amber-300 bg-amber-50/20'
-                    : 'border-slate-200 bg-white hover:border-emerald-300'
-                }`}
-              >
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  
-                  {/* Left Column: Details & Title */}
-                  <div className="space-y-2 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-slate-500">
-                        {req.id}
-                      </span>
-                      <ProcessStageBadge stage={req.stage} />
-                      <StatusBadge status={req.status} />
+        <div className="flex items-center gap-2.5">
+          <span className="text-slate-400 font-medium">Reports Available:</span>
+          <span className="font-bold text-emerald-800 font-mono text-sm bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+            {reportsAvailable.length}
+          </span>
+        </div>
 
-                      {hasStopPayment && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-500 text-slate-900 flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" /> Stop Payment Alert
-                        </span>
-                      )}
-                    </div>
+        <div className="h-4 w-px bg-slate-200 hidden sm:block" />
 
-                    <h3 className="text-base font-bold text-slate-900">
-                      {req.title}
-                    </h3>
+        <div className="text-slate-400 flex items-center gap-1.5 ml-auto text-[11px]">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Independent on-ground due diligence</span>
+        </div>
+      </div>
 
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                        {req.location.town}, {req.location.county}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <User className="w-3.5 h-3.5 text-slate-400" />
-                        Contact: {req.contactOnGround.name}
-                      </span>
-                      {req.assignedAgent && (
-                        <span className="flex items-center gap-1 font-medium text-slate-700">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                          Agent: {req.assignedAgent.name}
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="text-xs text-slate-600 line-clamp-1">
-                      {req.scopeBrief}
-                    </p>
-                  </div>
-
-                  {/* Right Column: Actions */}
-                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
-                    
-                    {isConstruction ? (
-                      <button
-                        onClick={() => {
-                          selectRequest(req.id);
-                          onNavigateToConstruction();
-                        }}
-                        className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-all"
-                      >
-                        <Building className="w-3.5 h-3.5" />
-                        Open Construction Oversight
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => onSelectRequest(req.id)}
-                        className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-all"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        View Verification Lifecycle
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => onOpenReport(req)}
-                      className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-                    >
-                      <FileText className="w-3.5 h-3.5" />
-                      Report
-                    </button>
-
-                  </div>
-
-                </div>
-              </div>
-            );
-          })}
-
-          {filteredRequests.length === 0 && (
-            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300 space-y-2">
-              <p className="text-xs text-slate-500">No requests found matching your filters.</p>
-              <button
-                onClick={() => { setSelectedCategory('all'); setSearchQuery(''); }}
-                className="text-xs font-bold text-emerald-700 hover:underline"
-              >
-                Clear filters
-              </button>
-            </div>
+      {/* 3. ACTIVE REQUESTS — What is happening with my requests? */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+              Active Verifications
+            </h2>
+            <p className="text-xs text-slate-500">
+              Ongoing field missions and progress milestones
+            </p>
+          </div>
+          {activeRequests.length > 0 && (
+            <button
+              onClick={() => navigate('/requests')}
+              className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors"
+            >
+              View all requests ({clientRequests.length}) →
+            </button>
           )}
         </div>
 
-      </div>
+        {activeRequests.length === 0 ? (
+          <EmptyState
+            icon={<FileText className="w-6 h-6" />}
+            title="No active verification requests"
+            description="You don't have any active field verifications currently underway. All completed audit dossiers are cataloged in Recent Reports below."
+            action={
+              <Button variant="secondary" onClick={onNavigateToNewRequest}>
+                New Verification
+              </Button>
+            }
+          />
+        ) : (
+          <div className="space-y-3">
+            {activeRequests.map((req) => (
+              <div
+                key={req.id}
+                className="bg-white rounded-2xl border border-slate-200/90 hover:border-slate-300 p-5 shadow-xs transition-all duration-150 flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
+                {/* Left: ID, Service, Location & Title */}
+                <div className="space-y-1.5 max-w-xl">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                      {req.id}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 capitalize bg-slate-50 border border-slate-200/70 px-2 py-0.5 rounded">
+                      <CategoryIcon category={req.category} className="w-3 h-3 text-slate-500" />
+                      <span>{req.category}</span>
+                    </span>
+                    <StatusBadge status={req.requestStatus || req.status} size="sm" />
+                  </div>
+
+                  <h3
+                    onClick={() => onSelectRequest(req.id)}
+                    className="text-sm font-bold text-slate-900 hover:text-emerald-700 transition-colors cursor-pointer"
+                  >
+                    {req.title}
+                  </h3>
+
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-slate-400" />
+                      <span>{req.location.town}, {req.location.county}</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-slate-400" />
+                      <span>Visit: {req.scheduledVisitDate || 'Scheduled'}</span>
+                    </span>
+                    {req.assignedAgent && (
+                      <span className="text-[11px] text-slate-600 font-medium">
+                        Verifier: <span className="text-slate-900">{req.assignedAgent.name}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right: Progress indicator & Primary Action */}
+                <div className="flex items-center gap-4 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 flex-shrink-0">
+                  <div className="text-right hidden sm:block">
+                    <div className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+                      Stage
+                    </div>
+                    <div className="text-xs font-bold text-slate-800 capitalize">
+                      {req.stage} Phase
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onSelectRequest(req.id)}
+                    rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                  >
+                    View Details
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* 4. RECENT REPORTS — Completed Dossiers */}
+      <section className="space-y-4 pt-4 border-t border-slate-200/60">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+              Recent Verification Reports
+            </h2>
+            <p className="text-xs text-slate-500">
+              Completed on-ground dossiers with cryptographic proof and objective findings
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/reports')}
+            className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors"
+          >
+            All Reports ({reportsAvailable.length}) →
+          </button>
+        </div>
+
+        {reportsAvailable.length === 0 ? (
+          <div className="py-8 text-center rounded-2xl bg-slate-50/50 border border-slate-200 text-xs text-slate-400">
+            No published reports yet. When your field verifier completes inspection and Nairobi QA clears findings, immutable reports will appear here.
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100 bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+            {reportsAvailable.slice(0, 3).map((req) => (
+              <div
+                key={`rep-${req.id}`}
+                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-slate-700">{req.id}</span>
+                    <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                      Report Dossier Ready
+                    </span>
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-900">{req.title}</h4>
+                  <p className="text-[11px] text-slate-500">
+                    Location: {req.location.county} · Verified by {req.assignedAgent?.name || 'Field Inspector'} · SHA-256 Digest Sealed
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onOpenReport(req)}
+                    leftIcon={<ExternalLink className="w-3.5 h-3.5 text-slate-500" />}
+                  >
+                    Open Report
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
     </div>
   );

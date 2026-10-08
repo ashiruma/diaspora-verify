@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "test": "node test/verify_business_logic.mjs",
+    "test": "node test/verify_business_logic.mjs && node --experimental-strip-types test/verify_role_security.mjs",
     "lint": "oxlint",
     "preview": "vite preview"
   },
