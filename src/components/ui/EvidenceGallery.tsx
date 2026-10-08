@@ -33,7 +33,7 @@ export const EvidenceGallery: React.FC<EvidenceGalleryProps> = ({
     <div className={`space-y-4 text-left ${className}`}>
       {/* Category Filter & Upload CTA */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2 border-b border-slate-100">
-        <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
           {[
             { id: 'all', label: `All (${items.length})` },
             { id: 'photo', label: 'Photos' },

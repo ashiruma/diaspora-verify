@@ -309,7 +309,7 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
 
             {/* Angle Selector Tabs */}
             {comparisons.length > 0 && (
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 border-b border-slate-100">
                 {comparisons.map((cmp, idx) => (
                   <button
                     key={cmp.id}

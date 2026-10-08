@@ -384,50 +384,86 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
       </div>
 
       {/* Operations Header & Tab Switcher */}
-      <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
-              NAIROBI HQ OPERATIONS DESK
-            </span>
-            <span className="text-xs text-slate-400">Controlled Operations Register</span>
+      <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-xl space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                NAIROBI HQ OPERATIONS DESK
+              </span>
+              <span className="text-xs text-slate-400">Controlled Operations Register</span>
+            </div>
+            <h1 className="text-2xl font-bold font-display text-white">
+              Operations Center & Register
+            </h1>
+            <p className="text-xs text-slate-300 max-w-2xl">
+              Triage client requests, assign vetted local verifiers, verify conflicts of interest, 
+              and review ground evidence before publishing official audit findings.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold font-display text-white">
-            Operations Center & Register
-          </h1>
-          <p className="text-xs text-slate-300 max-w-2xl">
-            Triage client requests, assign vetted local verifiers, verify conflicts of interest, 
-            and review ground evidence before publishing official audit findings.
-          </p>
+
+          {/* Quick Admin Actions */}
+          <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
+            <button
+              onClick={seedSampleData}
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+              title="Populate test operational cases"
+            >
+              Seed Test Cases
+            </button>
+            <button
+              onClick={resetAllData}
+              className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-800 text-xs font-semibold text-slate-400 hover:text-rose-300 transition-colors"
+              title="Clear all runtime data back to pristine state"
+            >
+              Reset Data
+            </button>
+          </div>
         </div>
 
-        {/* Tab Switcher - All 11 Sections per Specification */}
-        <div className="flex items-center bg-slate-800 p-1.5 rounded-2xl border border-slate-700 text-xs font-semibold gap-1 max-w-full overflow-x-auto">
+        {/* Tab Switcher - Spans Full Width Across Banner with zero scrollbar */}
+        <div className="border-t border-slate-800/90 pt-3.5 flex items-center bg-transparent text-xs font-medium gap-1.5 overflow-x-auto no-scrollbar">
           {[
-            { id: 'operations' as OperationsTab, label: 'Operations' },
-            { id: 'requests' as OperationsTab, label: `Requests (${requests.length})` },
-            { id: 'assignments' as OperationsTab, label: `Assignments (${unassignedList.length})` },
-            { id: 'agents' as OperationsTab, label: `Agents (${agents.length})` },
-            { id: 'clients' as OperationsTab, label: `Clients (${clientsList.length})` },
-            { id: 'reports' as OperationsTab, label: 'Reports & QA' },
-            { id: 'payments' as OperationsTab, label: 'Payments' },
-            { id: 'disputes' as OperationsTab, label: `Disputes (${disputes.length})` },
-            { id: 'analytics' as OperationsTab, label: 'Analytics' },
-            { id: 'services' as OperationsTab, label: 'Services' },
-            { id: 'settings' as OperationsTab, label: 'Settings' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id)}
-              className={`px-3 py-1.5 rounded-xl whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+            { id: 'operations' as OperationsTab, label: 'Operations Desk', count: null },
+            { id: 'requests' as OperationsTab, label: 'Requests', count: requests.length },
+            { id: 'assignments' as OperationsTab, label: 'Assignments', count: unassignedList.length },
+            { id: 'agents' as OperationsTab, label: 'Agents', count: agents.length },
+            { id: 'clients' as OperationsTab, label: 'Clients', count: clientsList.length },
+            { id: 'reports' as OperationsTab, label: 'Reports & QA', count: null },
+            { id: 'payments' as OperationsTab, label: 'Payments', count: null },
+            { id: 'disputes' as OperationsTab, label: 'Disputes', count: disputes.length },
+            { id: 'analytics' as OperationsTab, label: 'Intelligence', count: null },
+            { id: 'services' as OperationsTab, label: 'Services', count: null },
+            { id: 'settings' as OperationsTab, label: 'Settings', count: null },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                className={`px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isActive
+                    ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {typeof tab.count === 'number' && (
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                      isActive
+                        ? 'bg-blue-700 text-blue-100 font-bold'
+                        : tab.count > 0
+                        ? 'bg-slate-800 text-slate-300 border border-slate-700'
+                        : 'bg-slate-800/50 text-slate-500'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

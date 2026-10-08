@@ -382,7 +382,7 @@ export interface NotificationItem {
 export interface OrganizationRecord {
   id: string;
   name: string;
-  corporateType: 'Real Estate Developer' | 'Diaspora Investment SACCO' | 'Law Firm / Conveyancing' | 'Asset Management' | 'Family Trust';
+  corporateType: 'Real Estate Developer' | 'Property Investment Syndicate' | 'Institutional Fund' | 'Law Firm / Conveyancing' | 'Asset Management' | 'Family Trust';
   contactPerson: string;
   email: string;
   phone: string;

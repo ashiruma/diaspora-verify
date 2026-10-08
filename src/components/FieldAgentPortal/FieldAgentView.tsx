@@ -507,7 +507,7 @@ export const FieldAgentView: React.FC = () => {
         <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
           Your Assigned Missions ({agentJobs.length} Today):
         </label>
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
           {agentJobs.map(r => (
             <button
               key={r.id}

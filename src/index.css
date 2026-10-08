@@ -104,3 +104,12 @@ html, body {
     min-height: auto !important;
   }
 }
+
+/* Modern navigation strips: suppress unsightly scrollbars on Windows & webkit */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

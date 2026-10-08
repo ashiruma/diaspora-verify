@@ -939,15 +939,15 @@ export const MOCK_DISPUTES = [
 export const MOCK_ORGANIZATIONS = [
   {
     id: 'org-001',
-    name: 'UK-Kenya Diaspora Property Investment SACCO',
-    corporateType: 'Diaspora Investment SACCO' as const,
-    contactPerson: 'Beatrice Ndwiga (SACCO Secretary)',
-    email: 'investments@ukkenyasacco.org.uk',
+    name: 'UK-Kenya Diaspora Property Investment Syndicate',
+    corporateType: 'Property Investment Syndicate' as const,
+    contactPerson: 'Beatrice Ndwiga (Portfolio Director)',
+    email: 'investments@diasporapropertyfund.co.uk',
     phone: '+44 20 7946 0912',
     memberCount: 420,
     activeRequestsCount: 8,
     totalProperties: 24,
-    billingEmail: 'accounts@ukkenyasacco.org.uk',
+    billingEmail: 'accounts@diasporapropertyfund.co.uk',
     createdAt: '2026-01-15'
   },
   {

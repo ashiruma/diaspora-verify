@@ -21,8 +21,8 @@ export const CorporateDashboard: React.FC = () => {
 
   const [teamMembers, setTeamMembers] = useState([
     { id: 'tm-1', name: org.contactPerson, email: org.email, role: 'Organization Admin', activeTasks: 4 },
-    { id: 'tm-2', name: 'Eng. Samuel Kilonzo', email: 's.kilonzo@ukkenyasacco.org.uk', role: 'Technical Asset Manager', activeTasks: 3 },
-    { id: 'tm-3', name: 'Joyce Maina, CPA', email: 'j.maina@ukkenyasacco.org.uk', role: 'Finance / Audit Officer', activeTasks: 1 },
+    { id: 'tm-2', name: 'Eng. Samuel Kilonzo', email: 's.kilonzo@diasporapropertyfund.co.uk', role: 'Technical Asset Manager', activeTasks: 3 },
+    { id: 'tm-3', name: 'Joyce Maina, CPA', email: 'j.maina@diasporapropertyfund.co.uk', role: 'Finance / Audit Officer', activeTasks: 1 },
   ]);
 
   const handleAddMember = (e: React.FormEvent) => {
@@ -74,7 +74,7 @@ export const CorporateDashboard: React.FC = () => {
             {org.name}
           </h1>
           <p className="text-xs text-slate-300 max-w-2xl">
-            Centralized due-diligence and on-ground verification infrastructure for Diaspora SACCOs, institutional real-estate funds, legal firms, and asset managers.
+            Centralized due-diligence and on-ground verification infrastructure for diaspora property investment syndicates, institutional real-estate funds, legal firms, and asset managers.
           </p>
         </div>
 
