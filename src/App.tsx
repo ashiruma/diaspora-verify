@@ -22,6 +22,8 @@ import { ClientRequestsListView } from './components/ClientPortal/ClientRequests
 import { ClientPaymentsView } from './components/ClientPortal/ClientPaymentsView';
 import { ClientMessagesView } from './components/ClientPortal/ClientMessagesView';
 import { ClientProfileView } from './components/ClientPortal/ClientProfileView';
+import { Login } from './components/Auth/Login';
+import { Register } from './components/Auth/Register';
 
 function AppRoutes() {
   const navigate = useNavigate();
@@ -38,6 +40,10 @@ function AppRoutes() {
     <>
       <Navbar />
       <Routes>
+        {/* Authentication Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
         {/* Public & Informational Routes */}
         <Route 
           path="/" 

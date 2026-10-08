@@ -14,7 +14,10 @@ import {
   MessageSquare,
   DollarSign,
   Clock,
-  Award
+  Award,
+  LogOut,
+  LogIn,
+  UserPlus
 } from './Icons';
 import type { ActiveRole, CurrencyCode } from '../types';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -36,6 +39,8 @@ export const Navbar: React.FC = () => {
     markNotificationRead,
     clearAllNotifications,
     currentUser,
+    isAuthenticated,
+    logout,
     startViewAs,
     setCommandMenuOpen,
     agents,
@@ -186,7 +191,7 @@ export const Navbar: React.FC = () => {
           {/* Logo & Brand */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <button
-              onClick={() => handleNav(currentNormalizedRole === 'admin' ? '/admin' : currentNormalizedRole === 'agent' ? '/agent' : '/dashboard')}
+              onClick={() => handleNav(!isAuthenticated || !currentUser ? '/' : currentNormalizedRole === 'admin' ? '/admin' : currentNormalizedRole === 'agent' ? '/agent' : '/dashboard')}
               className="flex items-center gap-2.5 text-left group"
             >
               <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs group-hover:bg-emerald-700 transition-colors">
@@ -197,9 +202,15 @@ export const Navbar: React.FC = () => {
                   <span className="text-lg font-bold font-display tracking-tight text-slate-900">
                     Diaspora<span className="text-emerald-700">Verify</span>
                   </span>
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                    {currentNormalizedRole.toUpperCase()}
-                  </span>
+                  {isAuthenticated && currentUser ? (
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                      {currentNormalizedRole.toUpperCase()}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                      KENYA PILOT
+                    </span>
+                  )}
                 </div>
                 <p className="text-[10px] text-slate-400 font-medium hidden sm:block">
                   Field Verification & Safeguarding
@@ -208,57 +219,64 @@ export const Navbar: React.FC = () => {
             </button>
           </div>
 
-          {/* Role-Specific Navigation Links */}
+          {/* Navigation Links */}
           <nav className="hidden lg:flex items-center gap-1 overflow-x-auto max-w-3xl py-1">
-            {activeNavLinks.map((link) => {
-              const isActive = location.pathname === link.path || (link.path.includes('?') && location.pathname + location.search === link.path);
-              return (
+            {!isAuthenticated || !currentUser ? (
+              <>
                 <button
-                  key={link.path}
-                  onClick={() => handleNav(link.path)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                    isActive 
-                      ? 'bg-slate-100 text-slate-900 border border-slate-200' 
+                  onClick={() => handleNav('/service-model')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    location.pathname === '/service-model'
+                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  {link.icon}
-                  <span>{link.label}</span>
+                  How It Works
                 </button>
-              );
-            })}
+                <button
+                  onClick={() => handleNav('/legal')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    location.pathname === '/legal'
+                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  Legal & Compliance
+                </button>
+                <button
+                  onClick={() => handleNav('/')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    location.pathname === '/' || location.pathname === '/landing'
+                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  Public Site
+                </button>
+              </>
+            ) : (
+              activeNavLinks.map((link) => {
+                const isActive = location.pathname === link.path || (link.path.includes('?') && location.pathname + location.search === link.path);
+                return (
+                  <button
+                    key={link.path}
+                    onClick={() => handleNav(link.path)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      isActive 
+                        ? 'bg-slate-100 text-slate-900 border border-slate-200' 
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    {link.icon}
+                    <span>{link.label}</span>
+                  </button>
+                );
+              })
+            )}
           </nav>
 
           {/* Right Action Controls */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* Admin Command Menu Shortcut */}
-            {currentNormalizedRole === 'admin' && (
-              <button
-                onClick={() => setCommandMenuOpen(true)}
-                className="hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-slate-600 transition-colors"
-                title="Search records (Ctrl+K)"
-              >
-                <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <span>Search</span>
-                <kbd className="text-[10px] font-mono px-1 py-0.5 rounded bg-white border border-slate-300 text-slate-500">
-                  ⌘K
-                </kbd>
-              </button>
-            )}
-
-            {/* Admin "View As" Quick Launcher */}
-            {currentNormalizedRole === 'admin' && (
-              <button
-                onClick={() => setViewAsModalOpen(true)}
-                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-colors"
-                title="View Experience as Client or Agent"
-              >
-                <span>Preview Mode...</span>
-              </button>
-            )}
-
             {/* Currency Selector */}
             <div className="relative">
               <button
@@ -294,131 +312,209 @@ export const Navbar: React.FC = () => {
               )}
             </div>
 
-            {/* Notifications Bell */}
-            <div className="relative">
-              <button
-                onClick={() => {
-                  setNotifMenuOpen(!notifMenuOpen);
-                  setRoleMenuOpen(false);
-                  setCurrencyMenuOpen(false);
-                }}
-                className="p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-transparent hover:border-slate-200 relative transition-colors"
-                aria-label="View notifications"
-              >
-                <Bell className="w-4 h-4" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
+            {!isAuthenticated || !currentUser ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleNav('/login')}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-xs transition-colors flex items-center gap-1.5"
+                >
+                  <LogIn className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Sign In</span>
+                </button>
+                <button
+                  onClick={() => handleNav('/register')}
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5"
+                >
+                  <UserPlus className="w-3.5 h-3.5 text-white" />
+                  <span>Get Started</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Admin Command Menu Shortcut */}
+                {currentNormalizedRole === 'admin' && (
+                  <button
+                    onClick={() => setCommandMenuOpen(true)}
+                    className="hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-slate-600 transition-colors"
+                    title="Search records (Ctrl+K)"
+                  >
+                    <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span>Search</span>
+                    <kbd className="text-[10px] font-mono px-1 py-0.5 rounded bg-white border border-slate-300 text-slate-500">
+                      ⌘K
+                    </kbd>
+                  </button>
                 )}
-              </button>
 
-              {notifMenuOpen && (
-                <div className="absolute right-0 mt-1.5 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-3 z-50 text-left">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
-                    <span className="text-xs font-bold text-slate-900">Notifications ({unreadCount})</span>
+                {/* Admin "View As" Quick Launcher */}
+                {currentNormalizedRole === 'admin' && (
+                  <button
+                    onClick={() => setViewAsModalOpen(true)}
+                    className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-colors"
+                    title="View Experience as Client or Agent"
+                  >
+                    <span>Preview Mode...</span>
+                  </button>
+                )}
+
+                {/* Notifications Bell */}
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setNotifMenuOpen(!notifMenuOpen);
+                      setRoleMenuOpen(false);
+                      setCurrencyMenuOpen(false);
+                    }}
+                    className="p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-transparent hover:border-slate-200 relative transition-colors"
+                    aria-label="View notifications"
+                  >
+                    <Bell className="w-4 h-4" />
                     {unreadCount > 0 && (
-                      <button
-                        onClick={clearAllNotifications}
-                        className="text-[10px] text-emerald-700 hover:underline font-semibold"
-                      >
-                        Mark all read
-                      </button>
+                      <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
                     )}
-                  </div>
-                  <div className="max-h-64 overflow-y-auto space-y-2">
-                    {notifications.length === 0 ? (
-                      <p className="text-xs text-slate-400 py-4 text-center">No notifications.</p>
-                    ) : (
-                      notifications.slice(0, 5).map((n) => (
-                        <div
-                          key={n.id}
-                          onClick={() => {
-                            markNotificationRead(n.id);
-                            if (n.requestId) handleNav(`/request/${n.requestId}`);
-                          }}
-                          className={`p-2 rounded-xl text-xs cursor-pointer transition-colors ${
-                            n.read ? 'bg-white hover:bg-slate-50' : 'bg-emerald-50/50 border border-emerald-100'
-                          }`}
-                        >
-                          <div className="font-semibold text-slate-900">{n.title}</div>
-                          <div className="text-[11px] text-slate-500 mt-0.5">{n.message}</div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+                  </button>
 
-            {/* Role Switcher Menu */}
-            <div className="relative">
-              <button
-                onClick={() => {
-                  setRoleMenuOpen(!roleMenuOpen);
-                  setCurrencyMenuOpen(false);
-                  setNotifMenuOpen(false);
-                }}
-                className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors shadow-xs"
-              >
-                <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-xs">
-                  {currentUser?.name?.[0] || 'U'}
-                </div>
-                <div className="text-left hidden md:block">
-                  <div className="text-xs font-bold text-slate-900 line-clamp-1">{currentUser?.name}</div>
-                  <div className="text-[10px] text-slate-400 font-medium capitalize">{currentNormalizedRole}</div>
-                </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-              </button>
-
-              {roleMenuOpen && (
-                <div className="absolute right-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 text-left space-y-1">
-                  <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      Switch Role Portal
-                    </div>
-                    <div className="text-xs font-semibold text-slate-800 mt-0.5">
-                      {currentUser?.email}
-                    </div>
-                  </div>
-
-                  {rolesConfig.map((r) => {
-                    const isSelected = currentNormalizedRole === normalizeRole(r.id);
-                    return (
-                      <button
-                        key={r.id}
-                        onClick={() => handleRoleSwitch(r.id)}
-                        className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start gap-2.5 ${
-                          isSelected ? r.color + ' border' : 'hover:bg-slate-50 text-slate-700'
-                        }`}
-                      >
-                        <div className="mt-0.5">{r.icon}</div>
-                        <div className="flex-1">
-                          <div className="text-xs font-bold flex items-center justify-between">
-                            <span>{r.label}</span>
-                            {isSelected && <span className="text-[10px] font-black">ACTIVE</span>}
-                          </div>
-                          <div className="text-[10px] text-slate-500 mt-0.5">{r.sub}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
-
-                  {currentNormalizedRole === 'admin' && (
-                    <div className="pt-2 border-t border-slate-100 mt-1">
-                      <button
-                        onClick={() => {
-                          setRoleMenuOpen(false);
-                          setViewAsModalOpen(true);
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-amber-900 hover:bg-amber-50 flex items-center justify-between"
-                      >
-                        <span>Launch "View As" Preview...</span>
-                        <span className="text-[10px] text-amber-700">Audit-logged</span>
-                      </button>
+                  {notifMenuOpen && (
+                    <div className="absolute right-0 mt-1.5 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-3 z-50 text-left">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+                        <span className="text-xs font-bold text-slate-900">Notifications ({unreadCount})</span>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={clearAllNotifications}
+                            className="text-[10px] text-emerald-700 hover:underline font-semibold"
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
+                      <div className="max-h-64 overflow-y-auto space-y-2">
+                        {notifications.length === 0 ? (
+                          <p className="text-xs text-slate-400 py-4 text-center">No notifications.</p>
+                        ) : (
+                          notifications.slice(0, 5).map((n) => (
+                            <div
+                              key={n.id}
+                              onClick={() => {
+                                markNotificationRead(n.id);
+                                if (n.requestId) handleNav(`/request/${n.requestId}`);
+                              }}
+                              className={`p-2 rounded-xl text-xs cursor-pointer transition-colors ${
+                                n.read ? 'bg-white hover:bg-slate-50' : 'bg-emerald-50/50 border border-emerald-100'
+                              }`}
+                            >
+                              <div className="font-semibold text-slate-900">{n.title}</div>
+                              <div className="text-[11px] text-slate-500 mt-0.5">{n.message}</div>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
-              )}
-            </div>
+
+                {/* Role Switcher & User Profile Menu */}
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setRoleMenuOpen(!roleMenuOpen);
+                      setCurrencyMenuOpen(false);
+                      setNotifMenuOpen(false);
+                    }}
+                    className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors shadow-xs"
+                  >
+                    <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-xs">
+                      {currentUser?.name?.[0] || 'U'}
+                    </div>
+                    <div className="text-left hidden md:block">
+                      <div className="text-xs font-bold text-slate-900 line-clamp-1">{currentUser?.name}</div>
+                      <div className="text-[10px] text-slate-400 font-medium capitalize">{currentNormalizedRole}</div>
+                    </div>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  </button>
+
+                  {roleMenuOpen && (
+                    <div className="absolute right-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 text-left space-y-1">
+                      <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Switch Role Portal
+                        </div>
+                        <div className="text-xs font-semibold text-slate-800 mt-0.5 truncate">
+                          {currentUser?.email}
+                        </div>
+                      </div>
+
+                      {rolesConfig.map((r) => {
+                        const isSelected = currentNormalizedRole === normalizeRole(r.id);
+                        return (
+                          <button
+                            key={r.id}
+                            onClick={() => handleRoleSwitch(r.id)}
+                            className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start gap-2.5 ${
+                              isSelected ? r.color + ' border' : 'hover:bg-slate-50 text-slate-700'
+                            }`}
+                          >
+                            <div className="mt-0.5">{r.icon}</div>
+                            <div className="flex-1">
+                              <div className="text-xs font-bold flex items-center justify-between">
+                                <span>{r.label}</span>
+                                {isSelected && <span className="text-[10px] font-black">ACTIVE</span>}
+                              </div>
+                              <div className="text-[10px] text-slate-500 mt-0.5">{r.sub}</div>
+                            </div>
+                          </button>
+                        );
+                      })}
+
+                      {currentNormalizedRole === 'admin' && (
+                        <div className="pt-2 border-t border-slate-100 mt-1">
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              setViewAsModalOpen(true);
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-amber-900 hover:bg-amber-50 flex items-center justify-between"
+                          >
+                            <span>Launch "View As" Preview...</span>
+                            <span className="text-[10px] text-amber-700">Audit-logged</span>
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="pt-2 border-t border-slate-100 mt-1 space-y-1">
+                        {currentNormalizedRole === 'client' && (
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              navigate('/profile');
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                          >
+                            <User className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Account Profile</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setRoleMenuOpen(false);
+                            logout();
+                            navigate('/login');
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center justify-between transition-colors"
+                        >
+                          <div className="flex items-center gap-2">
+                            <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                            <span>Sign Out</span>
+                          </div>
+                          <span className="text-[10px] text-slate-400">End Session</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
           </div>
         </div>

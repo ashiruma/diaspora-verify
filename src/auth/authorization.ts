@@ -95,13 +95,27 @@ export function normalizeRole(role: string): UserRole {
 }
 
 /**
+ * Get canonical dashboard route for a given user role
+ */
+export function getRoleDashboardPath(role: string): string {
+  const norm = normalizeRole(role);
+  if (norm === 'admin') return '/admin';
+  if (norm === 'agent') return '/agent';
+  return '/dashboard';
+}
+
+/**
  * IDOR & Horizontal Privilege Escalation Protection for Requests
  */
 export function canUserAccessRequest(
-  user: AuthenticatedUser,
+  user: AuthenticatedUser | null | undefined,
   request: VerificationRequest,
   viewAs?: ViewAsSession
 ): { allowed: boolean; reason?: string } {
+  if (!user) {
+    return { allowed: false, reason: 'UNAUTHENTICATED' };
+  }
+
   // 1. Admin Preview Mode
   if (user.role === 'admin') {
     if (viewAs?.active) {
@@ -171,10 +185,18 @@ export function canUserAccessRequest(
  * Route level authorization checks
  */
 export function canAccessRoute(
-  user: AuthenticatedUser,
+  user: AuthenticatedUser | null | undefined,
   pathname: string,
   _viewAs?: ViewAsSession
 ): { allowed: boolean; redirectTo?: string; message?: string } {
+  if (!user) {
+    return {
+      allowed: false,
+      redirectTo: `/login?redirect=${encodeURIComponent(pathname)}`,
+      message: 'Authentication required. Please sign in to access this resource.',
+    };
+  }
+
   const norm = normalizeRole(user.role);
 
   // Admin in standard or preview mode

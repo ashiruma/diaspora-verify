@@ -72,10 +72,10 @@ export const FieldAgentView: React.FC = () => {
 
   const req = agentJobs.find(r => r.id === selectedReqId) || agentJobs[0] || requests[0];
   const agent = req?.assignedAgent || {
-    id: currentUser.agentId || 'agt-01',
-    name: currentUser.name || 'Eng. Evans Kiptoo',
-    phone: currentUser.phone || '+254 722 419 802',
-    email: currentUser.email || 'evans.kiptoo@diasporaverify.co.ke',
+    id: currentUser?.agentId || 'agt-01',
+    name: currentUser?.name || 'Eng. Evans Kiptoo',
+    phone: currentUser?.phone || '+254 722 419 802',
+    email: currentUser?.email || 'evans.kiptoo@diasporaverify.co.ke',
     countyCoverage: ['Kiambu', 'Nairobi', 'Machakos', 'Kajiado'],
     badgeLevel: 'Senior Structural Inspector (BORAQS Reg)',
     conflictClearanceSigned: true,
@@ -245,7 +245,7 @@ export const FieldAgentView: React.FC = () => {
   const isAssignedPendingAcceptance = req.requestStatus === 'AGENT_ASSIGNED';
   const activeJob = req;
   const upcomingJob = agentJobs.find(j => j.id !== req?.id);
-  const agentFirstName = (currentUser.name || agent.name || 'Agent').replace(/^(Eng\.|Dr\.|Mr\.|Ms\.)\s*/, '').split(' ')[0];
+  const agentFirstName = (currentUser?.name || agent.name || 'Agent').replace(/^(Eng\.|Dr\.|Mr\.|Ms\.)\s*/, '').split(' ')[0];
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6 text-left font-sans">

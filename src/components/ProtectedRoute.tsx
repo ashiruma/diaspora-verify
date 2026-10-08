@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 import { useVerification } from '../context/VerificationContext';
 import { canAccessRoute, normalizeRole, type UserRole } from '../auth/authorization';
 import { ForbiddenView } from './ForbiddenView';
@@ -11,7 +11,13 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
   const location = useLocation();
-  const { currentUser, viewAsSession } = useVerification();
+  const { currentUser, isAuthenticated, viewAsSession } = useVerification();
+
+  // 0. Enforce authentication: redirect to /login with redirect query parameter
+  if (!isAuthenticated || !currentUser) {
+    const redirectUrl = `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`;
+    return <Navigate to={redirectUrl} replace />;
+  }
 
   const normRole = normalizeRole(currentUser.role);
 

@@ -69,7 +69,7 @@ export const ClientMessagesView: React.FC = () => {
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       sender: 'client',
-      senderName: currentUser.name || 'David Mwangi (Client)',
+      senderName: currentUser?.name || 'David Mwangi (Client)',
       text: inputText.trim(),
       timestamp: new Date().toISOString().substring(0, 16).replace('T', ' '),
     };

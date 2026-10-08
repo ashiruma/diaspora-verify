@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useVerification } from '../../context/VerificationContext';
 import { 
   ShieldCheck, 
   Clock, 
   Check, 
   Lock,
-  Layers
+  Layers,
+  LogOut
 } from '../Icons';
 import { Button } from '../ui/Button';
 
 export const ClientProfileView: React.FC = () => {
-  const { currentUser, setCurrentUser, mfaEnabled, toggleMFA, auditLogs } = useVerification();
+  const navigate = useNavigate();
+  const { currentUser, setCurrentUser, logout, mfaEnabled, toggleMFA, auditLogs } = useVerification();
 
-  const [name, setName] = useState(currentUser.name || 'David Mwangi');
-  const [phone, setPhone] = useState(currentUser.phone || '+44 7700 900142');
-  const [locationAbroad, setLocationAbroad] = useState(currentUser.locationAbroad || 'London, United Kingdom');
+  const [name, setName] = useState(currentUser?.name || 'David Mwangi');
+  const [phone, setPhone] = useState(currentUser?.phone || '+44 7700 900142');
+  const [locationAbroad, setLocationAbroad] = useState(currentUser?.locationAbroad || 'London, United Kingdom');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  if (!currentUser) {
+    return null;
+  }
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,6 +216,30 @@ export const ClientProfileView: React.FC = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Active Session & Clean Sign Out */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-4 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-900">Session & Authentication</h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Signed in as <span className="font-semibold text-slate-800">{currentUser.email}</span> ({currentUser.role.toUpperCase()} role).
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="md"
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+            className="text-rose-600 border-rose-200 hover:bg-rose-50 hover:border-rose-300 flex items-center justify-center gap-2"
+          >
+            <LogOut className="w-4 h-4 text-rose-600" />
+            <span>Sign Out Session</span>
+          </Button>
+        </div>
       </div>
     </div>
   );

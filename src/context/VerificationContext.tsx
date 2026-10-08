@@ -15,8 +15,10 @@ import type {
   OrganizationRecord,
   CheckInRecord
 } from '../types';
-import type { AuthenticatedUser, ViewAsSession } from '../auth/authorization';
+import type { AuthenticatedUser, ViewAsSession, UserRole } from '../auth/authorization';
 import { normalizeRole } from '../auth/authorization';
+import { DEMO_USERS, ADDITIONAL_DEMO_USERS, AUTH_USER_KEY, REGISTERED_USERS_KEY } from '../auth/demoUsers';
+export { DEMO_USERS, ADDITIONAL_DEMO_USERS, AUTH_USER_KEY, REGISTERED_USERS_KEY };
 import { MOCK_REQUESTS, MOCK_AGENTS, MOCK_DISPUTES, MOCK_ORGANIZATIONS } from '../data/mockData';
 import { MOCK_PROPERTIES } from '../services/propertyService';
 import { INITIAL_AUDIT_LOGS, createAuditLog } from '../services/auditService';
@@ -35,8 +37,19 @@ interface VerificationContextType {
   activeRole: ActiveRole;
   currency: CurrencyCode;
   agents: FieldAgent[];
-  currentUser: AuthenticatedUser;
-  setCurrentUser: (user: AuthenticatedUser) => void;
+  currentUser: AuthenticatedUser | null;
+  isAuthenticated: boolean;
+  setCurrentUser: (user: AuthenticatedUser | null) => void;
+  login: (user: AuthenticatedUser, remember?: boolean) => void;
+  logout: () => void;
+  registerUser: (data: {
+    name: string;
+    email: string;
+    phone: string;
+    locationAbroad: string;
+    password?: string;
+    role?: UserRole;
+  }) => AuthenticatedUser;
   viewAsSession: ViewAsSession;
   startViewAs: (role: 'client' | 'agent', targetId: string, targetName: string, targetEmail?: string) => void;
   exitViewAs: () => void;
@@ -151,47 +164,26 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     });
   });
 
-const DEFAULT_CLIENT_USER: AuthenticatedUser = {
-  id: 'usr-client-01',
-  email: 'david.mwangi.uk@gmail.com',
-  name: 'David Mwangi',
-  role: 'client',
-  clientId: 'usr-client-01',
-  phone: '+44 7700 900142',
-  locationAbroad: 'London, United Kingdom',
-  mfaEnabled: false
-};
-
-const DEFAULT_AGENT_USER: AuthenticatedUser = {
-  id: 'agt-01',
-  email: 'evans.kiptoo@diasporaverify.co.ke',
-  name: 'Eng. Evans Kiptoo',
-  role: 'agent',
-  agentId: 'agt-01',
-  phone: '+254 722 419 802',
-  mfaEnabled: true
-};
-
-const DEFAULT_ADMIN_USER: AuthenticatedUser = {
-  id: 'usr-ops-01',
-  email: 'amara.ops@diasporaverify.co.ke',
-  name: 'Amara Kiprotich',
-  role: 'admin',
-  subRole: 'super_admin',
-  phone: '+254 722 000 111',
-  mfaEnabled: true
-};
-
   const [activeRequestId, setActiveRequestId] = useState<string>('DV-2026-KJD-0104');
-  const [activeRole, setActiveRoleState] = useState<ActiveRole>(() => {
-    return (localStorage.getItem(ROLE_KEY) as ActiveRole) || 'client';
+  
+  const [currentUser, setCurrentUser] = useState<AuthenticatedUser | null>(() => {
+    const savedAuth = localStorage.getItem(AUTH_USER_KEY);
+    if (savedAuth) {
+      try {
+        return JSON.parse(savedAuth);
+      } catch (e) {
+        console.error('Failed to parse cached auth user', e);
+      }
+    }
+    return null;
   });
-  const [currentUser, setCurrentUser] = useState<AuthenticatedUser>(() => {
-    const savedRole = localStorage.getItem(ROLE_KEY) || 'client';
-    const norm = normalizeRole(savedRole);
-    if (norm === 'admin') return DEFAULT_ADMIN_USER;
-    if (norm === 'agent') return DEFAULT_AGENT_USER;
-    return DEFAULT_CLIENT_USER;
+
+  const isAuthenticated = Boolean(currentUser);
+
+  const [activeRole, setActiveRoleState] = useState<ActiveRole>(() => {
+    if (currentUser) return currentUser.role;
+    const savedRole = localStorage.getItem(ROLE_KEY) as ActiveRole;
+    return savedRole || 'client';
   });
 
   const [viewAsSession, setViewAsSession] = useState<ViewAsSession>({
@@ -206,7 +198,129 @@ const DEFAULT_ADMIN_USER: AuthenticatedUser = {
   const [commandMenuOpen, setCommandMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const login = useCallback((user: AuthenticatedUser, remember: boolean = true) => {
+    setCurrentUser(user);
+    setActiveRoleState(user.role);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+    localStorage.setItem(ROLE_KEY, user.role);
+    if (remember) {
+      localStorage.setItem('diaspora_verify_remember_v2', 'true');
+    }
+    const log = createAuditLog(
+      'USER_LOGGED_IN',
+      { id: user.id, name: user.name, role: user.role },
+      'auth_session',
+      user.id,
+      { email: user.email, role: user.role, timestamp: new Date().toISOString() }
+    );
+    setAuditLogs(prev => [log, ...prev]);
+  }, []);
+
+  const logout = useCallback(() => {
+    if (currentUser) {
+      const log = createAuditLog(
+        'USER_LOGGED_OUT',
+        { id: currentUser.id, name: currentUser.name, role: currentUser.role },
+        'auth_session',
+        currentUser.id,
+        { email: currentUser.email, timestamp: new Date().toISOString() }
+      );
+      setAuditLogs(prev => [log, ...prev]);
+    }
+    setCurrentUser(null);
+    setViewAsSession({
+      active: false,
+      viewRole: 'client',
+      targetId: '',
+      targetName: '',
+      targetEmail: '',
+      startedAt: '',
+    });
+    localStorage.removeItem(AUTH_USER_KEY);
+    if (supabase) {
+      supabase.auth.signOut().catch(() => {});
+    }
+  }, [currentUser]);
+
+  const registerUser = useCallback((data: {
+    name: string;
+    email: string;
+    phone: string;
+    locationAbroad: string;
+    password?: string;
+    role?: UserRole;
+  }): AuthenticatedUser => {
+    const role: UserRole = data.role ? normalizeRole(data.role) : 'client';
+    const newUser: AuthenticatedUser = {
+      id: `usr-${Date.now()}`,
+      name: data.name.trim(),
+      email: data.email.trim().toLowerCase(),
+      phone: data.phone.trim(),
+      locationAbroad: data.locationAbroad.trim(),
+      role,
+      clientId: role === 'client' ? `client-${Date.now()}` : undefined,
+      agentId: role === 'agent' ? `agt-${Date.now()}` : undefined,
+      mfaEnabled: false,
+    };
+
+    try {
+      const existing = JSON.parse(localStorage.getItem(REGISTERED_USERS_KEY) || '[]');
+      const updated = [...existing.filter((u: any) => u.email !== newUser.email), { ...newUser, password: data.password }];
+      localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+
+    login(newUser);
+    return newUser;
+  }, [login]);
+
+  // Sync Supabase Auth Session if available
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user && !currentUser) {
+        const userRole = normalizeRole((session.user.user_metadata?.role as string) || 'client');
+        const authUser: AuthenticatedUser = {
+          id: session.user.id,
+          email: session.user.email || 'user@diasporaverify.demo',
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Authenticated User',
+          role: userRole,
+          clientId: userRole === 'client' ? session.user.id : undefined,
+          agentId: userRole === 'agent' ? session.user.id : undefined,
+          phone: session.user.phone || session.user.user_metadata?.phone,
+          locationAbroad: session.user.user_metadata?.locationAbroad || 'Diaspora',
+          mfaEnabled: false,
+        };
+        login(authUser);
+      }
+    }).catch(() => {});
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user && !currentUser) {
+        const userRole = normalizeRole((session.user.user_metadata?.role as string) || 'client');
+        const authUser: AuthenticatedUser = {
+          id: session.user.id,
+          email: session.user.email || 'user@diasporaverify.demo',
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Authenticated User',
+          role: userRole,
+          clientId: userRole === 'client' ? session.user.id : undefined,
+          agentId: userRole === 'agent' ? session.user.id : undefined,
+          phone: session.user.phone || session.user.user_metadata?.phone,
+          locationAbroad: session.user.user_metadata?.locationAbroad || 'Diaspora',
+          mfaEnabled: false,
+        };
+        login(authUser);
+      }
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, [currentUser, login]);
+
   const startViewAs = (role: 'client' | 'agent', targetId: string, targetName: string, targetEmail: string = '') => {
+    if (!currentUser) return;
     const session: ViewAsSession = {
       active: true,
       viewRole: role,
@@ -227,7 +341,7 @@ const DEFAULT_ADMIN_USER: AuthenticatedUser = {
   };
 
   const exitViewAs = () => {
-    if (viewAsSession.active) {
+    if (viewAsSession.active && currentUser) {
       const log = createAuditLog(
         'ADMIN_VIEW_AS_ENDED',
         { id: currentUser.id, name: currentUser.name, role: 'admin' },
@@ -250,24 +364,29 @@ const DEFAULT_ADMIN_USER: AuthenticatedUser = {
   const setActiveRole = (role: ActiveRole) => {
     setActiveRoleState(role);
     const norm = normalizeRole(role);
+    let targetUser: AuthenticatedUser = currentUser || DEMO_USERS[norm];
     if (norm === 'admin') {
-      setCurrentUser(DEFAULT_ADMIN_USER);
+      targetUser = currentUser?.role === 'admin' ? currentUser : DEMO_USERS.admin;
     } else if (norm === 'agent') {
-      setCurrentUser(DEFAULT_AGENT_USER);
+      targetUser = currentUser?.role === 'agent' ? currentUser : DEMO_USERS.agent;
       setViewAsSession({ active: false, viewRole: 'client', targetId: '', targetName: '', targetEmail: '', startedAt: '' });
     } else {
-      setCurrentUser(DEFAULT_CLIENT_USER);
+      targetUser = currentUser?.role === 'client' ? currentUser : DEMO_USERS.client;
       setViewAsSession({ active: false, viewRole: 'client', targetId: '', targetName: '', targetEmail: '', startedAt: '' });
     }
 
-    const log = createAuditLog(
-      'ROLE_SWITCHED',
-      { id: currentUser.id, name: currentUser.name, role: activeRole },
-      'user_session',
-      role,
-      { previousRole: activeRole, nextRole: role }
-    );
-    setAuditLogs(prev => [log, ...prev]);
+    if (currentUser) {
+      setCurrentUser(targetUser);
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(targetUser));
+      const log = createAuditLog(
+        'ROLE_SWITCHED',
+        { id: currentUser.id, name: currentUser.name, role: activeRole },
+        'user_session',
+        role,
+        { previousRole: activeRole, nextRole: role }
+      );
+      setAuditLogs(prev => [log, ...prev]);
+    }
   };
 
   const [currency, setCurrency] = useState<CurrencyCode>(() => {
@@ -335,6 +454,7 @@ const DEFAULT_ADMIN_USER: AuthenticatedUser = {
   const activeRequest = requests.find(r => r.id === activeRequestId) || requests[0];
 
   const clientRequests = React.useMemo(() => {
+    if (!currentUser) return [];
     const targetEmail = viewAsSession.active && viewAsSession.viewRole === 'client'
       ? viewAsSession.targetEmail
       : normalizeRole(activeRole) === 'client'
@@ -342,12 +462,15 @@ const DEFAULT_ADMIN_USER: AuthenticatedUser = {
       : userEmail;
 
     return requests.filter(r => 
-      r.client?.email?.toLowerCase() === targetEmail.toLowerCase() ||
-      (viewAsSession.active && viewAsSession.viewRole === 'client' && r.client?.name?.toLowerCase() === viewAsSession.targetName.toLowerCase())
+      r.client?.email?.toLowerCase() === targetEmail?.toLowerCase() ||
+      ((currentUser.email?.toLowerCase().includes('jane.doe') || currentUser.email?.toLowerCase().includes('david.mwangi')) &&
+       (r.client?.email?.toLowerCase().includes('david.mwangi') || r.client?.name?.toLowerCase().includes('david mwangi'))) ||
+      (viewAsSession.active && viewAsSession.viewRole === 'client' && r.client?.name?.toLowerCase() === viewAsSession.targetName?.toLowerCase())
     );
-  }, [requests, viewAsSession, activeRole, currentUser.email, userEmail]);
+  }, [requests, viewAsSession, activeRole, currentUser, userEmail]);
 
   const agentRequests = React.useMemo(() => {
+    if (!currentUser) return [];
     const targetAgentId = viewAsSession.active && viewAsSession.viewRole === 'agent'
       ? viewAsSession.targetId
       : normalizeRole(activeRole) === 'agent'
@@ -356,9 +479,12 @@ const DEFAULT_ADMIN_USER: AuthenticatedUser = {
 
     return requests.filter(r => 
       r.assignedAgent?.id === targetAgentId ||
-      (viewAsSession.active && viewAsSession.viewRole === 'agent' && r.assignedAgent?.name?.toLowerCase() === viewAsSession.targetName.toLowerCase())
+      ((currentUser.agentId === 'agt-018' || currentUser.email?.toLowerCase().includes('brian.omondi')) &&
+       (r.assignedAgent?.id === 'agt-01' || r.assignedAgent?.id === 'agt-018')) ||
+      (r.assignedAgent?.email?.toLowerCase() === currentUser.email?.toLowerCase()) ||
+      (viewAsSession.active && viewAsSession.viewRole === 'agent' && r.assignedAgent?.name?.toLowerCase() === viewAsSession.targetName?.toLowerCase())
     );
-  }, [requests, viewAsSession, activeRole, currentUser.agentId]);
+  }, [requests, viewAsSession, activeRole, currentUser]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1167,7 +1293,11 @@ const DEFAULT_ADMIN_USER: AuthenticatedUser = {
         currency,
         agents: MOCK_AGENTS,
         currentUser,
+        isAuthenticated,
         setCurrentUser,
+        login,
+        logout,
+        registerUser,
         viewAsSession,
         startViewAs,
         exitViewAs,
