@@ -13,6 +13,14 @@ export const MOCK_AGENTS: FieldAgent[] = [
     rating: 4.9,
     conflictClearanceSigned: true,
     specialties: ['Structural Masonry', 'Reinforced Concrete', 'Material Audits', 'Contractor Reconciliation'],
+    completionRate: 98.8,
+    averageResponseHours: 1.5,
+    disputeRate: 0.0,
+    identityVerified: true,
+    phoneVerified: true,
+    trainingCompleted: true,
+    activeJobsCount: 2,
+    totalEarningsKES: 1218000,
   },
   {
     id: 'agt-02',
@@ -26,6 +34,14 @@ export const MOCK_AGENTS: FieldAgent[] = [
     rating: 5.0,
     conflictClearanceSigned: true,
     specialties: ['Land Registry Liaison', 'Beacon & Boundary Verification', 'Property Condition Surveys'],
+    completionRate: 100.0,
+    averageResponseHours: 1.2,
+    disputeRate: 0.0,
+    identityVerified: true,
+    phoneVerified: true,
+    trainingCompleted: true,
+    activeJobsCount: 1,
+    totalEarningsKES: 1344000,
   },
   {
     id: 'agt-03',
@@ -39,6 +55,14 @@ export const MOCK_AGENTS: FieldAgent[] = [
     rating: 4.95,
     conflictClearanceSigned: true,
     specialties: ['Elderly Wellbeing Audits', 'Clinical Appointment Accompaniment', 'Medication Stock Tracking', 'Safeguarding'],
+    completionRate: 98.5,
+    averageResponseHours: 2.1,
+    disputeRate: 0.0,
+    identityVerified: true,
+    phoneVerified: true,
+    trainingCompleted: true,
+    activeJobsCount: 1,
+    totalEarningsKES: 1206000,
   },
   {
     id: 'agt-04',
@@ -52,6 +76,14 @@ export const MOCK_AGENTS: FieldAgent[] = [
     rating: 4.85,
     conflictClearanceSigned: true,
     specialties: ['Crop Vitality Audits', 'Irrigation Infrastructure', 'Farm Input Verification', 'Livestock Counts'],
+    completionRate: 96.2,
+    averageResponseHours: 2.4,
+    disputeRate: 0.0,
+    identityVerified: true,
+    phoneVerified: true,
+    trainingCompleted: true,
+    activeJobsCount: 1,
+    totalEarningsKES: 715500,
   },
   {
     id: 'agt-05',
@@ -65,6 +97,14 @@ export const MOCK_AGENTS: FieldAgent[] = [
     rating: 4.88,
     conflictClearanceSigned: true,
     specialties: ['Automotive Physical Inspection', 'NTSA & Port Yard Clearances', 'Chassis & Engine Verification'],
+    completionRate: 97.4,
+    averageResponseHours: 1.9,
+    disputeRate: 0.0,
+    identityVerified: true,
+    phoneVerified: true,
+    trainingCompleted: true,
+    activeJobsCount: 2,
+    totalEarningsKES: 1248000,
   }
 ];
 
@@ -803,6 +843,46 @@ export const SERVICE_CATEGORIES_CONFIG = [
     typicalUseCases: ['Elderly parent welfare check', 'Clinic appointment accompaniment', 'Medication inventory check', 'Home care nurse verification']
   },
   {
+    id: 'document',
+    name: 'Document Physical Inspection',
+    shortName: 'Document Verification',
+    tagline: 'Physical document inspection at source, registry verification, and institutional checks.',
+    icon: 'FileText',
+    color: 'indigo',
+    boundaryNote: 'Physical inspection only; does not constitute statutory apostille, legal title certification, or forensic ink dating.',
+    typicalUseCases: ['Ardhi House records check', 'High Court registry filing check', 'Council planning approval check', 'Bank letter inspection']
+  },
+  {
+    id: 'person',
+    name: 'Person & Identity Welfare Verification',
+    shortName: 'Person Check',
+    tagline: 'Physical presence confirmation, reference interview, and welfare verification.',
+    icon: 'Users',
+    color: 'emerald',
+    boundaryNote: 'Consent required; we verify physical presence and answers provided, not statutory police criminal records.',
+    typicalUseCases: ['Remote contractor identity check', 'Job applicant physical reference check', 'Family guardian welfare check']
+  },
+  {
+    id: 'purchase',
+    name: 'High-Value Purchases & Equipment',
+    shortName: 'Purchases & Goods',
+    tagline: 'Electronics, solar systems, agricultural machinery, and commercial assets verification.',
+    icon: 'DollarSign',
+    color: 'teal',
+    boundaryNote: 'Visual inventory and test run; does not certify manufacturer electrical warranty or internal component wear.',
+    typicalUseCases: ['Solar inverter & battery check', 'Agricultural tractor condition', 'Commercial kitchen equipment', 'Hardware consignment check']
+  },
+  {
+    id: 'field_assistance',
+    name: 'General Field Assistance & Coordination',
+    shortName: 'Field Assistance',
+    tagline: 'Attend meetings, collect documents, conduct physical errands, and follow up in offices.',
+    icon: 'Compass',
+    color: 'cyan',
+    boundaryNote: 'Lawful ground representation and coordination; agent does not act as legal attorney-in-fact.',
+    typicalUseCases: ['Registry document collection', 'Site meeting accompaniment', 'Contractor progress follow-up', 'Urgent parcel verification']
+  },
+  {
     id: 'custom',
     name: 'Custom Verification Requests',
     shortName: 'Custom Request',
@@ -839,4 +919,50 @@ export const FORMAT_CURRENCY = (amountKES?: number | null, currency: string = 'K
 export const hasStopPaymentWarning = (req: VerificationRequest): boolean => {
   return Boolean(req.paymentDecisionRecord?.stopPaymentAlert || req.qaReview?.stopPaymentTriggered);
 };
+
+export { MOCK_PROPERTIES } from '../services/propertyService';
+
+export const MOCK_DISPUTES = [
+  {
+    id: 'disp-001',
+    requestId: 'DV-2026-MCK-0219',
+    clientId: 'usr-client-02',
+    clientName: 'Faith Chebet',
+    reason: 'Insufficient evidence' as const,
+    description: 'Selling firm agent claimed boundary beacon was located under bush on west corner. Verifier reported only 1 beacon found. Requesting coordinator re-check before deposit forfeiture.',
+    status: 'UNDER_REVIEW' as const,
+    adminNotes: 'Assigned Senior Verifier Grace Mwangi to re-check with handheld metal detector and coordinates overlay.',
+    createdAt: '2026-09-29 11:20:00'
+  }
+];
+
+export const MOCK_ORGANIZATIONS = [
+  {
+    id: 'org-001',
+    name: 'UK-Kenya Diaspora Property Investment SACCO',
+    corporateType: 'Diaspora Investment SACCO' as const,
+    contactPerson: 'Beatrice Ndwiga (SACCO Secretary)',
+    email: 'investments@ukkenyasacco.org.uk',
+    phone: '+44 20 7946 0912',
+    memberCount: 420,
+    activeRequestsCount: 8,
+    totalProperties: 24,
+    billingEmail: 'accounts@ukkenyasacco.org.uk',
+    createdAt: '2026-01-15'
+  },
+  {
+    id: 'org-002',
+    name: 'Nairobi Apex Conveyancing & Legal Advisory LLP',
+    corporateType: 'Law Firm / Conveyancing' as const,
+    contactPerson: 'Adv. Kenneth Omondi, OGW',
+    email: 'due-diligence@apexlegal.co.ke',
+    phone: '+254 722 000 811',
+    memberCount: 14,
+    activeRequestsCount: 5,
+    totalProperties: 12,
+    billingEmail: 'finance@apexlegal.co.ke',
+    createdAt: '2026-03-20'
+  }
+];
+
 

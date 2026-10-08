@@ -4,22 +4,20 @@ import { useVerification } from '../context/VerificationContext';
 import { ClientDashboard } from './ClientPortal/ClientDashboard';
 import { OperationsDashboard } from './OperationsPortal/OperationsDashboard';
 import { FieldAgentView } from './FieldAgentPortal/FieldAgentView';
+import { CorporateDashboard } from './CorporatePortal/CorporateDashboard';
 
+import { useNavigate } from 'react-router-dom';
 import { StandardReportModal } from './StandardReportModal';
+
 export const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const {
     activeRole,
-    setActiveRole,
     selectRequest,
     reportModalRequest,
     openReportModal,
     closeReportModal,
-    // currentTab removed – navigation handled by router
   } = useVerification();
-
-  // We keep a simple internal state for the active tab inside the route components.
-  // The router will render the appropriate component based on the URL.
-  // This Dashboard component acts as the default landing page for "/dashboard" and shows a role‑based view.
 
   const renderRoleView = () => {
     switch (activeRole) {
@@ -27,11 +25,13 @@ export const Dashboard: React.FC = () => {
         return <OperationsDashboard onOpenReport={openReportModal} />;
       case 'field_agent':
         return <FieldAgentView />;
+      case 'corporate':
+        return <CorporateDashboard />;
       default:
         return <ClientDashboard
-          onSelectRequest={(id) => { selectRequest(id); }}
-          onNavigateToConstruction={() => setActiveRole('client') /* placeholder – navigation handled by router */}
-          onNavigateToNewRequest={() => setActiveRole('client')}
+          onSelectRequest={(id) => { selectRequest(id); navigate(`/request/${id}`); }}
+          onNavigateToConstruction={() => navigate('/construction')}
+          onNavigateToNewRequest={() => navigate('/new-request')}
           onOpenReport={openReportModal}
         />;
     }

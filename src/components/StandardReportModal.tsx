@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { VerificationRequest } from '../types';
 import { 
   ShieldCheck, 
@@ -6,11 +6,14 @@ import {
   X, 
   AlertTriangle, 
   HelpCircle,
-  Award
+  Award,
+  ChevronDown,
+  ChevronUp
 } from './Icons';
 import { StatusBadge } from './CommonBadges';
 import { FORMAT_CURRENCY } from '../data/mockData';
 import { useVerification } from '../context/VerificationContext';
+import { calculateConfidenceScore } from '../services/confidenceScorer';
 
 interface StandardReportModalProps {
   request: VerificationRequest;
@@ -19,12 +22,27 @@ interface StandardReportModalProps {
 
 export const StandardReportModal: React.FC<StandardReportModalProps> = ({ request, onClose }) => {
   const { currency } = useVerification();
+  const [showCalculationDetails, setShowCalculationDetails] = useState(false);
 
   const handlePrint = () => {
     window.print();
   };
 
   const pdr = request.paymentDecisionRecord;
+  const confidence = request.confidenceScore || calculateConfidenceScore(request);
+
+  // Derive recommendation based on status or QA review
+  const recommendation = request.qaReview?.recommendationType || (
+    request.status === 'observed' ? 'VERIFIED' :
+    request.status === 'partly_observed' ? 'PARTIALLY VERIFIED' :
+    request.status === 'cannot_confirm' ? 'REQUIRES FURTHER INVESTIGATION' : 'UNABLE TO VERIFY'
+  );
+
+  const recommendationColor = 
+    recommendation === 'VERIFIED' ? 'bg-emerald-100 text-emerald-900 border-emerald-400' :
+    recommendation === 'PARTIALLY VERIFIED' ? 'bg-amber-100 text-amber-900 border-amber-400' :
+    recommendation === 'REQUIRES FURTHER INVESTIGATION' ? 'bg-purple-100 text-purple-900 border-purple-400' :
+    'bg-rose-100 text-rose-900 border-rose-400';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
@@ -59,7 +77,7 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
         </div>
 
         {/* Printable Document Body */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8 bg-white print:p-0 print:overflow-visible">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8 bg-white print:p-0 print:overflow-visible text-slate-800">
           
           {/* Document Header */}
           <div className="border-b-2 border-slate-900 pb-6 space-y-4">
@@ -88,7 +106,7 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
             {/* Service Brand Promise Stamp */}
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex flex-wrap items-center justify-between gap-2">
               <span className="italic">
-                “Your trusted eyes and hands on the ground in Kenya.”
+                “VERIFY KENYA. FROM ANYWHERE. — Trusted Eyes & Hands on the Ground.”
               </span>
               <span className="font-semibold text-slate-800">
                 Independent Visit • Named Accountability • Objective Observation
@@ -106,7 +124,7 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
             </div>
 
             <div className="space-y-1">
-              <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Inspection Location</div>
+              <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Inspection Target Location</div>
               <div className="font-bold text-slate-900">{request.location.town}</div>
               <div className="text-slate-600">{request.location.county} County, Kenya</div>
               <div className="font-mono text-[11px] text-emerald-700 font-semibold">{request.location.gpsCoords}</div>
@@ -123,29 +141,100 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
             </div>
           </div>
 
-          {/* Section 2: Verification Status & Summary */}
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          {/* Transparent Verification Confidence Score & Recommendation */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            {/* Confidence Metric Card */}
+            <div className="p-5 rounded-2xl bg-slate-900 text-white space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase font-bold text-slate-400 tracking-wider">
+                  Verification Confidence Metric
+                </span>
+                <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  {confidence.ratingTier} RELIABILITY
+                </span>
+              </div>
+
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-black font-display text-white">{confidence.overall}</span>
+                <span className="text-slate-400 text-base font-semibold">/ 100</span>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-snug">
+                {confidence.methodologyNote}
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setShowCalculationDetails(prev => !prev)}
+                className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 pt-1 no-print"
+              >
+                <span>{showCalculationDetails ? 'Hide calculation breakdown' : 'How this score was calculated'}</span>
+                {showCalculationDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+
+              {/* Collapsible Factor Breakdown */}
+              {showCalculationDetails && (
+                <div className="pt-2 border-t border-slate-800 space-y-2 text-xs">
+                  {confidence.factors.map((f, i) => (
+                    <div key={i} className="flex justify-between items-start text-[11px] py-1 border-b border-slate-800/60">
+                      <div>
+                        <div className="font-semibold text-slate-200">{f.name}</div>
+                        <div className="text-slate-400 text-[10px]">{f.rationale}</div>
+                      </div>
+                      <div className={`font-mono font-bold ml-2 ${f.score < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                        {f.score > 0 ? `+${f.score}` : f.score} / {f.maxScore || 0}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Recommendation Card */}
+            <div className={`p-5 rounded-2xl border-2 space-y-3 ${recommendationColor}`}>
+              <span className="text-xs uppercase font-bold tracking-wider">
+                Official Operational Recommendation
+              </span>
+              
+              <div className="text-2xl font-black tracking-tight font-display">
+                {recommendation}
+              </div>
+
+              <p className="text-xs leading-relaxed opacity-90">
+                {request.qaReview?.recommendation || 'Physical inspection observed according to scope. Client retains final discretion.'}
+              </p>
+
+              <div className="text-[11px] font-medium pt-1 opacity-80">
+                * Note: DiasporaVerify provides objective ground evidence and factual observations; we do not provide statutory legal advice or engineering warranties.
+              </div>
+            </div>
+
+          </div>
+
+          {/* Section 2: Executive Summary & Detailed Findings */}
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
-                1. Executive Verification Classification
+                1. Executive Summary & Verification Findings
               </h2>
               <StatusBadge status={request.status} size="lg" />
             </div>
 
             <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-3 text-xs">
-              <div className="space-y-1">
+              <div>
                 <span className="font-bold text-slate-800">Agreed Brief & Scope:</span>
-                <p className="text-slate-600 leading-relaxed">{request.scopeBrief}</p>
+                <p className="text-slate-600 leading-relaxed mt-0.5">{request.scopeBrief}</p>
               </div>
 
               {request.qaReview && (
                 <div className="border-t border-slate-100 pt-3 space-y-2">
-                  <span className="font-bold text-slate-800">Coordinator Findings:</span>
-                  <p className="text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <span className="font-bold text-slate-800">Coordinator Findings Summary:</span>
+                  <p className="text-slate-800 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
                     {request.qaReview.findingsSummary}
                   </p>
 
-                  {/* Discrepancies & Contradictions */}
+                  {/* Identified Contradictions */}
                   {request.qaReview.contradictions.length > 0 && (
                     <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-rose-900 space-y-1">
                       <div className="font-bold flex items-center gap-1.5 text-rose-800">
@@ -160,7 +249,7 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
                     </div>
                   )}
 
-                  {/* What Could NOT be verified */}
+                  {/* Explicit Limitations / What could not be verified */}
                   {request.qaReview.whatCouldNotBeVerified.length > 0 && (
                     <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-purple-900 space-y-1">
                       <div className="font-bold flex items-center gap-1.5 text-purple-800">
@@ -179,11 +268,47 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
             </div>
           </div>
 
-          {/* Section 3: Financial Reconciliations & Milestone Decision */}
+          {/* Section 3: Structured Checklist Verification Results */}
+          <div className="space-y-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
+              2. Structured Protocol Checklist Execution
+            </h2>
+
+            <div className="border border-slate-200 rounded-2xl overflow-hidden text-xs">
+              <table className="w-full text-left">
+                <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                  <tr>
+                    <th className="p-3">Protocol Item</th>
+                    <th className="p-3">Execution Status</th>
+                    <th className="p-3">Observations Recorded</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {request.checklist.map((item) => (
+                    <tr key={item.id}>
+                      <td className="p-3 font-semibold text-slate-800">{item.label}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          item.status === 'passed' ? 'bg-emerald-100 text-emerald-800' :
+                          item.status === 'flagged' ? 'bg-rose-100 text-rose-800' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-slate-600">{item.notes || 'Executed according to protocol.'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Section 4: Financial Audit if Applicable */}
           {pdr && (
             <div className="space-y-3">
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
-                2. Milestone Payment Audit & Decision Ledger
+                3. Milestone Payment Audit & Variance Ledger
               </h2>
 
               <div className="border border-slate-200 rounded-2xl overflow-hidden text-xs">
@@ -222,10 +347,10 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
             </div>
           )}
 
-          {/* Section 4: On-Ground Physical Evidence Gallery */}
+          {/* Section 5: Geotagged Visual Evidence Gallery */}
           <div className="space-y-3">
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
-              3. Date & Geotagged Visual Evidence
+              4. Dated & Geotagged Evidence Dossier (SHA-256 Hashed)
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -241,32 +366,35 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
                       <span>{ev.timestamp}</span>
                       <span>GPS: {ev.gpsCoords}</span>
                     </div>
+                    {ev.sha256Hash && (
+                      <div className="text-[9px] font-mono text-slate-400 truncate">
+                        SHA-256: {ev.sha256Hash}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Section 5: Trust Controls & Legal Disclaimer */}
+          {/* Section 6: Trust Controls & Legal Boundaries */}
           <div className="border-t-2 border-slate-200 pt-6 space-y-3 text-[11px] text-slate-500">
             <div className="font-bold text-slate-800 uppercase tracking-wider text-xs">
-              4. Mandatory Trust Controls & Service Boundaries
+              5. Mandatory Trust Controls & Service Boundaries
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 leading-relaxed">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                 <span className="font-bold text-slate-700">Evidence Standard Limitation:</span>
                 <p>
-                  A photo or video is evidence of what it visually shows at the timestamp recorded, 
-                  not legal proof of ownership, soil bearing capacity, structural compression safety, 
-                  or mechanical longevity.
+                  A photo is evidence of what it shows, not proof of ownership, quality, or completion. 
+                  DiasporaVerify does not certify structural engineering compression or title legality.
                 </p>
               </div>
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                <span className="font-bold text-slate-700">Financial & Management Independence:</span>
+                <span className="font-bold text-slate-700">Financial Independence:</span>
                 <p>
-                  DiasporaVerify does not hold client construction funds, manage local contractors, or 
-                  release funds directly. We maintain strict inspector independence. All payment transactions 
-                  are executed directly by the client.
+                  DiasporaVerify does not hold client funds or contractor escrow. All contractor disbursements 
+                  or purchase settlements are executed directly by the client.
                 </p>
               </div>
             </div>
@@ -274,8 +402,8 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
             {/* QA Coordinator Stamp & Signature */}
             <div className="pt-4 flex flex-wrap items-center justify-between border-t border-slate-100 text-xs text-slate-600">
               <div>
-                <span className="font-bold text-slate-800">Coordinator Sign-off: </span>
-                <span>Amara Kiprotich (Nairobi Operations Desk)</span>
+                <span className="font-bold text-slate-800">Chief Coordinator Sign-off: </span>
+                <span>Amara Kiprotich (Nairobi Operations HQ)</span>
               </div>
               <div className="font-mono text-emerald-800 font-bold flex items-center gap-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />

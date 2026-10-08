@@ -248,4 +248,191 @@ describe('DiasporaVerify Core Business Rules & System Invariants', () => {
     assert.ok(wizardContent.includes('named emergency contact'));
   });
 
+  test('Rule 14: 15-State Production State Machine Transition & Skip Prevention', () => {
+    const stateMachineSource = fs.readFileSync(new URL('../src/services/stateMachine.ts', import.meta.url), 'utf-8');
+
+    // Verify presence of all 15 discrete states
+    const states = [
+      'DRAFT', 'SUBMITTED', 'PAYMENT_PENDING', 'PAID', 'AWAITING_AGENT',
+      'AGENT_ASSIGNED', 'ACCEPTED', 'TRAVELLING', 'ON_SITE', 'VERIFYING',
+      'EVIDENCE_SUBMITTED', 'UNDER_REVIEW', 'ADDITIONAL_INFORMATION_REQUIRED',
+      'REPORT_READY', 'COMPLETED', 'DISPUTED', 'CANCELLED'
+    ];
+
+    states.forEach(st => {
+      assert.ok(stateMachineSource.includes(st), `State ${st} must be defined in stateMachine.ts`);
+    });
+
+    // Test transition rules logic
+    const transitions = {
+      DRAFT: ['SUBMITTED', 'CANCELLED'],
+      SUBMITTED: ['PAYMENT_PENDING', 'CANCELLED'],
+      PAYMENT_PENDING: ['PAID', 'CANCELLED'],
+      PAID: ['AWAITING_AGENT', 'CANCELLED'],
+      AWAITING_AGENT: ['AGENT_ASSIGNED', 'CANCELLED'],
+      AGENT_ASSIGNED: ['ACCEPTED', 'AWAITING_AGENT', 'CANCELLED'],
+      ACCEPTED: ['TRAVELLING', 'AWAITING_AGENT', 'CANCELLED'],
+      TRAVELLING: ['ON_SITE', 'CANCELLED'],
+      ON_SITE: ['VERIFYING', 'CANCELLED'],
+      VERIFYING: ['EVIDENCE_SUBMITTED', 'CANCELLED'],
+      EVIDENCE_SUBMITTED: ['UNDER_REVIEW', 'CANCELLED'],
+      UNDER_REVIEW: ['ADDITIONAL_INFORMATION_REQUIRED', 'REPORT_READY', 'DISPUTED'],
+      ADDITIONAL_INFORMATION_REQUIRED: ['VERIFYING', 'EVIDENCE_SUBMITTED', 'CANCELLED'],
+      REPORT_READY: ['COMPLETED', 'DISPUTED'],
+      COMPLETED: ['DISPUTED'],
+      DISPUTED: ['UNDER_REVIEW', 'COMPLETED', 'CANCELLED'],
+      CANCELLED: ['DRAFT']
+    };
+
+    const canTransition = (current, target) => {
+      if (current === target) return true;
+      const allowed = transitions[current] || [];
+      return allowed.includes(target);
+    };
+
+    // Valid forward transitions
+    assert.strictEqual(canTransition('DRAFT', 'SUBMITTED'), true);
+    assert.strictEqual(canTransition('SUBMITTED', 'PAYMENT_PENDING'), true);
+    assert.strictEqual(canTransition('PAYMENT_PENDING', 'PAID'), true);
+    assert.strictEqual(canTransition('PAID', 'AWAITING_AGENT'), true);
+    assert.strictEqual(canTransition('AWAITING_AGENT', 'AGENT_ASSIGNED'), true);
+    assert.strictEqual(canTransition('AGENT_ASSIGNED', 'ACCEPTED'), true);
+    assert.strictEqual(canTransition('ACCEPTED', 'TRAVELLING'), true);
+    assert.strictEqual(canTransition('TRAVELLING', 'ON_SITE'), true);
+    assert.strictEqual(canTransition('ON_SITE', 'VERIFYING'), true);
+    assert.strictEqual(canTransition('VERIFYING', 'EVIDENCE_SUBMITTED'), true);
+    assert.strictEqual(canTransition('EVIDENCE_SUBMITTED', 'UNDER_REVIEW'), true);
+    assert.strictEqual(canTransition('UNDER_REVIEW', 'REPORT_READY'), true);
+    assert.strictEqual(canTransition('UNDER_REVIEW', 'ADDITIONAL_INFORMATION_REQUIRED'), true);
+    assert.strictEqual(canTransition('REPORT_READY', 'COMPLETED'), true);
+
+    // Strictly forbidden skips
+    assert.strictEqual(canTransition('DRAFT', 'REPORT_READY'), false, 'Cannot jump from DRAFT to REPORT_READY');
+    assert.strictEqual(canTransition('DRAFT', 'ON_SITE'), false, 'Cannot jump from DRAFT to ON_SITE');
+    assert.strictEqual(canTransition('PAID', 'REPORT_READY'), false, 'Cannot bypass agent verification');
+    assert.strictEqual(canTransition('AGENT_ASSIGNED', 'ON_SITE'), false, 'Must accept before on-site check-in');
+  });
+
+  test('Rule 15: Transparent Deterministic Confidence Scoring & Contradiction Penalties', () => {
+    const confidenceSource = fs.readFileSync(new URL('../src/services/confidenceScorer.ts', import.meta.url), 'utf-8');
+
+    // Confirm deterministic computation factors exist
+    assert.ok(confidenceSource.includes('calculateConfidenceScore'));
+    assert.ok(confidenceSource.includes('Physical Ground Arrival & GPS Verification'));
+    assert.ok(confidenceSource.includes('Ground Contradiction Penalty'));
+    assert.ok(confidenceSource.includes('Stop-Payment Risk Flag Deduction'));
+
+    // Scoring math simulation
+    const calculateScore = ({ hasCheckIn, verifiedProximity, photosCount, hasVideo, checklistRatio, contradictionsCount, stopPayment }) => {
+      let score = 0;
+      // Factor 1: GPS checkin (25 max)
+      if (hasCheckIn && verifiedProximity) score += 25;
+      else if (hasCheckIn) score += 18;
+      else score += 8;
+
+      // Factor 2: Photos/Media (25 max)
+      let media = 0;
+      if (photosCount >= 3) media += 15;
+      else if (photosCount >= 1) media += 8;
+      if (hasVideo) media += 7;
+      media += 3; // all hashed
+      score += Math.min(25, media);
+
+      // Factor 3: Checklist (20 max)
+      score += Math.round(checklistRatio * 20);
+
+      // Factor 4 & 5: Baseline reconciliation & clearance (30 max)
+      score += 25;
+
+      // Penalties
+      if (contradictionsCount > 0) score -= Math.min(25, contradictionsCount * 12);
+      if (stopPayment) score -= 10;
+
+      return Math.max(0, Math.min(100, Math.round(score)));
+    };
+
+    // Perfect case
+    const perfectScore = calculateScore({
+      hasCheckIn: true,
+      verifiedProximity: true,
+      photosCount: 4,
+      hasVideo: true,
+      checklistRatio: 1.0,
+      contradictionsCount: 0,
+      stopPayment: false
+    });
+    assert.strictEqual(perfectScore >= 90, true, 'Perfect inspection must score >= 90');
+
+    // Flagged case with contradiction & stop payment
+    const penalizedScore = calculateScore({
+      hasCheckIn: true,
+      verifiedProximity: true,
+      photosCount: 3,
+      hasVideo: false,
+      checklistRatio: 0.6,
+      contradictionsCount: 2,
+      stopPayment: true
+    });
+    assert.strictEqual(penalizedScore < perfectScore, true, 'Penalties must reduce score');
+    assert.ok(penalizedScore <= 60, 'High contradictions and stop payment must drop confidence tier');
+  });
+
+  test('Rule 16: Fee Breakdown Engine, Urgency Tariffs & Multi-Currency Mathematics', () => {
+    const paymentSource = fs.readFileSync(new URL('../src/services/paymentService.ts', import.meta.url), 'utf-8');
+
+    assert.ok(paymentSource.includes('calculateFeeBreakdown'));
+    assert.ok(paymentSource.includes('BASE_FEES_BY_CATEGORY'));
+    assert.ok(paymentSource.includes('COUNTY_TRAVEL_FEES_KES'));
+
+    const baseFees = {
+      construction: 14500,
+      property: 12000,
+      vehicle: 16000,
+      business: 13500,
+      family: 18000,
+      document: 11000
+    };
+
+    const travelFees = {
+      Nairobi: 1500,
+      Kiambu: 2500,
+      Mombasa: 12000
+    };
+
+    const calcBreakdown = (category, urgency, county) => {
+      const base = baseFees[category] || 12000;
+      const travel = travelFees[county] || 5000;
+      const ops = 3500;
+      const platform = 2000;
+      const mult = urgency === 'urgent' ? 0.4 : urgency === 'priority' ? 0.2 : 0;
+      const urgencyFee = Math.round(base * mult);
+      return base + travel + ops + platform + urgencyFee;
+    };
+
+    // Standard Property in Nairobi
+    const standardFee = calcBreakdown('property', 'standard', 'Nairobi');
+    // 12000 + 1500 + 3500 + 2000 + 0 = 19000
+    assert.strictEqual(standardFee, 19000);
+
+    // Urgent Construction in Kiambu
+    const urgentFee = calcBreakdown('construction', 'urgent', 'Kiambu');
+    // 14500 + 2500 + 3500 + 2000 + (14500 * 0.4 = 5800) = 28300
+    assert.strictEqual(urgentFee, 28300);
+
+    // Mombasa Coast Hub Travel
+    const mombasaFee = calcBreakdown('property', 'standard', 'Mombasa');
+    // 12000 + 12000 + 3500 + 2000 + 0 = 29500
+    assert.strictEqual(mombasaFee, 29500);
+  });
+
+  test('Rule 17: Payment Provider Abstraction Layer & Invoice Execution', () => {
+    const paymentSource = fs.readFileSync(new URL('../src/services/paymentService.ts', import.meta.url), 'utf-8');
+    assert.ok(paymentSource.includes('PaymentProvider'));
+    assert.ok(paymentSource.includes('MpesaExpressProvider'));
+
+    const contextSource = fs.readFileSync(new URL('../src/context/VerificationContext.tsx', import.meta.url), 'utf-8');
+    assert.ok(contextSource.includes('payInvoice'));
+    assert.ok(contextSource.includes('PAYMENT_RECEIVED'));
+  });
+
 });

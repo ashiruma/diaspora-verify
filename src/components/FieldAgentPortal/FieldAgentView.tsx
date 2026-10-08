@@ -10,8 +10,11 @@ import {
   Check,
   X,
   ShieldAlert,
-  ChevronDown,
-  ChevronUp
+  ShieldCheck,
+  DollarSign,
+  Award,
+  RefreshCw,
+  AlertCircle
 } from '../Icons';
 import { StatusBadge } from '../CommonBadges';
 
@@ -20,7 +23,11 @@ export const FieldAgentView: React.FC = () => {
     requests, 
     activeRequest, 
     updateChecklist, 
-    addEvidence 
+    addEvidence,
+    performCheckIn,
+    acceptAssignment,
+    rejectAssignment,
+    advanceRequestStatus
   } = useVerification();
 
   const [selectedReqId, setSelectedReqId] = useState<string>(activeRequest?.id || requests[0]?.id || '');
@@ -39,7 +46,35 @@ export const FieldAgentView: React.FC = () => {
   // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Check-In State
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
+  const [checkInNotes, setCheckInNotes] = useState('Arrived at site boundary. Cleared entry gate with watchman.');
+
+  // Offline simulation state
+  const [offlineMode, setOfflineMode] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [offlineQueue, setOfflineQueue] = useState<Array<{
+    requestId: string;
+    evidence: any;
+  }>>([]);
+  const [hudTime] = useState(() => new Date().toLocaleTimeString('en-KE'));
+
+  // Assignment Acceptance / Rejection State
+  const [conflictCertified, setConflictCertified] = useState(false);
+  const [declineReason, setDeclineReason] = useState('');
+  const [showDeclineForm, setShowDeclineForm] = useState(false);
+
   const req = requests.find(r => r.id === selectedReqId) || requests[0];
+  const agent = req.assignedAgent || {
+    id: 'agt-01',
+    name: 'Eng. Peter Mwangi',
+    phone: '+254 712 345 678',
+    email: 'p.mwangi@diaspora-verify.ke',
+    countyCoverage: ['Kiambu', 'Nairobi', 'Machakos', 'Kajiado'],
+    badgeLevel: 'Senior Structural Inspector (BORAQS Reg)',
+    conflictClearanceSigned: true,
+  };
 
   const handleSetChecklistStatus = (checkId: string, status: 'passed' | 'flagged' | 'inconclusive') => {
     updateChecklist(req.id, checkId, status);
@@ -57,15 +92,80 @@ export const FieldAgentView: React.FC = () => {
     setToastMessage('Observation note saved to checklist item.');
   };
 
-  const handleAddEvidenceSubmit = (e: React.FormEvent) => {
+  // Perform GPS Check-In
+  const handleExecuteCheckIn = async () => {
+    setIsCheckingIn(true);
+    try {
+      const liveGPS = req.location.gpsCoords || '-1.2612, 36.8044';
+      const result = await performCheckIn(req.id, liveGPS, checkInNotes);
+      if (result.success) {
+        setToastMessage(`✓ GPS Ground Check-in recorded! Verified distance: ${result.distanceMeters}m from site marker.`);
+      } else {
+        setToastMessage(`Check-in notice: ${result.message}`);
+      }
+    } catch (err: any) {
+      setToastMessage(`Failed to record check-in: ${err?.message || 'GPS Timeout'}`);
+    } finally {
+      setIsCheckingIn(false);
+    }
+  };
+
+  // Handle Assignment Accept
+  const handleAcceptAssignment = () => {
+    if (!conflictCertified) {
+      setToastMessage('Mandatory: You must certify zero conflict of interest before accepting this assignment.');
+      return;
+    }
+    acceptAssignment(req.id);
+    setToastMessage(`Assignment accepted for ${req.id}. Ready for on-ground deployment.`);
+  };
+
+  // Handle Assignment Reject
+  const handleRejectAssignment = () => {
+    if (!declineReason.trim()) {
+      setToastMessage('Please provide a specific reason for declining or declaring conflict.');
+      return;
+    }
+    rejectAssignment(req.id, declineReason.trim());
+    setShowDeclineForm(false);
+    setDeclineReason('');
+    setToastMessage(`Mission ${req.id} returned to Operations triage pool.`);
+  };
+
+  // Handle Start Travelling
+  const handleStartTravelling = () => {
+    const res = advanceRequestStatus(req.id, 'TRAVELLING', 'Field agent departed for location.');
+    if (res.success) {
+      setToastMessage(`Status updated: Travelling to site for mission ${req.id}.`);
+    } else {
+      setToastMessage(res.error || 'Cannot transition to Travelling.');
+    }
+  };
+
+  // Handle Final Mission Submission to QA Desk
+  const handleSubmitMissionDossier = () => {
+    if (req.evidence.length === 0) {
+      setToastMessage('Mandatory: Upload at least 1 verified field photo before submitting mission dossier.');
+      return;
+    }
+    const res = advanceRequestStatus(req.id, 'EVIDENCE_SUBMITTED', 'Field agent completed on-ground audit and submitted evidence dossier.');
+    if (res.success) {
+      setToastMessage(`✓ Mission ${req.id} dossier successfully submitted to Nairobi HQ Operations QA Desk!`);
+    } else {
+      setToastMessage(res.error || 'Submission failed.');
+    }
+  };
+
+  // Submit Evidence with Progress & Offline Queue
+  const handleAddEvidenceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!photoTitle.trim()) {
       setToastMessage('Please enter a photo title or angle description.');
       return;
     }
 
-    addEvidence(req.id, {
-      type: 'photo',
+    const evidencePayload = {
+      type: 'photo' as const,
       title: photoTitle.trim(),
       description: photoNotes || 'Visual inspection photo captured on site.',
       url: simulatedImageUrl,
@@ -73,15 +173,60 @@ export const FieldAgentView: React.FC = () => {
       locationTag: `${req.location.town}, ${req.location.county}`,
       gpsCoords: req.location.gpsCoords,
       cameraAngle: photoAngle,
-      verifiedByAgentId: req.assignedAgent?.id || 'agt-01',
+      verifiedByAgentId: agent.id,
       tags: ['Field Evidence', req.category],
       uncertaintyFlag: photoUncertainty.trim() || undefined,
-    });
+    };
 
-    setPhotoTitle('');
-    setPhotoNotes('');
-    setPhotoUncertainty('');
-    setToastMessage(`Evidence captured and synchronized with Nairobi HQ for ${req.id}!`);
+    if (offlineMode) {
+      // Store in local offline queue
+      setOfflineQueue(prev => [...prev, { requestId: req.id, evidence: evidencePayload }]);
+      setToastMessage(`Device is OFFLINE: Photo buffered in secure local cache (${offlineQueue.length + 1} queued).`);
+      setPhotoTitle('');
+      setPhotoNotes('');
+      setPhotoUncertainty('');
+      return;
+    }
+
+    // Online simulation with progress bar
+    setUploadProgress(15);
+    setUploadError(null);
+
+    try {
+      await new Promise(r => setTimeout(r, 250));
+      setUploadProgress(55);
+      await new Promise(r => setTimeout(r, 250));
+      setUploadProgress(90);
+
+      await addEvidence(req.id, evidencePayload);
+      setUploadProgress(100);
+
+      setTimeout(() => {
+        setUploadProgress(null);
+      }, 500);
+
+      setPhotoTitle('');
+      setPhotoNotes('');
+      setPhotoUncertainty('');
+      setToastMessage(`Evidence captured, hashed (SHA-256), and synchronized with Nairobi HQ for ${req.id}!`);
+    } catch {
+      setUploadProgress(null);
+      setUploadError('Network upload failed due to spotty cell signal. Click retry below.');
+    }
+  };
+
+  // Sync Offline Queue
+  const handleSyncOfflineQueue = async () => {
+    if (offlineQueue.length === 0) return;
+    setUploadProgress(10);
+    for (let i = 0; i < offlineQueue.length; i++) {
+      const item = offlineQueue[i];
+      await addEvidence(item.requestId, item.evidence);
+      setUploadProgress(Math.round(((i + 1) / offlineQueue.length) * 100));
+    }
+    setOfflineQueue([]);
+    setUploadProgress(null);
+    setToastMessage(`Synchronized all queued evidence items to Nairobi HQ cloud registry.`);
   };
 
   // Sample photo choices for simulated camera
@@ -92,8 +237,10 @@ export const FieldAgentView: React.FC = () => {
     { label: 'Completed Masonry Walling', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80' },
   ];
 
+  const isAssignedPendingAcceptance = req.requestStatus === 'AGENT_ASSIGNED';
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       
       {/* Top Banner */}
       <div className="bg-slate-900 text-white rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -112,15 +259,60 @@ export const FieldAgentView: React.FC = () => {
           </p>
         </div>
 
-        {/* Live GPS Telemetry */}
+        {/* Live GPS Telemetry Indicator */}
         <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-3 text-xs space-y-1">
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-bold text-white">Verifier: {req.assignedAgent?.name || 'Local Ground Verifier'}</span>
+            <span className="font-bold text-white">Verifier: {agent.name}</span>
           </div>
           <div className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5 text-emerald-400" />
             GPS: {req.location.gpsCoords}
+          </div>
+        </div>
+      </div>
+
+      {/* Agent Trust & Earnings Dashboard */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold mb-1">
+              <Award className="w-4 h-4 text-amber-500" />
+              <span>Verifier Rating</span>
+            </div>
+            <div className="text-lg font-bold text-slate-900">4.96 <span className="text-xs text-amber-600">★★★★★</span></div>
+            <div className="text-[10px] text-slate-500">54 verified field audits</div>
+          </div>
+
+          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold mb-1">
+              <DollarSign className="w-4 h-4 text-emerald-600" />
+              <span>Earnings (This Month)</span>
+            </div>
+            <div className="text-lg font-bold text-emerald-700">KES 82,500</div>
+            <div className="text-[10px] text-slate-500">M-Pesa B2C instant ready</div>
+          </div>
+
+          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold mb-1">
+              <ShieldCheck className="w-4 h-4 text-blue-600" />
+              <span>Independence Pledge</span>
+            </div>
+            <div className="text-xs font-bold text-slate-900 flex items-center gap-1">
+              <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" /> Cleared & Signed
+            </div>
+            <div className="text-[10px] text-slate-500">Zero contractor affiliation</div>
+          </div>
+
+          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold mb-1">
+              <MapPin className="w-4 h-4 text-purple-600" />
+              <span>Licensed Counties</span>
+            </div>
+            <div className="text-xs font-bold text-slate-900 truncate">
+              Kiambu, Nairobi, Kajiado
+            </div>
+            <div className="text-[10px] text-slate-500">4 active counties</div>
           </div>
         </div>
       </div>
@@ -164,8 +356,99 @@ export const FieldAgentView: React.FC = () => {
         </div>
       </div>
 
-      {/* Active Mission Details Card */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+      {/* Assignment Acceptance Banner (If Status is AGENT_ASSIGNED) */}
+      {isAssignedPendingAcceptance && (
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-3xl p-5 sm:p-6 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-200 text-amber-900 uppercase">
+                  New Assignment Pending Your Confirmation
+                </span>
+                <span className="text-xs font-mono font-bold text-amber-800">{req.id}</span>
+              </div>
+              <h3 className="text-base font-bold text-amber-950">
+                Mission Deployment Offer: {req.title}
+              </h3>
+              <p className="text-xs text-amber-900">
+                Scheduled Visit: <strong>{req.scheduledVisitDate || 'Immediate'}</strong> | Location: <strong>{req.location.town}, {req.location.county}</strong>
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-amber-800 font-medium">Verifier Fee</div>
+              <div className="text-lg font-black text-amber-950">KES 7,500</div>
+            </div>
+          </div>
+
+          <div className="bg-white/80 border border-amber-200 rounded-2xl p-3.5 text-xs text-slate-700 space-y-2">
+            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              Independence & Conflict-of-Interest Declaration (Document 1 Invariant)
+            </div>
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={conflictCertified}
+                onChange={(e) => setConflictCertified(e.target.checked)}
+                className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+              />
+              <span className="text-xs text-slate-800 leading-snug">
+                I formally declare that I have <strong>zero commercial or familial relationship</strong> to the property owner, contractor, foreman, vendor, or any interested party on this parcel.
+              </span>
+            </label>
+          </div>
+
+          {!showDeclineForm ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={handleAcceptAssignment}
+                disabled={!conflictCertified}
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all"
+              >
+                <Check className="w-4 h-4" />
+                <span>Accept Assignment & Lock Schedule</span>
+              </button>
+              <button
+                onClick={() => setShowDeclineForm(true)}
+                className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center gap-1.5 transition-colors"
+              >
+                <X className="w-4 h-4" />
+                <span>Decline or Declare Conflict</span>
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white p-4 rounded-2xl border border-rose-200 space-y-3">
+              <label className="text-xs font-bold text-rose-900 block">
+                Specify Reason for Declining / Disclosing Conflict:
+              </label>
+              <input
+                type="text"
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                placeholder="e.g. Discovered contractor is a distant family acquaintance; unable to verify impartially"
+                className="w-full px-3 py-2 rounded-xl border border-rose-300 text-xs outline-none"
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleRejectAssignment}
+                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs"
+                >
+                  Confirm Rejection & Return to Pool
+                </button>
+                <button
+                  onClick={() => setShowDeclineForm(false)}
+                  className="px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium text-xs"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Active Mission Details & Live GPS Check-In */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg">
@@ -190,6 +473,100 @@ export const FieldAgentView: React.FC = () => {
               Scheduled: {req.scheduledVisitDate || 'Today'}
             </span>
           </div>
+        </div>
+
+        {/* Travel Status Indicator & Action */}
+        {req.requestStatus === 'ACCEPTED' && (
+          <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+            <div className="text-xs text-blue-900">
+              <span className="font-bold block">Assignment Scheduled & Ready:</span>
+              <span className="text-blue-700">Departing for location? Notify Nairobi HQ and client.</span>
+            </div>
+            <button
+              onClick={handleStartTravelling}
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Start Travelling to Site</span>
+            </button>
+          </div>
+        )}
+
+        {req.requestStatus === 'TRAVELLING' && (
+          <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-2xl flex items-center gap-2 text-xs text-amber-950 font-semibold">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+            <span>En route to site. Complete GPS Arrival Check-In below once at parcel perimeter.</span>
+          </div>
+        )}
+
+        {/* Live GPS On-Site Arrival Card */}
+        <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-3 shadow-md">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${req.checkInRecord ? 'bg-emerald-400' : 'bg-amber-400 animate-ping'}`} />
+              <span className="font-bold text-xs uppercase tracking-wider text-slate-200">
+                Ground Telemetry & Arrival Check-In
+              </span>
+            </div>
+            {req.checkInRecord ? (
+              <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                ARRIVED & VERIFIED ON-SITE ({req.checkInRecord.timestamp})
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                CHECK-IN REQUIRED UPON ENTRY
+              </span>
+            )}
+          </div>
+
+          {req.checkInRecord ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs bg-slate-800/80 p-3 rounded-xl border border-slate-700 font-mono">
+              <div>
+                <span className="text-[10px] text-slate-400 block">Check-in Coords</span>
+                <span className="text-emerald-300">{req.checkInRecord.gpsCoords}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 block">Perimeter Proximity</span>
+                <span className="text-emerald-300">{req.checkInRecord.distanceMeters}m (Accurate &plusmn;{req.checkInRecord.accuracyMeters}m)</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 block">Verifier Note</span>
+                <span className="text-slate-200 truncate">{req.checkInRecord.notes}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-xs text-slate-300">
+                Click upon arrival at parcel coordinates <span className="font-mono text-amber-300 font-bold">{req.location.gpsCoords}</span>. Proximity check validates device within 150m.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center gap-2">
+                <input
+                  type="text"
+                  value={checkInNotes}
+                  onChange={(e) => setCheckInNotes(e.target.value)}
+                  placeholder="Arrival notes (e.g. Gate opened by foreman Mwenda)"
+                  className="w-full sm:flex-1 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white outline-none"
+                />
+                <button
+                  onClick={handleExecuteCheckIn}
+                  disabled={isCheckingIn}
+                  className="w-full sm:w-auto px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  {isCheckingIn ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Locking GPS...</span>
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>Check In on Site</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* On-Site Contact Bar */}
@@ -252,103 +629,75 @@ export const FieldAgentView: React.FC = () => {
                     )}
                   </div>
 
-                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider flex-shrink-0 ${
-                    item.status === 'passed'
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                      : item.status === 'flagged'
-                      ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                      : 'bg-slate-100 text-slate-600 border border-slate-200'
-                  }`}>
-                    {item.status}
-                  </span>
-                </div>
-
-                {/* Status action buttons */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100">
-                  <div className="flex items-center gap-1.5 text-xs">
+                  {/* Status Toggle Buttons */}
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
                     <button
-                      type="button"
                       onClick={() => handleSetChecklistStatus(item.id, 'passed')}
-                      className={`px-3 py-1 rounded-lg font-bold text-xs transition-all ${
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
                         item.status === 'passed'
                           ? 'bg-emerald-600 text-white shadow-sm'
-                          : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                          : 'bg-slate-100 text-slate-600 hover:bg-emerald-100 hover:text-emerald-800'
                       }`}
                     >
-                      ✓ Pass (Confirmed)
+                      ✓ Passed
                     </button>
                     <button
-                      type="button"
                       onClick={() => handleSetChecklistStatus(item.id, 'flagged')}
-                      className={`px-3 py-1 rounded-lg font-bold text-xs transition-all ${
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
                         item.status === 'flagged'
                           ? 'bg-amber-600 text-white shadow-sm'
-                          : 'bg-amber-50 text-amber-900 hover:bg-amber-100'
+                          : 'bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-800'
                       }`}
                     >
-                      ⚠ Flag Discrepancy
+                      ! Flag
                     </button>
                     <button
-                      type="button"
                       onClick={() => handleSetChecklistStatus(item.id, 'inconclusive')}
-                      className={`px-3 py-1 rounded-lg font-semibold text-xs transition-all ${
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
                         item.status === 'inconclusive'
                           ? 'bg-slate-700 text-white shadow-sm'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
                       ? Inconclusive
                     </button>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isEditing) {
-                        setEditingCheckId(null);
-                      } else {
-                        handleOpenEditNote(item.id, item.notes);
-                      }
-                    }}
-                    className="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
-                  >
-                    {isEditing ? (
-                      <>Cancel <ChevronUp className="w-3.5 h-3.5" /></>
-                    ) : (
-                      <>{item.notes ? 'Edit Ground Note' : '+ Add Note'} <ChevronDown className="w-3.5 h-3.5" /></>
-                    )}
-                  </button>
                 </div>
 
-                {/* In-line note editor */}
-                {isEditing && (
-                  <div className="space-y-2 pt-2 border-t border-slate-200">
-                    <label className="text-[11px] font-bold text-slate-700 block">
-                      Field Inspector Specific Observation:
-                    </label>
+                {/* Inline Observation Note Form */}
+                {isEditing ? (
+                  <div className="pt-2 border-t border-slate-200 space-y-2">
                     <textarea
                       rows={2}
                       value={itemNoteText}
                       onChange={(e) => setItemNoteText(e.target.value)}
-                      placeholder="e.g. Counted 40 bags of Bamburi cement in shed; contractor billed for 120 bags..."
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white"
+                      placeholder="Add specific field measurements, counts, or reasons for flagging..."
+                      className="w-full p-2.5 text-xs rounded-xl border border-slate-300 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     />
-                    <div className="flex justify-end gap-2">
+                    <div className="flex items-center gap-2">
                       <button
-                        type="button"
-                        onClick={() => setEditingCheckId(null)}
-                        className="px-3 py-1 rounded-lg border border-slate-300 text-xs text-slate-600"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
                         onClick={() => handleSaveItemNote(item.id, item.status)}
-                        className="px-4 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700"
+                        className="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700"
                       >
                         Save Note
                       </button>
+                      <button
+                        onClick={() => setEditingCheckId(null)}
+                        className="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs hover:bg-slate-200"
+                      >
+                        Cancel
+                      </button>
                     </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between text-[11px] text-slate-400">
+                    <span>{item.verifiedAt ? `Observed at ${item.verifiedAt}` : 'Awaiting check'}</span>
+                    <button
+                      onClick={() => handleOpenEditNote(item.id, item.notes)}
+                      className="text-blue-600 hover:underline font-semibold"
+                    >
+                      {item.notes ? 'Edit Observation Note' : '+ Add Field Note'}
+                    </button>
                   </div>
                 )}
               </div>
@@ -357,42 +706,115 @@ export const FieldAgentView: React.FC = () => {
         </div>
       </div>
 
-      {/* Real-time Evidence Logger Form */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
-        <div>
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            <Camera className="w-4 h-4 text-emerald-600" />
-            2. Capture Calibrated Photographic Evidence
-          </h3>
-          <p className="text-xs text-slate-500">
-            Reference Document standard: Every milestone requires identical repeat camera angles and explicit recording of unconfirmed items.
-          </p>
+      {/* Evidence Capture Camera & Offline Queue Bar */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <Camera className="w-4 h-4 text-emerald-600" />
+              <span>2. Calibrated Ground Camera & Evidence Capture</span>
+            </h3>
+            <p className="text-xs text-slate-500">
+              Photographs are digitally hashed (SHA-256) and paired with orientation angles to prove site progress.
+            </p>
+          </div>
+
+          {/* Offline Mode Toggle & Queue */}
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 cursor-pointer bg-slate-100 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                checked={offlineMode}
+                onChange={(e) => setOfflineMode(e.target.checked)}
+                className="rounded text-amber-600 focus:ring-amber-500 w-3.5 h-3.5"
+              />
+              <span>Offline Mode (Remote Site)</span>
+            </label>
+
+            {offlineQueue.length > 0 && (
+              <button
+                onClick={handleSyncOfflineQueue}
+                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Sync Offline Queue ({offlineQueue.length})</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        <form onSubmit={handleAddEvidenceSubmit} className="space-y-4 text-xs">
-          
-          {/* Preset Photo Simulation */}
-          <div className="space-y-1.5">
-            <label className="font-bold text-slate-800 block">
-              Simulated Camera Capture Feed:
+        {/* Upload Progress Bar (Online Upload Animation) */}
+        {uploadProgress !== null && (
+          <div className="space-y-1.5 bg-blue-50 border border-blue-200 p-3 rounded-2xl animate-fadeIn">
+            <div className="flex items-center justify-between text-xs font-bold text-blue-900">
+              <span>Syncing calibrated photograph to Nairobi HQ...</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
+              <div 
+                className="bg-blue-600 h-full transition-all duration-300 rounded-full"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {uploadError && (
+          <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600" />
+              <span>{uploadError}</span>
+            </div>
+            <button
+              onClick={() => setUploadError(null)}
+              className="text-rose-700 font-bold hover:underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        <form onSubmit={handleAddEvidenceSubmit} className="space-y-4">
+          {/* Simulated Viewfinder */}
+          <div className="relative rounded-2xl overflow-hidden bg-slate-900 aspect-video max-h-64 border border-slate-300">
+            <img
+              src={simulatedImageUrl}
+              alt="Live Viewfinder"
+              className="w-full h-full object-cover opacity-90"
+            />
+            
+            {/* Viewfinder Overlay HUD */}
+            <div className="absolute inset-0 pointer-events-none p-3 flex flex-col justify-between text-[11px] font-mono text-emerald-400">
+              <div className="flex items-center justify-between bg-black/50 p-1.5 rounded-lg backdrop-blur-sm">
+                <span>[CAM-01 ACTIVE]</span>
+                <span>{req.location.gpsCoords}</span>
+                <span>{hudTime} EAT</span>
+              </div>
+              <div className="flex items-center justify-between bg-black/50 p-1.5 rounded-lg backdrop-blur-sm">
+                <span>CALIBRATION: 50mm EQV</span>
+                <span>ANGLE: {photoAngle}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Photo Presets */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              Simulate Camera Capture Subject:
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {samplePhotos.map((photo, i) => (
                 <button
-                  type="button"
                   key={i}
-                  onClick={() => {
-                    setSimulatedImageUrl(photo.url);
-                    setPhotoTitle(photo.label);
-                  }}
-                  className={`p-2 rounded-xl border text-left transition-all ${
+                  type="button"
+                  onClick={() => setSimulatedImageUrl(photo.url)}
+                  className={`p-2 rounded-xl text-[11px] font-bold text-left border transition-all truncate ${
                     simulatedImageUrl === photo.url
-                      ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-500/20'
-                      : 'border-slate-200 hover:bg-slate-50'
+                      ? 'border-blue-600 bg-blue-50 text-blue-900'
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <img src={photo.url} alt={photo.label} className="w-full h-16 object-cover rounded-lg mb-1" />
-                  <div className="text-[10px] font-bold text-slate-800 line-clamp-1">{photo.label}</div>
+                  {photo.label}
                 </button>
               ))}
             </div>
@@ -400,7 +822,7 @@ export const FieldAgentView: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="font-bold text-slate-800 block mb-1">Repeat Camera Angle</label>
+              <label className="font-bold text-slate-800 text-xs block mb-1">Repeat Camera Angle</label>
               <select
                 value={photoAngle}
                 onChange={(e) => setPhotoAngle(e.target.value)}
@@ -416,7 +838,7 @@ export const FieldAgentView: React.FC = () => {
             </div>
 
             <div>
-              <label className="font-bold text-slate-800 block mb-1">Photo Subject Title</label>
+              <label className="font-bold text-slate-800 text-xs block mb-1">Photo Subject Title</label>
               <input
                 type="text"
                 value={photoTitle}
@@ -428,7 +850,7 @@ export const FieldAgentView: React.FC = () => {
           </div>
 
           <div>
-            <label className="font-bold text-slate-800 block mb-1">Inspector Ground Observation</label>
+            <label className="font-bold text-slate-800 text-xs block mb-1">Inspector Ground Observation</label>
             <textarea
               rows={2}
               value={photoNotes}
@@ -440,7 +862,7 @@ export const FieldAgentView: React.FC = () => {
 
           {/* Explicit Limitations / Refusal */}
           <div className="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200 space-y-1.5">
-            <label className="font-bold text-rose-900 flex items-center gap-1.5">
+            <label className="font-bold text-rose-900 text-xs flex items-center gap-1.5">
               <ShieldAlert className="w-4 h-4 text-rose-600" />
               What Could NOT Be Confirmed / Site Obstruction (Document 1 Standard)
             </label>
@@ -461,7 +883,7 @@ export const FieldAgentView: React.FC = () => {
             className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
           >
             <Upload className="w-4 h-4" />
-            <span>Upload Calibrated Evidence & Sync to Nairobi HQ</span>
+            <span>{offlineMode ? 'Queue Offline to Local Device Storage' : 'Upload Calibrated Evidence & Sync to Nairobi HQ'}</span>
           </button>
         </form>
       </div>
@@ -510,6 +932,43 @@ export const FieldAgentView: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* 4. Final Mission Submission Card */}
+      <div className="bg-gradient-to-r from-slate-900 to-emerald-950 text-white rounded-3xl p-6 shadow-xl border border-emerald-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              Step 4: Finalize Ground Mission
+            </span>
+            <span className="text-xs text-slate-400 font-mono">
+              Status: {req.requestStatus}
+            </span>
+          </div>
+          <h3 className="text-base font-bold text-white">
+            Ready to Submit Completed Mission to Operations?
+          </h3>
+          <p className="text-xs text-slate-300 max-w-xl">
+            {req.checklist.filter(c => c.completed).length} of {req.checklist.length} checklist items verified • {req.evidence.length} evidence items hashed & synchronized.
+          </p>
+        </div>
+
+        <div>
+          {req.requestStatus === 'EVIDENCE_SUBMITTED' || req.requestStatus === 'UNDER_REVIEW' || req.requestStatus === 'REPORT_READY' || req.requestStatus === 'COMPLETED' ? (
+            <div className="px-4 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 font-bold text-xs flex items-center gap-1.5">
+              <Check className="w-4 h-4 stroke-[3]" />
+              <span>Dossier Submitted to QA Desk</span>
+            </div>
+          ) : (
+            <button
+              onClick={handleSubmitMissionDossier}
+              className="px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02]"
+            >
+              <Check className="w-4 h-4 stroke-[3]" />
+              <span>Submit Mission Dossier to Operations</span>
+            </button>
+          )}
         </div>
       </div>
 
