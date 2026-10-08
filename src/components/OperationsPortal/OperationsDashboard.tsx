@@ -31,6 +31,7 @@ import type { VerificationStatus, CurrencyCode } from '../../types';
 import { FORMAT_CURRENCY, hasStopPaymentWarning } from '../../data/mockData';
 import { calculateConfidenceScore } from '../../services/confidenceScorer';
 import { ROLE_PERMISSIONS } from '../../auth/authorization';
+import { CockpitContent } from './OperationsCockpit';
 
 export type OperationsTab = 
   | 'operations' 
@@ -129,7 +130,8 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
   const [adminDisputeNotes, setAdminDisputeNotes] = useState('');
   const [disputeResolutionAction, setDisputeResolutionAction] = useState('Re-inspection completed with verified evidence');
 
-  // Triage Search
+  // Triage Search & Cockpit View Mode
+  const [opsViewMode, setOpsViewMode] = useState<'cockpit' | 'queue'>('cockpit');
   const [triageSearch, setTriageSearch] = useState('');
   const [triageCategoryFilter, setTriageCategoryFilter] = useState('all');
 
@@ -965,9 +967,69 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
         </div>
       )}
 
-      {/* TAB 2: OPERATIONS & REQUESTS REGISTER */}
-      {(activeTab === 'operations' || activeTab === 'requests') && (
+      {/* TAB 2: OPERATIONS COCKPIT OR REQUESTS REGISTER */}
+      {activeTab === 'operations' && opsViewMode === 'cockpit' ? (
+        <div className="space-y-6">
+          {/* Operations View Toggle Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">View:</span>
+              <button
+                onClick={() => setOpsViewMode('cockpit')}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-xs cursor-pointer"
+              >
+                Financial & Operations Cockpit
+              </button>
+              <button
+                onClick={() => setOpsViewMode('queue')}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                Missions Register Queue ({requests.length})
+              </button>
+            </div>
+            <button
+              onClick={() => navigate('/cockpit')}
+              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors cursor-pointer"
+              title="Open full dedicated dashboard view"
+            >
+              Open Fullscreen Cockpit ↗
+            </button>
+          </div>
+
+          <CockpitContent
+            onNavigateTab={(tab) => handleTabChange(tab as OperationsTab)}
+            onRefresh={seedSampleData}
+            onNewPayment={() => handleTabChange('payments')}
+          />
+        </div>
+      ) : (activeTab === 'operations' || activeTab === 'requests') && (
         <div className="space-y-4">
+          {activeTab === 'operations' && (
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">View:</span>
+                <button
+                  onClick={() => setOpsViewMode('cockpit')}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  Financial & Operations Cockpit
+                </button>
+                <button
+                  onClick={() => setOpsViewMode('queue')}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-xs cursor-pointer"
+                >
+                  Missions Register Queue ({requests.length})
+                </button>
+              </div>
+              <button
+                onClick={() => navigate('/cockpit')}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors cursor-pointer"
+                title="Open full dedicated dashboard view"
+              >
+                Open Fullscreen Cockpit ↗
+              </button>
+            </div>
+          )}
           <div className="bg-white p-4 rounded-3xl border border-slate-200 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 flex-1 max-w-md">
               <Search className="w-4 h-4 text-slate-400" />

@@ -18,6 +18,7 @@ const ReportsLibrary = lazy(() => import('./components/ReportsLibrary').then(m =
 const PropertyPortfolioView = lazy(() => import('./components/ClientPortal/PropertyPortfolioView').then(m => ({ default: m.PropertyPortfolioView })));
 const DisputesView = lazy(() => import('./components/DisputesView').then(m => ({ default: m.DisputesView })));
 const OperationsDashboard = lazy(() => import('./components/OperationsPortal/OperationsDashboard').then(m => ({ default: m.OperationsDashboard })));
+const OperationsCockpit = lazy(() => import('./components/OperationsPortal/OperationsCockpit').then(m => ({ default: m.OperationsCockpit })));
 const FieldAgentView = lazy(() => import('./components/FieldAgentPortal/FieldAgentView').then(m => ({ default: m.FieldAgentView })));
 const CorporateDashboard = lazy(() => import('./components/CorporatePortal/CorporateDashboard').then(m => ({ default: m.CorporateDashboard })));
 const CommandMenu = lazy(() => import('./components/ui/CommandMenu').then(m => ({ default: m.CommandMenu })));
@@ -198,6 +199,24 @@ function AppRoutes() {
             } 
           />
           <Route path="/operations" element={<Navigate to="/admin" replace />} />
+
+          {/* Admin Financial & Operations Cockpit */}
+          <Route 
+            path="/cockpit" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <OperationsCockpit />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/cockpit" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <OperationsCockpit />
+              </ProtectedRoute>
+            } 
+          />
 
           {/* Field Agent Portal */}
           <Route 
