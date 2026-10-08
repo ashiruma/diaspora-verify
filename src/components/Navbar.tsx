@@ -10,14 +10,15 @@ import {
   Bell, 
   Check, 
   MapPin, 
-  AlertTriangle,
-  MessageSquare,
   DollarSign,
-  Clock,
-  Award,
   LogOut,
   LogIn,
-  UserPlus
+  UserPlus,
+  Eye,
+  Search,
+  Menu,
+  X,
+  Building
 } from './Icons';
 import type { CurrencyCode } from '../types';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -29,6 +30,7 @@ export const Navbar: React.FC = () => {
   const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false);
   const [notifMenuOpen, setNotifMenuOpen] = useState(false);
   const [viewAsModalOpen, setViewAsModalOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const {
     activeRole,
@@ -59,37 +61,27 @@ export const Navbar: React.FC = () => {
     navigate(path);
     setNotifMenuOpen(false);
     setRoleMenuOpen(false);
+    setMobileMenuOpen(false);
   };
 
-  // Role-Specific Navigation Links
+  // Role-Specific Navigation Links (Concise, focused top-level anchors - no secondary tab duplication)
   const clientNavLinks = [
-    { path: '/dashboard', label: 'Overview', icon: <FileText className="w-3.5 h-3.5 text-slate-500" /> },
+    { path: '/dashboard', label: 'Dashboard', icon: <FileText className="w-3.5 h-3.5 text-slate-500" /> },
     { path: '/requests', label: 'My Requests', icon: <FileText className="w-3.5 h-3.5 text-emerald-600" /> },
+    { path: '/properties', label: 'Properties', icon: <MapPin className="w-3.5 h-3.5 text-emerald-600" /> },
     { path: '/reports', label: 'Reports', icon: <FileText className="w-3.5 h-3.5 text-blue-600" /> },
-    { path: '/properties', label: 'My Properties', icon: <MapPin className="w-3.5 h-3.5 text-emerald-600" /> },
-    { path: '/payments', label: 'Payments', icon: <DollarSign className="w-3.5 h-3.5 text-amber-600" /> },
-    { path: '/messages', label: 'Messages', icon: <MessageSquare className="w-3.5 h-3.5 text-purple-600" /> },
-    { path: '/profile', label: 'Profile', icon: <User className="w-3.5 h-3.5 text-slate-500" /> },
   ];
 
   const agentNavLinks = [
-    { path: '/agent', label: 'Assignments & Today', icon: <Smartphone className="w-3.5 h-3.5 text-amber-600" /> },
+    { path: '/agent', label: 'Field Tasks', icon: <Smartphone className="w-3.5 h-3.5 text-amber-600" /> },
     { path: '/agent#checkin', label: 'GPS Check-In', icon: <MapPin className="w-3.5 h-3.5 text-emerald-600" /> },
-    { path: '/agent#earnings', label: 'Earnings & Performance', icon: <DollarSign className="w-3.5 h-3.5 text-blue-600" /> },
+    { path: '/agent#earnings', label: 'Earnings', icon: <DollarSign className="w-3.5 h-3.5 text-blue-600" /> },
   ];
 
   const adminNavLinks = [
-    { path: '/admin', label: 'Operations', icon: <Briefcase className="w-3.5 h-3.5 text-blue-600" /> },
-    { path: '/admin?tab=requests', label: 'Requests', icon: <FileText className="w-3.5 h-3.5 text-slate-600" /> },
-    { path: '/admin?tab=assignments', label: 'Assignments', icon: <Clock className="w-3.5 h-3.5 text-amber-600" /> },
-    { path: '/admin?tab=agents', label: 'Agents', icon: <Smartphone className="w-3.5 h-3.5 text-amber-600" /> },
-    { path: '/admin?tab=clients', label: 'Clients', icon: <User className="w-3.5 h-3.5 text-emerald-600" /> },
-    { path: '/admin?tab=reports', label: 'Reports', icon: <FileText className="w-3.5 h-3.5 text-emerald-600" /> },
-    { path: '/admin?tab=payments', label: 'Payments', icon: <DollarSign className="w-3.5 h-3.5 text-amber-600" /> },
-    { path: '/admin?tab=disputes', label: 'Disputes', icon: <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> },
-    { path: '/admin?tab=analytics', label: 'Analytics', icon: <Award className="w-3.5 h-3.5 text-blue-600" /> },
-    { path: '/admin?tab=services', label: 'Services', icon: <FileText className="w-3.5 h-3.5 text-purple-600" /> },
-    { path: '/admin?tab=settings', label: 'Settings', icon: <ShieldCheck className="w-3.5 h-3.5 text-purple-600" /> },
+    { path: '/admin', label: 'Operations Desk', icon: <Briefcase className="w-3.5 h-3.5 text-blue-600" /> },
+    { path: '/corporate', label: 'Corporate Portfolios', icon: <Building className="w-3.5 h-3.5 text-emerald-600" /> },
+    { path: '/admin?tab=settings', label: 'Audit & Security', icon: <ShieldCheck className="w-3.5 h-3.5 text-purple-600" /> },
   ];
 
   const activeNavLinks =
@@ -110,46 +102,48 @@ export const Navbar: React.FC = () => {
   );
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
       {/* Admin Impersonation Preview Banner */}
       <AdminPreviewBanner />
 
-      {/* Trust Anchor & Quick Legal Link Bar */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-1 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              KENYA GROUND VERIFICATION
-            </span>
-            <span className="hidden sm:inline text-slate-400 text-[11px]">
-              “VERIFY KENYA. FROM ANYWHERE.” — Independent on-ground due-diligence.
-            </span>
-          </div>
+      {/* Public Trust Anchor & Quick Legal Link Bar (Hidden for authenticated operations/dashboards) */}
+      {!isAuthenticated || !currentUser ? (
+        <div className="bg-slate-900 text-slate-300 text-xs py-1 px-4 sm:px-6">
+          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                KENYA GROUND VERIFICATION
+              </span>
+              <span className="hidden sm:inline text-slate-400 text-[11px]">
+                “VERIFY KENYA. FROM ANYWHERE.” — Independent on-ground due-diligence.
+              </span>
+            </div>
 
-          <div className="flex items-center gap-3 text-[11px]">
-            <button 
-              onClick={() => handleNav('/service-model')} 
-              className="text-slate-400 hover:text-white"
-            >
-              How It Works
-            </button>
-            <span className="text-slate-700">|</span>
-            <button 
-              onClick={() => handleNav('/legal')} 
-              className="text-slate-400 hover:text-white"
-            >
-              Legal & Compliance
-            </button>
-            <span className="text-slate-700">|</span>
-            <button 
-              onClick={() => handleNav('/landing')} 
-              className="text-emerald-400 hover:text-emerald-300 font-semibold"
-            >
-              Public Site →
-            </button>
+            <div className="flex items-center gap-3 text-[11px]">
+              <button 
+                onClick={() => handleNav('/service-model')} 
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                How It Works
+              </button>
+              <span className="text-slate-700">|</span>
+              <button 
+                onClick={() => handleNav('/legal')} 
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                Legal & Compliance
+              </button>
+              <span className="text-slate-700">|</span>
+              <button 
+                onClick={() => handleNav('/landing')} 
+                className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
+              >
+                Public Site →
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -170,11 +164,11 @@ export const Navbar: React.FC = () => {
                     Diaspora<span className="text-emerald-700">Verify</span>
                   </span>
                   {isAuthenticated && currentUser ? (
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                       {currentNormalizedRole.toUpperCase()}
                     </span>
                   ) : (
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
                       KENYA PILOT
                     </span>
                   )}
@@ -186,8 +180,8 @@ export const Navbar: React.FC = () => {
             </button>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 overflow-x-auto max-w-3xl py-1">
+          {/* Clean Desktop Navigation Links (No horizontal scrollbar) */}
+          <nav className="hidden md:flex items-center gap-1 py-1">
             {!isAuthenticated || !currentUser ? (
               <>
                 <button
@@ -201,6 +195,16 @@ export const Navbar: React.FC = () => {
                   How It Works
                 </button>
                 <button
+                  onClick={() => handleNav('/corporate')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    location.pathname === '/corporate'
+                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  Corporate Portfolios
+                </button>
+                <button
                   onClick={() => handleNav('/legal')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     location.pathname === '/legal'
@@ -210,16 +214,6 @@ export const Navbar: React.FC = () => {
                 >
                   Legal & Compliance
                 </button>
-                <button
-                  onClick={() => handleNav('/')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    location.pathname === '/' || location.pathname === '/landing'
-                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  Public Site
-                </button>
               </>
             ) : (
               activeNavLinks.map((link) => {
@@ -228,9 +222,9 @@ export const Navbar: React.FC = () => {
                   <button
                     key={link.path}
                     onClick={() => handleNav(link.path)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
                       isActive 
-                        ? 'bg-slate-100 text-slate-900 border border-slate-200' 
+                        ? 'bg-slate-100 text-slate-900 font-semibold border border-slate-200 shadow-2xs' 
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }`}
                   >
@@ -302,14 +296,12 @@ export const Navbar: React.FC = () => {
                 {currentNormalizedRole === 'admin' && (
                   <button
                     onClick={() => setCommandMenuOpen(true)}
-                    className="hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-slate-600 transition-colors"
-                    title="Search records (Ctrl+K)"
+                    className="hidden md:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-slate-600 transition-colors"
+                    title="Search records (Ctrl+K or ⌘K)"
                   >
-                    <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <span>Search</span>
-                    <kbd className="text-[10px] font-mono px-1 py-0.5 rounded bg-white border border-slate-300 text-slate-500">
+                    <Search className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="font-medium">Search</span>
+                    <kbd className="text-[10px] font-mono px-1 py-0.5 rounded bg-white border border-slate-300 text-slate-500 shadow-2xs">
                       ⌘K
                     </kbd>
                   </button>
@@ -319,10 +311,11 @@ export const Navbar: React.FC = () => {
                 {currentNormalizedRole === 'admin' && (
                   <button
                     onClick={() => setViewAsModalOpen(true)}
-                    className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-colors"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-900 border border-amber-200/90 hover:bg-amber-500/20 whitespace-nowrap transition-colors"
                     title="View Experience as Client or Agent"
                   >
-                    <span>Preview Mode...</span>
+                    <Eye className="w-3.5 h-3.5 text-amber-700" />
+                    <span>View As...</span>
                   </button>
                 )}
 
@@ -389,14 +382,18 @@ export const Navbar: React.FC = () => {
                       setCurrencyMenuOpen(false);
                       setNotifMenuOpen(false);
                     }}
-                    className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors shadow-xs"
+                    className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors shadow-2xs"
                   >
-                    <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-xs">
-                      {currentUser?.name?.[0] || 'U'}
+                    <div className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
+                      {currentUser?.name?.[0]?.toUpperCase() || 'U'}
                     </div>
-                    <div className="text-left hidden md:block">
-                      <div className="text-xs font-bold text-slate-900 line-clamp-1">{currentUser?.name}</div>
-                      <div className="text-[10px] text-slate-400 font-medium capitalize">{currentNormalizedRole}</div>
+                    <div className="text-left hidden md:block leading-tight">
+                      <div className="text-xs font-bold text-slate-900 truncate max-w-[110px]">
+                        {currentUser?.name?.split(' ')[0] || 'Account'}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-medium capitalize">
+                        {currentNormalizedRole}
+                      </div>
                     </div>
                     <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                   </button>
@@ -525,12 +522,101 @@ export const Navbar: React.FC = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Mobile Menu Toggle Button */}
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="md:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
+                  aria-label="Toggle navigation menu"
+                >
+                  {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                </button>
               </>
             )}
 
           </div>
         </div>
       </div>
+
+      {/* Mobile Navigation Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1 shadow-lg animate-in fade-in duration-150">
+          {!isAuthenticated || !currentUser ? (
+            <>
+              <button
+                onClick={() => handleNav('/service-model')}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                How It Works
+              </button>
+              <button
+                onClick={() => handleNav('/corporate')}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Corporate Portfolios
+              </button>
+              <button
+                onClick={() => handleNav('/legal')}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Legal & Compliance
+              </button>
+              <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
+                <button
+                  onClick={() => handleNav('/login')}
+                  className="flex-1 py-2 text-center rounded-xl border border-slate-200 text-xs font-semibold text-slate-700"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => handleNav('/register')}
+                  className="flex-1 py-2 text-center rounded-xl bg-emerald-600 text-xs font-bold text-white"
+                >
+                  Get Started
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {activeNavLinks.map((link) => (
+                <button
+                  key={link.path}
+                  onClick={() => handleNav(link.path)}
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  {link.icon}
+                  <span>{link.label}</span>
+                </button>
+              ))}
+              {currentNormalizedRole === 'admin' && (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setViewAsModalOpen(true);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 flex items-center gap-2"
+                >
+                  <Eye className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Launch "View As" Mode...</span>
+                </button>
+              )}
+              <div className="pt-2 border-t border-slate-100">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    logout();
+                    navigate('/login');
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Sign Out ({currentUser?.name?.split(' ')[0]})</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Admin "View As" Selector Modal */}
       {viewAsModalOpen && (
