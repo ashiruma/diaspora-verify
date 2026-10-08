@@ -18,7 +18,8 @@ import {
   Search,
   Menu,
   X,
-  Building
+  Users,
+  Phone
 } from './Icons';
 import type { CurrencyCode } from '../types';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -80,7 +81,9 @@ export const Navbar: React.FC = () => {
 
   const adminNavLinks = [
     { path: '/admin', label: 'Operations Desk', icon: <Briefcase className="w-3.5 h-3.5 text-blue-600" /> },
-    { path: '/corporate', label: 'Corporate Portfolios', icon: <Building className="w-3.5 h-3.5 text-emerald-600" /> },
+    { path: '/admin?tab=payments', label: 'Money In & Out', icon: <DollarSign className="w-3.5 h-3.5 text-emerald-600" /> },
+    { path: '/admin?tab=clients', label: 'Client Base', icon: <Users className="w-3.5 h-3.5 text-amber-600" /> },
+    { path: '/admin?tab=contacts', label: 'Contacts', icon: <Phone className="w-3.5 h-3.5 text-indigo-600" /> },
     { path: '/admin?tab=settings', label: 'Audit & Security', icon: <ShieldCheck className="w-3.5 h-3.5 text-purple-600" /> },
   ];
 

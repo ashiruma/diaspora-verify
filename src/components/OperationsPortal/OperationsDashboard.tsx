@@ -15,10 +15,19 @@ import {
   ShieldAlert,
   Search,
   Filter,
-  User
+  Users,
+  DollarSign,
+  Globe,
+  Phone,
+  Mail,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Wallet,
+  CreditCard,
+  Building
 } from '../Icons';
 import { StatusBadge, ProcessStageBadge, CategoryIcon } from '../CommonBadges';
-import type { VerificationStatus } from '../../types';
+import type { VerificationStatus, CurrencyCode } from '../../types';
 import { FORMAT_CURRENCY, hasStopPaymentWarning } from '../../data/mockData';
 import { calculateConfidenceScore } from '../../services/confidenceScorer';
 import { ROLE_PERMISSIONS } from '../../auth/authorization';
@@ -29,6 +38,7 @@ export type OperationsTab =
   | 'assignments' 
   | 'agents' 
   | 'clients' 
+  | 'contacts'
   | 'reports' 
   | 'payments' 
   | 'disputes' 
@@ -44,15 +54,15 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
     requests, 
     agents, 
     submitQAReview, 
-    assignAgent,
-    currency,
-    disputes,
-    resolveDispute,
-    auditLogs,
-    advanceRequestStatus,
-    startViewAs,
-    seedSampleData,
-    resetAllData
+    assignAgent, 
+    currency, 
+    disputes, 
+    resolveDispute, 
+    auditLogs, 
+    advanceRequestStatus, 
+    startViewAs, 
+    seedSampleData, 
+    resetAllData 
   } = useVerification();
 
   const [selectedReqId, setSelectedReqId] = useState<string>(requests[0]?.id || '');
@@ -62,6 +72,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
     if (param === 'assignments') return 'assignments';
     if (param === 'agents') return 'agents';
     if (param === 'clients') return 'clients';
+    if (param === 'contacts' || param === 'directory') return 'contacts';
     if (param === 'reports' || param === 'qa') return 'reports';
     if (param === 'payments') return 'payments';
     if (param === 'disputes') return 'disputes';
@@ -121,6 +132,28 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
   // Triage Search
   const [triageSearch, setTriageSearch] = useState('');
   const [triageCategoryFilter, setTriageCategoryFilter] = useState('all');
+
+  // Money in / out ledger filters
+  const [moneyLedgerFilter, setMoneyLedgerFilter] = useState<'all' | 'in' | 'out'>('all');
+  const [moneySearch, setMoneySearch] = useState('');
+
+  // Client Directory search and filter
+  const [clientSearch, setClientSearch] = useState('');
+  const [clientCountryFilter, setClientCountryFilter] = useState('all');
+
+  // Contacts Hub filter & search
+  const [contactsFilter, setContactsFilter] = useState<'all' | 'clients' | 'verifiers' | 'ground' | 'hq'>('all');
+  const [contactsSearch, setContactsSearch] = useState('');
+  const [copiedContact, setCopiedContact] = useState<string | null>(null);
+
+  const handleCopyContact = (text: string, label: string) => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+    }
+    setCopiedContact(label);
+    setToastMessage(`Copied ${label} to clipboard.`);
+    setTimeout(() => setCopiedContact(null), 2500);
+  };
 
   const handleOpenAssignModal = (reqId: string) => {
     const target = requests.find(r => r.id === reqId);
@@ -289,17 +322,124 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
           email: r.client.email,
           location: r.client.locationAbroad,
           phone: r.client.phone,
+          preferredCurrency: r.client.preferredCurrency || 'KES',
           requestCount: requests.filter((x) => x.client.email === r.client.email).length,
+          totalPaidKES: requests
+            .filter((x) => x.client.email === r.client.email && x.pricing.quoteStatus === 'paid')
+            .reduce((sum, x) => sum + x.pricing.serviceFeeKES, 0),
         },
       ])
     ).values()
   );
+
   const totalSettledKES = requests
     .filter((r) => r.pricing.quoteStatus === 'paid')
     .reduce((s, r) => s + r.pricing.serviceFeeKES, 0);
   const totalPendingKES = requests
     .filter((r) => r.pricing.quoteStatus !== 'paid')
     .reduce((s, r) => s + r.pricing.serviceFeeKES, 0);
+
+  // Financial Insights: Money In & Money Out
+  const moneyInSettledKES = totalSettledKES;
+  const moneyInPendingKES = totalPendingKES;
+  
+  // Platform Margin (approx 28% of gross service fees)
+  const platformMarginKES = requests
+    .filter((r) => r.pricing.quoteStatus === 'paid')
+    .reduce((s, r) => s + (r.pricing.feeBreakdown?.platformFeeKES || Math.round(r.pricing.serviceFeeKES * 0.28)), 0);
+
+  // Field Verifier Disbursed Payouts (completed QA-approved missions)
+  const verifierPayoutsDisbursedKES = requests
+    .filter((r) => r.pricing.quoteStatus === 'paid' && (r.qaReview?.publishedToClient || r.requestStatus === 'COMPLETED'))
+    .reduce((s, r) => s + (r.pricing.feeBreakdown?.fieldOperationsFeeKES || Math.round(r.pricing.serviceFeeKES * 0.55)), 0);
+
+  // Field Verifier In-Flight Payouts (escrow reserved awaiting QA review)
+  const verifierPayoutsEscrowKES = requests
+    .filter((r) => r.pricing.quoteStatus === 'paid' && !(r.qaReview?.publishedToClient || r.requestStatus === 'COMPLETED'))
+    .reduce((s, r) => s + (r.pricing.feeBreakdown?.fieldOperationsFeeKES || Math.round(r.pricing.serviceFeeKES * 0.55)), 0);
+
+  // Logistics & Travel Stipends Disbursed
+  const travelLogisticsDisbursedKES = requests
+    .filter((r) => r.pricing.quoteStatus === 'paid')
+    .reduce((s, r) => s + (r.pricing.feeBreakdown?.countyTravelFeeKES || Math.round(r.pricing.serviceFeeKES * 0.17)), 0);
+
+  // Total Money Out Disbursed
+  const totalMoneyOutDisbursedKES = verifierPayoutsDisbursedKES + travelLogisticsDisbursedKES;
+
+  // Active Escrow Under Custody (In-flight verifier fees for incomplete missions)
+  const totalActiveEscrowKES = verifierPayoutsEscrowKES;
+
+  // Net Platform Retained Operating Margin
+  const netPlatformMarginKES = moneyInSettledKES - totalMoneyOutDisbursedKES - totalActiveEscrowKES;
+
+  // Currencies Breakdown
+  const supportedCurrencies: CurrencyCode[] = ['KES', 'USD', 'GBP', 'EUR', 'AED', 'CAD', 'AUD'];
+  const currencyTotals = supportedCurrencies.map((c) => {
+    const matchingReqs = requests.filter(r => (r.client?.preferredCurrency === c || r.pricing?.currency === c) && r.pricing?.quoteStatus === 'paid');
+    const totalKES = matchingReqs.reduce((sum, r) => sum + r.pricing.serviceFeeKES, 0);
+    return {
+      currency: c,
+      count: matchingReqs.length,
+      totalKES,
+    };
+  }).filter(ct => ct.count > 0 || ct.currency === 'KES' || ct.currency === 'USD' || ct.currency === 'GBP');
+
+  // Client Geographic Categorization
+  const getCountryCategory = (locationAbroad?: string) => {
+    if (!locationAbroad) return 'Other';
+    const loc = locationAbroad.toLowerCase();
+    if (loc.includes('uk') || loc.includes('london') || loc.includes('birmingham') || loc.includes('reading') || loc.includes('united kingdom')) return 'United Kingdom';
+    if (loc.includes('usa') || loc.includes('tx') || loc.includes('ga') || loc.includes('wa') || loc.includes('ny') || loc.includes('united states') || loc.includes('dallas') || loc.includes('seattle') || loc.includes('atlanta')) return 'United States';
+    if (loc.includes('canada') || loc.includes('toronto') || loc.includes('calgary') || loc.includes('vancouver')) return 'Canada';
+    if (loc.includes('uae') || loc.includes('dubai') || loc.includes('abu dhabi')) return 'UAE & Gulf';
+    if (loc.includes('germany') || loc.includes('frankfurt') || loc.includes('berlin') || loc.includes('eu') || loc.includes('europe') || loc.includes('stockholm')) return 'Germany & EU';
+    if (loc.includes('australia') || loc.includes('melbourne') || loc.includes('sydney') || loc.includes('perth')) return 'Australia';
+    return 'Other Diaspora';
+  };
+
+  const geoCountryMap = {
+    'United Kingdom': { flag: '🇬🇧', tag: 'UK' },
+    'United States': { flag: '🇺🇸', tag: 'USA' },
+    'Canada': { flag: '🇨🇦', tag: 'CA' },
+    'UAE & Gulf': { flag: '🇦🇪', tag: 'UAE' },
+    'Germany & EU': { flag: '🇩🇪', tag: 'DE/EU' },
+    'Australia': { flag: '🇦🇺', tag: 'AU' },
+    'Other Diaspora': { flag: '🌍', tag: 'Global' },
+  };
+
+  const geoBreakdown = Object.entries(geoCountryMap).map(([countryName, meta]) => {
+    const clientsInCountry = clientsList.filter(c => getCountryCategory(c.location) === countryName);
+    const reqsInCountry = requests.filter(r => getCountryCategory(r.client?.locationAbroad) === countryName);
+    const volumeKES = reqsInCountry.reduce((acc, r) => acc + (r.pricing?.serviceFeeKES || 0), 0);
+    return {
+      name: countryName,
+      flag: meta.flag,
+      tag: meta.tag,
+      clientsCount: clientsInCountry.length,
+      missionsCount: reqsInCountry.length,
+      volumeKES,
+    };
+  });
+
+  // Client Insights
+  const repeatClients = clientsList.filter(c => c.requestCount > 1);
+  const repeatClientRate = clientsList.length > 0 ? Math.round((repeatClients.length / clientsList.length) * 100) : 0;
+  const avgOrderValueKES = requests.length > 0 ? Math.round(totalSettledKES / (requests.filter(r => r.pricing.quoteStatus === 'paid').length || 1)) : 0;
+
+  // Ground site caretakers & contacts from active requests
+  const groundContactsList = requests
+    .filter(r => r.contactOnGround && r.contactOnGround.name)
+    .map(r => ({
+      requestId: r.id,
+      county: r.location.county,
+      town: r.location.town,
+      landmark: r.location.landmark,
+      name: r.contactOnGround.name,
+      role: r.contactOnGround.role || 'Site Contact',
+      phone: r.contactOnGround.phone,
+      accessConfirmed: r.contactOnGround.accessConfirmed,
+      notes: r.contactOnGround.notes
+    }));
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 py-6 font-sans">
@@ -426,15 +566,16 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
           {[
             { id: 'operations' as OperationsTab, label: 'Operations Desk', count: null },
             { id: 'requests' as OperationsTab, label: 'Requests', count: requests.length },
+            { id: 'payments' as OperationsTab, label: 'Money In & Out', count: null },
+            { id: 'clients' as OperationsTab, label: 'Client Base', count: clientsList.length },
+            { id: 'contacts' as OperationsTab, label: 'Contacts', count: null },
             { id: 'assignments' as OperationsTab, label: 'Assignments', count: unassignedList.length },
-            { id: 'agents' as OperationsTab, label: 'Agents', count: agents.length },
-            { id: 'clients' as OperationsTab, label: 'Clients', count: clientsList.length },
+            { id: 'agents' as OperationsTab, label: 'Verifiers', count: agents.length },
             { id: 'reports' as OperationsTab, label: 'Reports & QA', count: null },
-            { id: 'payments' as OperationsTab, label: 'Payments', count: null },
             { id: 'disputes' as OperationsTab, label: 'Disputes', count: disputes.length },
             { id: 'analytics' as OperationsTab, label: 'Intelligence', count: null },
             { id: 'services' as OperationsTab, label: 'Services', count: null },
-            { id: 'settings' as OperationsTab, label: 'Settings', count: null },
+            { id: 'settings' as OperationsTab, label: 'Audit & Security', count: null },
           ].map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -1137,217 +1278,1030 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
         </div>
       )}
 
-      {/* TAB: CLIENTS DIRECTORY */}
+      {/* TAB: CLIENT BASE INSIGHTS & REGISTRY */}
       {activeTab === 'clients' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+          {/* Header */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <User className="w-5 h-5 text-emerald-600" />
-                  <span>Diaspora Clients Directory</span>
+                  <Users className="w-5 h-5 text-emerald-600" />
+                  <span>Diaspora Client Base Insights & Demographics</span>
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Global diaspora principals commissioning field due diligence across Kenya.
+                  Real demographic distribution, jurisdiction footprint, and mission volumes for individual diaspora property buyers and builders.
                 </p>
               </div>
-              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold font-mono">
-                {clientsList.length} Registered Accounts
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold font-mono">
+                  {clientsList.length} Registered Diaspora Principals
+                </span>
+                <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-xs font-bold font-mono">
+                  Primary Market: 100% Individual Buyers
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {clientsList.map((client) => {
-                const clientReqs = requests.filter((r) => r.client?.email === client.email);
-                return (
+            {/* Top 4 Client Base KPIs */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Diaspora Principals</span>
+                <div className="text-2xl font-black font-mono text-slate-900">{clientsList.length}</div>
+                <div className="text-[11px] text-slate-500">Verified accounts abroad</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Repeat Client Loyalty</span>
+                <div className="text-2xl font-black font-mono text-emerald-800">{repeatClientRate}%</div>
+                <div className="text-[11px] text-emerald-700">{repeatClients.length} clients commissioned 2+ audits</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">Avg. Ticket Spend (AOV)</span>
+                <div className="text-2xl font-black font-mono text-blue-800">{FORMAT_CURRENCY(avgOrderValueKES, currency)}</div>
+                <div className="text-[11px] text-blue-700">Per verified site milestone</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700">Total Missions Commissioned</span>
+                <div className="text-2xl font-black font-mono text-purple-800">{requests.length}</div>
+                <div className="text-[11px] text-purple-700">Across 47 Kenyan counties</div>
+              </div>
+            </div>
+
+            {/* Global Diaspora Footprint - Jurisdiction Breakdown */}
+            <div className="pt-4 border-t border-slate-100 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
+                  <Globe className="w-4 h-4 text-blue-600" />
+                  <span>Geographic Diaspora Footprint (UK, USA, Canada, UAE, Germany, Australia)</span>
+                </h4>
+                <span className="text-[11px] text-slate-400">Live Client Clusters</span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+                {geoBreakdown.map((geo) => (
                   <div
-                    key={client.id}
-                    className="p-5 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 shadow-xs space-y-3 flex flex-col justify-between"
+                    key={geo.name}
+                    className={`p-3 rounded-2xl border text-center transition-all ${
+                      geo.clientsCount > 0
+                        ? 'bg-white border-slate-200 hover:border-emerald-300 shadow-xs'
+                        : 'bg-slate-50/60 border-dashed border-slate-200 opacity-60'
+                    }`}
                   >
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-bold text-sm text-slate-900">{client.name}</h4>
-                          <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                            {client.location}
-                          </span>
-                        </div>
-                        <span className="font-mono text-xs font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
-                          {clientReqs.length} Missions
-                        </span>
-                      </div>
-
-                      <div className="text-xs text-slate-500 space-y-1">
-                        <div className="truncate">Email: <strong className="text-slate-800">{client.email}</strong></div>
-                        <div>Phone: <strong className="text-slate-800">{client.phone}</strong></div>
-                      </div>
-
-                      <div className="pt-2 border-t border-slate-100 space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                          Recent Requests:
-                        </span>
-                        {clientReqs.slice(0, 2).map((cr) => (
-                          <div key={cr.id} className="text-[11px] flex items-center justify-between text-slate-600">
-                            <span className="font-mono font-semibold">{cr.id}</span>
-                            <span className="truncate max-w-[130px]">{cr.location.county}</span>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="text-2xl mb-1">{geo.flag}</div>
+                    <div className="text-xs font-bold text-slate-900 truncate" title={geo.name}>
+                      {geo.name}
                     </div>
-
-                    <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          startViewAs('client', client.id, client.name, client.email);
-                          navigate('/dashboard');
-                        }}
-                        className="w-full py-2 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-colors cursor-pointer text-center"
-                      >
-                        View Client Experience
-                      </button>
+                    <div className="mt-1 flex items-center justify-center gap-1 font-mono text-xs">
+                      <span className="font-bold text-emerald-700">{geo.clientsCount}</span>
+                      <span className="text-slate-400 text-[10px]">clients</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-0.5 font-mono">
+                      {geo.missionsCount} missions
                     </div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Client Registry & Directory Table */}
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs space-y-4 p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900">Individual Diaspora Client Registry</h4>
+                <p className="text-xs text-slate-500">
+                  Client profiles with direct HQ contact lines, lifetime verification volume, and portal simulation tools.
+                </p>
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={clientSearch}
+                    onChange={(e) => setClientSearch(e.target.value)}
+                    placeholder="Search client name, email, city..."
+                    className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-800 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 w-52 sm:w-60"
+                  />
+                </div>
+
+                <select
+                  value={clientCountryFilter}
+                  onChange={(e) => setClientCountryFilter(e.target.value)}
+                  className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 outline-none"
+                >
+                  <option value="all">All Jurisdictions</option>
+                  <option value="United Kingdom">🇬🇧 United Kingdom</option>
+                  <option value="United States">🇺🇸 United States</option>
+                  <option value="Canada">🇨🇦 Canada</option>
+                  <option value="UAE & Gulf">🇦🇪 UAE & Gulf</option>
+                  <option value="Germany & EU">🇩🇪 Germany & EU</option>
+                  <option value="Australia">🇦🇺 Australia</option>
+                  <option value="Other Diaspora">🌍 Other Diaspora</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                  <tr>
+                    <th className="p-3">Diaspora Principal</th>
+                    <th className="p-3">Residency Abroad</th>
+                    <th className="p-3">HQ Contact Line (Admin View)</th>
+                    <th className="p-3">Currency</th>
+                    <th className="p-3">Missions</th>
+                    <th className="p-3">Total Volume Paid</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {clientsList
+                    .filter((c) => {
+                      const matchesSearch =
+                        c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+                        c.email.toLowerCase().includes(clientSearch.toLowerCase()) ||
+                        c.location.toLowerCase().includes(clientSearch.toLowerCase());
+                      const matchesCountry =
+                        clientCountryFilter === 'all' || getCountryCategory(c.location) === clientCountryFilter;
+                      return matchesSearch && matchesCountry;
+                    })
+                    .map((client) => {
+                      const geoMeta = geoCountryMap[getCountryCategory(client.location) as keyof typeof geoCountryMap] || geoCountryMap['Other Diaspora'];
+
+                      return (
+                        <tr key={client.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="p-3 font-bold text-slate-900">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">{geoMeta.flag}</span>
+                              <div>
+                                <span>{client.name}</span>
+                                <div className="text-[10px] text-slate-400 font-normal">Individual Buyer</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium text-[11px]">
+                              {client.location}
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-1.5 text-slate-800 font-medium">
+                                <Mail className="w-3 h-3 text-slate-400" />
+                                <span>{client.email}</span>
+                                <button
+                                  onClick={() => handleCopyContact(client.email, client.email)}
+                                  className="text-[10px] text-blue-600 hover:text-blue-800 ml-1 font-semibold"
+                                >
+                                  {copiedContact === client.email ? '✓' : 'Copy'}
+                                </button>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-slate-600 text-[11px]">
+                                <Phone className="w-3 h-3 text-slate-400" />
+                                <span>{client.phone}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3 font-mono font-bold text-slate-700">
+                            {client.preferredCurrency}
+                          </td>
+                          <td className="p-3">
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-mono font-bold text-xs border border-emerald-200">
+                              {client.requestCount} {client.requestCount === 1 ? 'Mission' : 'Missions'}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono font-bold text-slate-900">
+                            {FORMAT_CURRENCY(client.totalPaidKES, currency)}
+                          </td>
+                          <td className="p-3">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">
+                              Active Principal
+                            </span>
+                          </td>
+                          <td className="p-3 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => {
+                                  startViewAs('client', client.id, client.name, client.email);
+                                  navigate('/dashboard');
+                                }}
+                                className="px-2.5 py-1 text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg transition-colors cursor-pointer"
+                                title="Experience dashboard as this client"
+                              >
+                                View Portal
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB: PAYMENTS & FINANCIAL RECONCILIATION */}
+      {/* TAB: PAYMENTS & FINANCIAL TREASURY COCKPIT (MONEY IN / MONEY OUT) */}
       {activeTab === 'payments' && (
         <div className="space-y-6">
-          {/* Financial summary overview */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Total Settled Fees
-              </span>
-              <div className="text-2xl font-bold font-mono text-emerald-800">
-                {FORMAT_CURRENCY(totalSettledKES, currency)}
-              </div>
-              <div className="text-[11px] text-emerald-600">
-                Earned service tariffs cleared to Nairobi HQ
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Pending Quotations / Invoices
-              </span>
-              <div className="text-2xl font-bold font-mono text-amber-800">
-                {FORMAT_CURRENCY(totalPendingKES, currency)}
-              </div>
-              <div className="text-[11px] text-amber-600">
-                Awaiting client settlement prior to agent dispatch
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Commingled Funds Risk
-              </span>
-              <div className="text-2xl font-bold font-mono text-slate-900">
-                0.00 KES
-              </div>
-              <div className="text-[11px] text-slate-500">
-                Strict Doc 1 Invariant: Zero contractor escrow held
-              </div>
-            </div>
-          </div>
-
-          {/* Invoices table */}
-          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          {/* Executive Financial Insights Ribbon */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-base font-bold text-slate-900">
-                  Verification Invoices & Settlement Ledger
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-emerald-600" />
+                  <span>Money In & Money Out — Financial & Treasury Cockpit</span>
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Audit log of service tariffs, regional travel allowances, and M-Pesa / Card settlements.
+                  Real-time ledger of diaspora client inflows, escrow custody, currency split, and field verifier payout disbursements.
                 </p>
               </div>
-              <span className="text-xs font-mono font-bold text-slate-500">
-                {requests.length} Total Invoices
+              <div className="flex items-center gap-2 text-xs">
+                <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold font-mono">
+                  100% Cleared via Nairobi HQ
+                </span>
+              </div>
+            </div>
+
+            {/* Top 4 Financial Balance Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Card 1: Money In */}
+              <div className="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-4 sm:p-5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+                    Gross Money In (Cleared)
+                  </span>
+                  <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
+                    <ArrowDownLeft className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                </div>
+                <div className="text-2xl font-bold font-mono text-emerald-900">
+                  {FORMAT_CURRENCY(moneyInSettledKES, currency)}
+                </div>
+                <div className="text-[11px] text-emerald-700 flex items-center justify-between">
+                  <span>Settled client inspection fees</span>
+                  <span className="font-mono font-bold">+{requests.filter(r => r.pricing.quoteStatus === 'paid').length} Invoices</span>
+                </div>
+              </div>
+
+              {/* Card 2: Money Out */}
+              <div className="bg-rose-50/60 border border-rose-200 rounded-2xl p-4 sm:p-5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700">
+                    Money Out (Disbursed)
+                  </span>
+                  <div className="w-7 h-7 rounded-xl bg-rose-600 text-white flex items-center justify-center">
+                    <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                </div>
+                <div className="text-2xl font-bold font-mono text-rose-900">
+                  {FORMAT_CURRENCY(totalMoneyOutDisbursedKES, currency)}
+                </div>
+                <div className="text-[11px] text-rose-700 flex items-center justify-between">
+                  <span>Verifier payouts + logistics</span>
+                  <span className="font-mono font-bold">Cleared post QA</span>
+                </div>
+              </div>
+
+              {/* Card 3: Escrow Pending QA */}
+              <div className="bg-blue-50/60 border border-blue-200 rounded-2xl p-4 sm:p-5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700">
+                    Active In-Flight Escrow
+                  </span>
+                  <div className="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                    <Wallet className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                </div>
+                <div className="text-2xl font-bold font-mono text-blue-900">
+                  {FORMAT_CURRENCY(totalActiveEscrowKES, currency)}
+                </div>
+                <div className="text-[11px] text-blue-700 flex items-center justify-between">
+                  <span>Reserved verifier fees</span>
+                  <span className="font-mono font-bold">Awaiting QA signoff</span>
+                </div>
+              </div>
+
+              {/* Card 4: Platform Net Margin */}
+              <div className="bg-purple-50/60 border border-purple-200 rounded-2xl p-4 sm:p-5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700">
+                    Retained Platform Margin
+                  </span>
+                  <div className="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                </div>
+                <div className="text-2xl font-bold font-mono text-purple-900">
+                  {FORMAT_CURRENCY(platformMarginKES, currency)}
+                </div>
+                <div className="text-[11px] text-purple-700 flex items-center justify-between">
+                  <span>Net Retained Margin</span>
+                  <span className="font-mono font-bold">{FORMAT_CURRENCY(netPlatformMarginKES, currency)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Invariant & Governance Safety Strip */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 flex items-center justify-between">
+                <div>
+                  <span className="text-slate-400 font-semibold block text-[10px] uppercase">Pending Invoices</span>
+                  <span className="font-mono font-bold text-slate-900">{FORMAT_CURRENCY(moneyInPendingKES, currency)}</span>
+                </div>
+                <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">Awaiting Settlement</span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 flex items-center justify-between">
+                <div>
+                  <span className="text-slate-400 font-semibold block text-[10px] uppercase">Commingled Funds Risk</span>
+                  <span className="font-mono font-bold text-emerald-700">0.00 KES</span>
+                </div>
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">Strict Invariant Pass</span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 flex items-center justify-between">
+                <div>
+                  <span className="text-slate-400 font-semibold block text-[10px] uppercase">County Travel Logistics</span>
+                  <span className="font-mono font-bold text-slate-900">{FORMAT_CURRENCY(travelLogisticsDisbursedKES, currency)}</span>
+                </div>
+                <span className="text-[10px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded font-bold">Fuel & Mileage Disbursed</span>
+              </div>
+            </div>
+
+            {/* Multi-Currency Treasury Breakdown */}
+            <div className="pt-3 border-t border-slate-100 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Multi-Currency Treasury Intake Matrix</span>
+                </span>
+                <span className="text-[10px] text-slate-400">Foreign Exchange Settlement at Nairobi HQ</span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                {[
+                  { code: 'KES', name: 'Kenyan Shilling', flag: '🇰🇪', rail: 'M-Pesa STK / Paybill' },
+                  { code: 'USD', name: 'US Dollar', flag: '🇺🇸', rail: 'Stripe / Cards / ACH' },
+                  { code: 'GBP', name: 'British Pound', flag: '🇬🇧', rail: 'UK Faster Payments' },
+                  { code: 'EUR', name: 'Euro', flag: '🇪🇺', rail: 'SEPA / Cards' },
+                  { code: 'AED', name: 'UAE Dirham', flag: '🇦🇪', rail: 'Gulf Debit Cards' },
+                  { code: 'CAD', name: 'Canadian Dollar', flag: '🇨🇦', rail: 'Interac / Cards' },
+                  { code: 'AUD', name: 'Australian Dollar', flag: '🇦🇺', rail: 'Cards / Wire' },
+                ].map((curr) => {
+                  const currData = currencyTotals.find(c => c.currency === curr.code);
+                  return (
+                    <div key={curr.code} className="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 text-center space-y-0.5">
+                      <div className="text-xs flex items-center justify-center gap-1">
+                        <span>{curr.flag}</span>
+                        <strong className="text-slate-900 font-mono">{curr.code}</strong>
+                      </div>
+                      <div className="text-xs font-mono font-bold text-slate-800">
+                        {currData ? `${currData.count} Invoices` : '0 Invoices'}
+                      </div>
+                      <div className="text-[9px] text-slate-400 truncate" title={curr.rail}>
+                        {curr.rail}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Unified Ledger Section: Money In & Money Out */}
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs space-y-4 p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <span>Audit Settlement & Payout Ledger</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700">
+                    {requests.length} Total Entries
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-500">
+                  Itemized audit trail of customer invoice collections (Money In) and verifier field payouts (Money Out).
+                </p>
+              </div>
+
+              {/* View Toggles & Search */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center rounded-xl bg-slate-100 p-0.5 text-xs font-semibold">
+                  <button
+                    onClick={() => setMoneyLedgerFilter('all')}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      moneyLedgerFilter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    All Entries
+                  </button>
+                  <button
+                    onClick={() => setMoneyLedgerFilter('in')}
+                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      moneyLedgerFilter === 'in' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    <ArrowDownLeft className="w-3 h-3" />
+                    <span>Money In</span>
+                  </button>
+                  <button
+                    onClick={() => setMoneyLedgerFilter('out')}
+                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                      moneyLedgerFilter === 'out' ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    <ArrowUpRight className="w-3 h-3" />
+                    <span>Money Out</span>
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={moneySearch}
+                    onChange={(e) => setMoneySearch(e.target.value)}
+                    placeholder="Search invoice, client, agent..."
+                    className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-800 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 w-44 sm:w-56"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Money In Ledger Table */}
+            {(moneyLedgerFilter === 'all' || moneyLedgerFilter === 'in') && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-emerald-800 bg-emerald-50/60 px-3.5 py-2 rounded-xl border border-emerald-100">
+                  <span className="flex items-center gap-1.5">
+                    <ArrowDownLeft className="w-4 h-4 text-emerald-700" />
+                    <span>MONEY IN: Client Inflow Settlements Ledger</span>
+                  </span>
+                  <span className="font-mono text-[11px]">
+                    Total Cleared: {FORMAT_CURRENCY(moneyInSettledKES, currency)}
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                      <tr>
+                        <th className="p-3">Invoice Ref</th>
+                        <th className="p-3">Diaspora Principal</th>
+                        <th className="p-3">Category & County</th>
+                        <th className="p-3">Payment Rail</th>
+                        <th className="p-3">Gross Fee</th>
+                        <th className="p-3">Settlement Status</th>
+                        <th className="p-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {requests
+                        .filter((r) => {
+                          if (!moneySearch) return true;
+                          return (
+                            r.id.toLowerCase().includes(moneySearch.toLowerCase()) ||
+                            r.client?.name?.toLowerCase().includes(moneySearch.toLowerCase()) ||
+                            r.location.county.toLowerCase().includes(moneySearch.toLowerCase())
+                          );
+                        })
+                        .map((req) => {
+                          const isPaid = req.pricing.quoteStatus === 'paid';
+                          const hasStop = hasStopPaymentWarning(req);
+                          return (
+                            <tr key={`in-${req.id}`} className="hover:bg-slate-50/70 transition-colors">
+                              <td className="p-3 font-mono font-bold text-slate-900">
+                                <div>INV-{req.id}</div>
+                                <div className="text-[10px] text-slate-400 font-normal">{req.scheduledVisitDate || '2026-10-12'}</div>
+                              </td>
+                              <td className="p-3">
+                                <div className="font-bold text-slate-900">{req.client?.name}</div>
+                                <div className="text-[10px] text-slate-500">{req.client?.locationAbroad}</div>
+                              </td>
+                              <td className="p-3">
+                                <div className="capitalize font-semibold text-slate-800">{req.category}</div>
+                                <div className="text-[10px] text-slate-500">{req.location.county} County</div>
+                              </td>
+                              <td className="p-3">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700">
+                                  {req.client?.preferredCurrency === 'KES' ? 'M-Pesa STK Push' : 'Stripe / Int’l Card'}
+                                </span>
+                              </td>
+                              <td className="p-3 font-mono font-bold text-slate-900">
+                                {FORMAT_CURRENCY(req.pricing.serviceFeeKES, currency)}
+                              </td>
+                              <td className="p-3">
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                    isPaid
+                                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                      : 'bg-amber-100 text-amber-800 border border-amber-200'
+                                  }`}>
+                                    {isPaid ? 'Cleared & Settled' : req.pricing.quoteStatus}
+                                  </span>
+                                  {hasStop && (
+                                    <span className="text-[9px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                                      Stop-Alert
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="p-3 text-right">
+                                <button
+                                  onClick={() => navigate(`/request/${req.id}`)}
+                                  className="px-2.5 py-1 text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  Details
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Money Out Ledger Table */}
+            {(moneyLedgerFilter === 'all' || moneyLedgerFilter === 'out') && (
+              <div className="space-y-2 pt-4">
+                <div className="flex items-center justify-between text-xs font-bold text-rose-800 bg-rose-50/60 px-3.5 py-2 rounded-xl border border-rose-100">
+                  <span className="flex items-center gap-1.5">
+                    <ArrowUpRight className="w-4 h-4 text-rose-700" />
+                    <span>MONEY OUT: Field Verifier Payouts & Travel Disbursements</span>
+                  </span>
+                  <span className="font-mono text-[11px]">
+                    Total Cleared Disbursements: {FORMAT_CURRENCY(totalMoneyOutDisbursedKES, currency)}
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                      <tr>
+                        <th className="p-3">Payout Voucher</th>
+                        <th className="p-3">Assigned Verifier</th>
+                        <th className="p-3">Mission & County</th>
+                        <th className="p-3">Verifier Fee</th>
+                        <th className="p-3">Travel Stipend</th>
+                        <th className="p-3">Total Payout</th>
+                        <th className="p-3">Disbursement Rail</th>
+                        <th className="p-3">QA Payout Clearance</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {requests
+                        .filter((r) => Boolean(r.assignedAgent))
+                        .filter((r) => {
+                          if (!moneySearch) return true;
+                          return (
+                            r.id.toLowerCase().includes(moneySearch.toLowerCase()) ||
+                            r.assignedAgent?.name?.toLowerCase().includes(moneySearch.toLowerCase()) ||
+                            r.location.county.toLowerCase().includes(moneySearch.toLowerCase())
+                          );
+                        })
+                        .map((req) => {
+                          const isCleared = req.pricing.quoteStatus === 'paid' && (req.qaReview?.publishedToClient || req.requestStatus === 'COMPLETED');
+                          const verifierFee = req.pricing.feeBreakdown?.fieldOperationsFeeKES || Math.round(req.pricing.serviceFeeKES * 0.55);
+                          const travelFee = req.pricing.feeBreakdown?.countyTravelFeeKES || Math.round(req.pricing.serviceFeeKES * 0.17);
+                          const totalPayout = verifierFee + travelFee;
+
+                          return (
+                            <tr key={`out-${req.id}`} className="hover:bg-slate-50/70 transition-colors">
+                              <td className="p-3 font-mono font-bold text-slate-900">
+                                <div>PAY-{req.id}</div>
+                                <div className="text-[10px] text-slate-400 font-normal">{req.scheduledVisitDate || '2026-10-14'}</div>
+                              </td>
+                              <td className="p-3">
+                                <div className="font-bold text-slate-900">{req.assignedAgent?.name}</div>
+                                <div className="text-[10px] text-slate-500">{req.assignedAgent?.badgeLevel}</div>
+                              </td>
+                              <td className="p-3">
+                                <div className="font-semibold text-slate-800 font-mono">{req.id}</div>
+                                <div className="text-[10px] text-slate-500">{req.location.county} ({req.location.town})</div>
+                              </td>
+                              <td className="p-3 font-mono text-slate-800">
+                                {FORMAT_CURRENCY(verifierFee, currency)}
+                              </td>
+                              <td className="p-3 font-mono text-slate-600">
+                                {FORMAT_CURRENCY(travelFee, currency)}
+                              </td>
+                              <td className="p-3 font-mono font-bold text-slate-900">
+                                {FORMAT_CURRENCY(totalPayout, currency)}
+                              </td>
+                              <td className="p-3">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                  M-Pesa B2C
+                                </span>
+                              </td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                  isCleared
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                    : 'bg-blue-100 text-blue-800 border border-blue-200'
+                                }`}>
+                                  {isCleared ? 'DISBURSED (QA Cleared)' : 'ESCROW (Pending QA Review)'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB: CENTRALIZED CONTACTS & GROUND OPERATIONS DIRECTORY */}
+      {activeTab === 'contacts' && (
+        <div className="space-y-6">
+          {/* Header & Safeguarding Notice */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Phone className="w-5 h-5 text-indigo-600" />
+                  <span>Centralized Administrative Contacts & Operations Directory</span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Full communication directory for diaspora principals, licensed verifiers, site caretakers, and Nairobi HQ escalation personnel.
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 text-xs font-bold font-mono">
+                Admin Exclusive View
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
-                  <tr>
-                    <th className="p-3.5">Invoice / Request</th>
-                    <th className="p-3.5">Client</th>
-                    <th className="p-3.5">Service Category</th>
-                    <th className="p-3.5">Total Amount</th>
-                    <th className="p-3.5">Status</th>
-                    <th className="p-3.5">Advisory Risk</th>
-                    <th className="p-3.5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {requests.map((req) => {
-                    const isPaid = req.pricing.quoteStatus === 'paid';
-                    const hasStop = hasStopPaymentWarning(req);
-                    return (
-                      <tr key={`pay-${req.id}`} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="p-3.5 font-mono font-bold text-slate-900">
-                          {req.id}
-                        </td>
-                        <td className="p-3.5">
-                          <div className="font-bold text-slate-900">{req.client?.name}</div>
-                          <div className="text-[11px] text-slate-500">{req.client?.locationAbroad}</div>
-                        </td>
-                        <td className="p-3.5 capitalize font-medium text-slate-700">
-                          {req.category}
-                        </td>
-                        <td className="p-3.5 font-mono font-bold text-slate-900">
-                          {FORMAT_CURRENCY(req.pricing.serviceFeeKES, currency)}
-                        </td>
-                        <td className="p-3.5">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                            isPaid
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                              : 'bg-amber-100 text-amber-800 border border-amber-200'
-                          }`}>
-                            {req.pricing.quoteStatus}
-                          </span>
-                        </td>
-                        <td className="p-3.5">
-                          {hasStop ? (
-                            <span className="text-[10px] font-bold text-rose-700 flex items-center gap-0.5">
-                              <ShieldAlert className="w-3.5 h-3.5" /> Stop-Payment Alert
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 font-medium">Standard</span>
-                          )}
-                        </td>
-                        <td className="p-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => navigate(`/request/${req.id}`)}
-                              className="px-2.5 py-1 text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg transition-colors"
-                            >
-                              Open Request
-                            </button>
-                            <button
-                              onClick={() => {
-                                startViewAs('client', req.client?.email || req.id, req.client?.name || 'Client', req.client?.email || '');
-                                navigate('/dashboard');
-                              }}
-                              className="px-2.5 py-1 text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg transition-colors"
-                            >
-                              View Client
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            {/* Safeguarding Alert */}
+            <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-950 text-xs flex items-start gap-3">
+              <ShieldAlert className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+              <div className="leading-snug space-y-0.5">
+                <span className="font-bold text-amber-900 block">Strict Zero-Contact-Leak Policy Enforced:</span>
+                <p className="text-[11px] text-amber-800">
+                  Field Verifiers are prohibited from accessing diaspora client contact details. Clients are prohibited from accessing agent direct contact lines. This separation ensures uncompromised verification integrity and eliminates off-platform collusion.
+                </p>
+              </div>
+            </div>
+
+            {/* Filter Pills & Search */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                {[
+                  { id: 'all' as const, label: 'All Contacts' },
+                  { id: 'clients' as const, label: `Diaspora Principals (${clientsList.length})` },
+                  { id: 'verifiers' as const, label: `Licensed Verifiers (${agents.length})` },
+                  { id: 'ground' as const, label: `Ground Caretakers (${groundContactsList.length})` },
+                  { id: 'hq' as const, label: 'Nairobi HQ Operations (4)' },
+                ].map((pill) => (
+                  <button
+                    key={pill.id}
+                    onClick={() => setContactsFilter(pill.id)}
+                    className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+                      contactsFilter === pill.id
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                    }`}
+                  >
+                    {pill.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={contactsSearch}
+                  onChange={(e) => setContactsSearch(e.target.value)}
+                  placeholder="Search name, phone, email, county..."
+                  className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-800 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 w-52 sm:w-60"
+                />
+              </div>
             </div>
           </div>
+
+          {/* Directory Content Tables */}
+
+          {/* 1. Diaspora Principals Registry */}
+          {(contactsFilter === 'all' || contactsFilter === 'clients') && (
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-emerald-600" />
+                  <span>Individual Diaspora Principals Directory</span>
+                </h4>
+                <span className="text-xs font-mono text-slate-500">{clientsList.length} Contacts</span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                    <tr>
+                      <th className="p-3">Principal Name</th>
+                      <th className="p-3">Residency Abroad</th>
+                      <th className="p-3">Telephone (Admin Direct)</th>
+                      <th className="p-3">Email Address</th>
+                      <th className="p-3">Preferred Currency</th>
+                      <th className="p-3">Missions</th>
+                      <th className="p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {clientsList
+                      .filter((c) => {
+                        if (!contactsSearch) return true;
+                        return (
+                          c.name.toLowerCase().includes(contactsSearch.toLowerCase()) ||
+                          c.email.toLowerCase().includes(contactsSearch.toLowerCase()) ||
+                          c.phone.includes(contactsSearch) ||
+                          c.location.toLowerCase().includes(contactsSearch.toLowerCase())
+                        );
+                      })
+                      .map((c) => (
+                        <tr key={`c-dir-${c.id}`} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="p-3 font-bold text-slate-900">{c.name}</td>
+                          <td className="p-3 text-slate-600">{c.location}</td>
+                          <td className="p-3 font-mono font-medium text-slate-800">
+                            <div className="flex items-center gap-2">
+                              <span>{c.phone}</span>
+                              <button
+                                onClick={() => handleCopyContact(c.phone, `${c.name} phone`)}
+                                className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
+                              >
+                                {copiedContact === `${c.name} phone` ? '✓' : 'Copy'}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="p-3 text-slate-800">
+                            <div className="flex items-center gap-2">
+                              <span>{c.email}</span>
+                              <button
+                                onClick={() => handleCopyContact(c.email, `${c.name} email`)}
+                                className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
+                              >
+                                {copiedContact === `${c.name} email` ? '✓' : 'Copy'}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="p-3 font-mono font-bold text-slate-700">{c.preferredCurrency}</td>
+                          <td className="p-3 font-mono font-bold text-emerald-800">{c.requestCount}</td>
+                          <td className="p-3 text-right">
+                            <button
+                              onClick={() => {
+                                startViewAs('client', c.id, c.name, c.email);
+                                navigate('/dashboard');
+                              }}
+                              className="px-2.5 py-1 text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg transition-colors cursor-pointer"
+                            >
+                              View Portal
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* 2. Licensed Field Verifiers Directory */}
+          {(contactsFilter === 'all' || contactsFilter === 'verifiers') && (
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-amber-600" />
+                  <span>Licensed Field Verifiers Directory (Kenya Ground Roster)</span>
+                </h4>
+                <span className="text-xs font-mono text-slate-500">{agents.length} Verifiers</span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                    <tr>
+                      <th className="p-3">Field Verifier</th>
+                      <th className="p-3">County Coverage</th>
+                      <th className="p-3">Mobile (M-Pesa Payout Line)</th>
+                      <th className="p-3">Email Address</th>
+                      <th className="p-3">Accreditation Badge</th>
+                      <th className="p-3">Rating</th>
+                      <th className="p-3">Conflict Clearance</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {agents
+                      .filter((a) => {
+                        if (!contactsSearch) return true;
+                        return (
+                          a.name.toLowerCase().includes(contactsSearch.toLowerCase()) ||
+                          a.email.toLowerCase().includes(contactsSearch.toLowerCase()) ||
+                          a.phone.includes(contactsSearch) ||
+                          a.primaryCounties.some(pc => pc.toLowerCase().includes(contactsSearch.toLowerCase()))
+                        );
+                      })
+                      .map((agent) => (
+                        <tr key={`agt-dir-${agent.id}`} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="p-3 font-bold text-slate-900">
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={agent.avatarUrl}
+                                alt={agent.name}
+                                className="w-7 h-7 rounded-full object-cover border border-slate-200"
+                              />
+                              <div>
+                                <span>{agent.name}</span>
+                                <div className="text-[10px] text-slate-400 font-mono font-normal">{agent.id}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3 text-slate-600">
+                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 text-[11px] font-medium">
+                              {agent.primaryCounties.join(', ')}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono font-medium text-slate-800">
+                            <div className="flex items-center gap-2">
+                              <span>{agent.phone}</span>
+                              <button
+                                onClick={() => handleCopyContact(agent.phone, `${agent.name} phone`)}
+                                className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
+                              >
+                                {copiedContact === `${agent.name} phone` ? '✓' : 'Copy'}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="p-3 text-slate-800">
+                            <div className="flex items-center gap-2">
+                              <span>{agent.email}</span>
+                              <button
+                                onClick={() => handleCopyContact(agent.email, `${agent.name} email`)}
+                                className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
+                              >
+                                {copiedContact === `${agent.name} email` ? '✓' : 'Copy'}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="p-3 font-medium text-slate-700">{agent.badgeLevel}</td>
+                          <td className="p-3 font-semibold text-emerald-700">★ {agent.rating} ({agent.totalInspections})</td>
+                          <td className="p-3">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              SIGNED & VERIFIED
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* 3. Ground Site Contacts & Caretakers */}
+          {(contactsFilter === 'all' || contactsFilter === 'ground') && (
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-blue-600" />
+                  <span>Ground Site Caretakers & Local Contacts Directory</span>
+                </h4>
+                <span className="text-xs font-mono text-slate-500">{groundContactsList.length} Contacts</span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                    <tr>
+                      <th className="p-3">Site Contact / Caretaker</th>
+                      <th className="p-3">Role On Ground</th>
+                      <th className="p-3">County & Landmark</th>
+                      <th className="p-3">Mission ID</th>
+                      <th className="p-3">Phone Line</th>
+                      <th className="p-3">Access Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {groundContactsList
+                      .filter((gc) => {
+                        if (!contactsSearch) return true;
+                        return (
+                          gc.name.toLowerCase().includes(contactsSearch.toLowerCase()) ||
+                          gc.role.toLowerCase().includes(contactsSearch.toLowerCase()) ||
+                          gc.phone.includes(contactsSearch) ||
+                          gc.county.toLowerCase().includes(contactsSearch.toLowerCase())
+                        );
+                      })
+                      .map((gc) => (
+                        <tr key={`gc-${gc.requestId}-${gc.phone}`} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="p-3 font-bold text-slate-900">{gc.name}</td>
+                          <td className="p-3 text-slate-700 font-medium">{gc.role}</td>
+                          <td className="p-3 text-slate-600">
+                            <div>{gc.county} ({gc.town})</div>
+                            <div className="text-[10px] text-slate-400">{gc.landmark}</div>
+                          </td>
+                          <td className="p-3 font-mono font-bold text-blue-700">{gc.requestId}</td>
+                          <td className="p-3 font-mono font-medium text-slate-800">
+                            <div className="flex items-center gap-2">
+                              <span>{gc.phone}</span>
+                              <button
+                                onClick={() => handleCopyContact(gc.phone, `${gc.name} phone`)}
+                                className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
+                              >
+                                {copiedContact === `${gc.name} phone` ? '✓' : 'Copy'}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              gc.accessConfirmed ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
+                            }`}>
+                              {gc.accessConfirmed ? 'ACCESS CONFIRMED' : 'PENDING ACCESS'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* 4. Nairobi HQ Administrative Incident & Escalation Hub */}
+          {(contactsFilter === 'all' || contactsFilter === 'hq') && (
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <Building className="w-4 h-4 text-purple-600" />
+                  <span>Nairobi HQ Operations Command & Escalation Directory</span>
+                </h4>
+                <span className="text-xs font-mono text-purple-700 font-bold">HQ Official Channels</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  {
+                    role: 'Operations Desk Lead',
+                    name: 'Sarah Kamau',
+                    phone: '+254 712 345 678',
+                    email: 'operations@diasporaverify.com',
+                    dept: 'Field Verifier Dispatch & Intake',
+                  },
+                  {
+                    role: 'Director of QA & Compliance',
+                    name: 'Dr. John Ochieng',
+                    phone: '+254 723 456 789',
+                    email: 'qa@diasporaverify.co.ke',
+                    dept: 'Report Integrity & Audit Signoff',
+                  },
+                  {
+                    role: 'Legal & Cadastral Counsel',
+                    name: 'Advocate Mercy Njoroge',
+                    phone: '+254 734 567 890',
+                    email: 'legal@diasporaverify.co.ke',
+                    dept: 'Title Deed & Registry Oversight',
+                  },
+                  {
+                    role: 'Data Protection Officer (ODPC)',
+                    name: 'Evans Mwangi',
+                    phone: '+254 745 678 901',
+                    email: 'dpo@diasporaverify.co.ke',
+                    dept: 'Kenya DPA 2019 / GDPR Compliance',
+                  },
+                ].map((officer) => (
+                  <div key={officer.role} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 block">
+                      {officer.role}
+                    </span>
+                    <div className="font-bold text-sm text-slate-900">{officer.name}</div>
+                    <div className="text-[11px] text-slate-500">{officer.dept}</div>
+                    <div className="pt-2 border-t border-slate-200/80 space-y-1 text-xs font-mono">
+                      <div className="text-slate-800 flex items-center justify-between">
+                        <span>{officer.phone}</span>
+                        <button
+                          onClick={() => handleCopyContact(officer.phone, officer.name)}
+                          className="text-[10px] text-blue-600 hover:text-blue-800 font-bold"
+                        >
+                          {copiedContact === officer.name ? '✓' : 'Copy'}
+                        </button>
+                      </div>
+                      <div className="text-slate-600 truncate text-[11px]">{officer.email}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

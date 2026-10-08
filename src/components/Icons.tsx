@@ -552,3 +552,33 @@ export const Menu: React.FC<IconProps> = ({ className = "w-5 h-5", size, ...prop
   </svg>
 );
 
+export const ArrowDownLeft: React.FC<IconProps> = ({ className = "w-5 h-5", size, ...props }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <line x1="17" y1="7" x2="7" y2="17" />
+    <polyline points="17 17 7 17 7 7" />
+  </svg>
+);
+
+export const ArrowUpRight: React.FC<IconProps> = ({ className = "w-5 h-5", size, ...props }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <line x1="7" y1="17" x2="17" y2="7" />
+    <polyline points="7 7 17 7 17 17" />
+  </svg>
+);
+
+export const CreditCard: React.FC<IconProps> = ({ className = "w-5 h-5", size, ...props }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <rect x="2" y="5" width="20" height="14" rx="2" />
+    <line x1="2" y1="10" x2="22" y2="10" />
+  </svg>
+);
+
+export const Wallet: React.FC<IconProps> = ({ className = "w-5 h-5", size, ...props }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+    <path d="M18 12a2 2 0 0 0 0 4h4v-4z" />
+  </svg>
+);
+
+

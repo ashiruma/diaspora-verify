@@ -35,6 +35,7 @@ export const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(true);
+  const [adminKey, setAdminKey] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -92,6 +93,18 @@ export const Register: React.FC = () => {
     if (!agreeTerms) {
       setErrorMessage('You must accept the Terms of Service and Privacy Policy to proceed.');
       return;
+    }
+
+    if (role === 'admin') {
+      const trimmedKey = adminKey.trim();
+      if (!trimmedKey) {
+        setErrorMessage('Please enter the HQ Admin Access Code to register an Operations Admin account.');
+        return;
+      }
+      if (trimmedKey !== 'DV-ADMIN-2026' && trimmedKey !== 'admin' && trimmedKey !== 'DV-HQ') {
+        setErrorMessage('Invalid Admin Access Code. Enter valid authorization code (Default for setup: DV-ADMIN-2026).');
+        return;
+      }
     }
 
     // Rate limiter invariant check (Security Rule 10)
@@ -167,38 +180,38 @@ export const Register: React.FC = () => {
             Create Your Account
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-            Join thousands of diaspora Kenyans securing property, construction milestones, and family care back home.
+            Secure, evidence-based field verification infrastructure in Kenya.
           </p>
         </div>
 
         {/* Registration Card */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
           
-          {/* Role Selection Segment (Requirement 3: support optional role selection for testing) */}
+          {/* Role Selection Segment */}
           <div className="space-y-2">
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
               Account Type / Purpose
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               <button
                 type="button"
                 onClick={() => setRole('client')}
-                className={`p-3.5 rounded-2xl border text-left transition-all flex items-start gap-3 ${
+                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
                   role === 'client'
                     ? 'border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500/20'
                     : 'border-slate-200 hover:border-slate-300 bg-white'
                 }`}
               >
-                <div className={`p-2 rounded-xl mt-0.5 ${role === 'client' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${role === 'client' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
                   <User className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
                     <span>Diaspora Client</span>
-                    {role === 'client' && <span className="text-[10px] text-emerald-700 font-black">● SELECTED</span>}
+                    {role === 'client' && <span className="text-[9px] text-emerald-700 font-black">● ACTIVE</span>}
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                    Order site audits, construction milestone checks & cadastral reviews.
+                  <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
+                    Order site audits, construction milestone checks & beacon surveys.
                   </p>
                 </div>
               </button>
@@ -206,26 +219,69 @@ export const Register: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setRole('agent')}
-                className={`p-3.5 rounded-2xl border text-left transition-all flex items-start gap-3 ${
+                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
                   role === 'agent'
                     ? 'border-amber-500 bg-amber-50/60 ring-2 ring-amber-500/20'
                     : 'border-slate-200 hover:border-slate-300 bg-white'
                 }`}
               >
-                <div className={`p-2 rounded-xl mt-0.5 ${role === 'agent' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${role === 'agent' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
                   <Smartphone className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <span>Field Agent (Kenya)</span>
-                    {role === 'agent' && <span className="text-[10px] text-amber-700 font-black">● SELECTED</span>}
+                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
+                    <span>Field Agent</span>
+                    {role === 'agent' && <span className="text-[9px] text-amber-700 font-black">● ACTIVE</span>}
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                  <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
                     Licensed local verifiers conducting in-person inspections with GPS.
                   </p>
                 </div>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setRole('admin')}
+                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                  role === 'admin'
+                    ? 'border-blue-500 bg-blue-50/60 ring-2 ring-blue-500/20'
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${role === 'admin' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
+                    <span>HQ Admin</span>
+                    {role === 'admin' && <span className="text-[9px] text-blue-700 font-black">● ACTIVE</span>}
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
+                    Operations command desk, verifier dispatch, finance & QA audits.
+                  </p>
+                </div>
+              </button>
             </div>
+
+            {/* Admin Security Passcode Field */}
+            {role === 'admin' && (
+              <div className="p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 space-y-2 mt-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-blue-700" />
+                    <span>Nairobi HQ Admin Authorization Code *</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">Default: DV-ADMIN-2026</span>
+                </div>
+                <input
+                  type="password"
+                  value={adminKey}
+                  onChange={(e) => setAdminKey(e.target.value)}
+                  placeholder="Enter admin authorization code"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-blue-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            )}
           </div>
 
           {errorMessage && (

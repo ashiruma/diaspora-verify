@@ -644,6 +644,17 @@ export const FieldAgentView: React.FC = () => {
           </div>
         </div>
 
+        {/* Strict Safeguarding & Anti-Collusion Notice */}
+        <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-950 text-xs flex items-start gap-2.5">
+          <ShieldAlert className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+          <div className="leading-snug space-y-0.5">
+            <span className="font-bold block text-amber-900">Nairobi HQ Anti-Collusion Safeguard Active</span>
+            <p className="text-[11px] text-amber-800">
+              Direct diaspora client phone and email are strictly restricted by Nairobi HQ. You are deployed as an impartial on-ground verifier. Report all observations, GPS coordinates, and media directly to Nairobi Operations Desk.
+            </p>
+          </div>
+        </div>
+
         {/* Travel Status Indicator & Action */}
         {req.requestStatus === 'ACCEPTED' && (
           <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex flex-wrap items-center justify-between gap-3">

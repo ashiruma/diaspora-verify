@@ -13,6 +13,7 @@ import {
   Check,
   X,
   ShieldAlert,
+  ShieldCheck,
   Send,
   Calendar,
   Layers,
@@ -644,6 +645,13 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
                     <span>Inspection Date: <strong>{req.scheduledVisitDate}</strong></span>
                   </div>
                 )}
+
+                <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200 text-[10px] text-blue-900 flex items-start gap-2">
+                  <ShieldCheck className="w-3.5 h-3.5 text-blue-700 flex-shrink-0 mt-0.5" />
+                  <p className="leading-snug">
+                    <strong>Safeguarding & Anti-Collusion Standard:</strong> Verifier personal phone & email are protected by Nairobi HQ. All instructions, photos, and reports are audited by Nairobi QA to preserve 100% audit independence.
+                  </p>
+                </div>
               </div>
             ) : (
               <p className="text-xs text-slate-500">Agent assignment in progress by coordinator.</p>

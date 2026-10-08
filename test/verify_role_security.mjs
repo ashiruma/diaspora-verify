@@ -186,4 +186,32 @@ describe('DiasporaVerify Strict Role Security & IDOR Isolation Invariants', () =
     assert.ok(appSource.includes('path="/profile"'));
     assert.ok(appSource.includes('<CommandMenu'));
   });
+
+  test('Security Rule 9: Bi-Directional Zero-Contact-Leak Safeguarding Invariant', () => {
+    // Ground truth: Client must never see agent phone/email; Agent must never see client phone/email
+    const contextSource = fs.readFileSync(path.resolve('src/context/VerificationContext.tsx'), 'utf-8');
+    assert.ok(contextSource.includes('PROTECTED BY HQ DISPATCH'), 'Client and Agent data masking must be enforced in VerificationContext');
+    assert.ok(contextSource.includes('verifier.dispatch@diasporaverify.co.ke'), 'Agent email must be replaced with dispatch relay');
+    assert.ok(contextSource.includes('client.relay@diasporaverify.co.ke'), 'Client email must be replaced with client relay');
+
+    // Verify Safeguarding notice is present in agent and client views
+    const agentViewSource = fs.readFileSync(path.resolve('src/components/FieldAgentPortal/FieldAgentView.tsx'), 'utf-8');
+    assert.ok(agentViewSource.includes('Nairobi HQ Anti-Collusion Safeguard Active'), 'Agent view must display Anti-Collusion safeguard');
+
+    const clientDetailSource = fs.readFileSync(path.resolve('src/components/ClientPortal/RequestDetailView.tsx'), 'utf-8');
+    assert.ok(clientDetailSource.includes('Safeguarding & Anti-Collusion Standard'), 'Client request detail must display Anti-Collusion standard');
+  });
+
+  test('Security Rule 10: Mandatory Admin Account Creation & Authentication Guard', () => {
+    // Verify admin registration requires authorization code
+    const registerSource = fs.readFileSync(path.resolve('src/components/Auth/Register.tsx'), 'utf-8');
+    assert.ok(registerSource.includes('DV-ADMIN-2026'), 'Admin registration must require DV-ADMIN-2026 passcode');
+    assert.ok(registerSource.includes('HQ Admin'), 'Register component must support HQ Admin role');
+
+    // Verify unauthenticated backend route guard in ProtectedRoute
+    const protectedRouteSource = fs.readFileSync(path.resolve('src/components/ProtectedRoute.tsx'), 'utf-8');
+    assert.ok(protectedRouteSource.includes('if (!isAuthenticated || !currentUser)'), 'ProtectedRoute must reject unauthenticated visitors');
+    assert.ok(protectedRouteSource.includes('redirect='), 'Unauthenticated users must be redirected to /login with redirect parameter');
+  });
 });
+

@@ -441,11 +441,24 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       ? viewAsSession.targetEmail
       : currentUser.email;
 
-    return requests.filter(r => 
-      r.client?.email?.toLowerCase() === targetEmail?.toLowerCase() ||
-      (currentUser.clientId && (r as any).client_id === currentUser.clientId) ||
-      (viewAsSession.active && viewAsSession.viewRole === 'client' && r.client?.name?.toLowerCase() === viewAsSession.targetName?.toLowerCase())
-    );
+    return requests
+      .filter(r => 
+        r.client?.email?.toLowerCase() === targetEmail?.toLowerCase() ||
+        (currentUser.clientId && (r as any).client_id === currentUser.clientId) ||
+        (viewAsSession.active && viewAsSession.viewRole === 'client' && r.client?.name?.toLowerCase() === viewAsSession.targetName?.toLowerCase())
+      )
+      .map(r => {
+        // Enforce Safeguarding Boundary: Clients are prohibited from accessing agent private phone/email
+        if (!r.assignedAgent) return r;
+        return {
+          ...r,
+          assignedAgent: {
+            ...r.assignedAgent,
+            phone: '[PROTECTED BY HQ DISPATCH]',
+            email: 'verifier.dispatch@diasporaverify.co.ke'
+          }
+        };
+      });
   }, [requests, viewAsSession, currentUser]);
 
   const agentRequests = React.useMemo(() => {
@@ -454,11 +467,23 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       ? viewAsSession.targetId
       : (currentUser.agentId || '');
 
-    return requests.filter(r => 
-      (targetAgentId && r.assignedAgent?.id === targetAgentId) ||
-      (r.assignedAgent?.email?.toLowerCase() === currentUser.email?.toLowerCase()) ||
-      (viewAsSession.active && viewAsSession.viewRole === 'agent' && r.assignedAgent?.name?.toLowerCase() === viewAsSession.targetName?.toLowerCase())
-    );
+    return requests
+      .filter(r => 
+        (targetAgentId && r.assignedAgent?.id === targetAgentId) ||
+        (r.assignedAgent?.email?.toLowerCase() === currentUser.email?.toLowerCase()) ||
+        (viewAsSession.active && viewAsSession.viewRole === 'agent' && r.assignedAgent?.name?.toLowerCase() === viewAsSession.targetName?.toLowerCase())
+      )
+      .map(r => {
+        // Enforce Safeguarding Boundary: Agents are prohibited from accessing client contact details
+        return {
+          ...r,
+          client: {
+            ...r.client,
+            phone: '[PROTECTED BY HQ DISPATCH]',
+            email: 'client.relay@diasporaverify.co.ke'
+          }
+        };
+      });
   }, [requests, viewAsSession, currentUser]);
 
   useEffect(() => {
