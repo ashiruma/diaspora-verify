@@ -22,6 +22,7 @@ export const Dashboard: React.FC = () => {
   const renderRoleView = () => {
     switch (activeRole) {
       case 'operations':
+      case 'admin':
         return <OperationsDashboard onOpenReport={openReportModal} />;
       case 'field_agent':
         return <FieldAgentView />;
@@ -49,3 +50,5 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 };
+
+export default Dashboard;

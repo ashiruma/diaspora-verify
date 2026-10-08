@@ -19,6 +19,7 @@ const PropertyPortfolioView = lazy(() => import('./components/ClientPortal/Prope
 const DisputesView = lazy(() => import('./components/DisputesView').then(m => ({ default: m.DisputesView })));
 const OperationsDashboard = lazy(() => import('./components/OperationsPortal/OperationsDashboard').then(m => ({ default: m.OperationsDashboard })));
 const OperationsCockpit = lazy(() => import('./components/OperationsPortal/OperationsCockpit').then(m => ({ default: m.OperationsCockpit })));
+const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.default })));
 const FieldAgentView = lazy(() => import('./components/FieldAgentPortal/FieldAgentView').then(m => ({ default: m.FieldAgentView })));
 const CorporateDashboard = lazy(() => import('./components/CorporatePortal/CorporateDashboard').then(m => ({ default: m.CorporateDashboard })));
 const CommandMenu = lazy(() => import('./components/ui/CommandMenu').then(m => ({ default: m.CommandMenu })));
@@ -214,6 +215,22 @@ function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <OperationsCockpit />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/page" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin-page" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminPage />
               </ProtectedRoute>
             } 
           />
