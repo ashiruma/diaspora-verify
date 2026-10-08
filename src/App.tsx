@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 // Route-level code splitting & dynamic imports
+const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
 const LandingPage = lazy(() => import('./components/Marketing/LandingPage').then(m => ({ default: m.LandingPage })));
 const ServiceModelGuide = lazy(() => import('./components/ServiceModelGuide').then(m => ({ default: m.ServiceModelGuide })));
 const LegalAndCompliance = lazy(() => import('./components/Legal/LegalAndCompliance').then(m => ({ default: m.LegalAndCompliance })));
@@ -65,7 +66,7 @@ function AppRoutes() {
           <Route 
             path="/" 
             element={
-              <LandingPage 
+              <HomePage 
                 onGetStarted={() => navigate('/new-request')} 
                 onViewServices={() => navigate('/service-model')} 
                 onViewLegal={() => navigate('/legal')} 
@@ -75,6 +76,17 @@ function AppRoutes() {
           />
           <Route 
             path="/landing" 
+            element={
+              <HomePage 
+                onGetStarted={() => navigate('/new-request')} 
+                onViewServices={() => navigate('/service-model')} 
+                onViewLegal={() => navigate('/legal')} 
+                currency={currency} 
+              />
+            } 
+          />
+          <Route 
+            path="/landing-classic" 
             element={
               <LandingPage 
                 onGetStarted={() => navigate('/new-request')} 
