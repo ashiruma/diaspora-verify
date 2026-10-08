@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useVerification } from "../../context/VerificationContext";
 import {
   AlertTriangle,
   ArrowDownLeft,
@@ -14,6 +15,8 @@ import {
   Eye,
   FileCheck2,
   Filter,
+  Globe,
+  LogOut,
   MoreHorizontal,
   RefreshCw,
   Search,
@@ -637,6 +640,7 @@ export default function Dashboard({
   embedded = false,
 }: DashboardProps = {}) {
   const navigate = useNavigate();
+  const { currentUser, logout, currency } = useVerification();
   const handleNav = (tab: string) => {
     if (onNavigateTab) {
       onNavigateTab(tab);
@@ -676,6 +680,23 @@ export default function Dashboard({
                 Operations
               </div>
             </div>
+          </div>
+
+          {/* Quick Hub Navigation */}
+          <div className="px-5 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-xs">
+            <button
+              onClick={() => navigate('/admin')}
+              className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
+            >
+              <span>← Operations Desk</span>
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-800 flex items-center gap-0.5 cursor-pointer"
+            >
+              <Globe className="w-3 h-3" />
+              <span>Public ↗</span>
+            </button>
           </div>
 
           {/* Navigation */}
@@ -750,17 +771,31 @@ export default function Dashboard({
 
           {/* User */}
           <div className="border-t border-slate-100 p-4">
-            <div className="flex items-center gap-3 rounded-xl p-2.5 hover:bg-slate-50 transition-colors">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white">
-                S
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white flex-shrink-0">
+                  {currentUser?.name?.[0]?.toUpperCase() || 'A'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-bold text-slate-900">
+                    {currentUser?.name || 'Administrator'}
+                  </p>
+                  <p className="text-[10px] text-slate-400 capitalize">
+                    {currentUser?.role || 'Admin'} HQ
+                  </p>
+                </div>
               </div>
 
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">Sarah</p>
-                <p className="text-xs text-slate-400">Administrator</p>
-              </div>
-
-              <ChevronDown className="h-4 w-4 text-slate-400" />
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                title="Sign out of Operations"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -780,19 +815,29 @@ export default function Dashboard({
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="hidden h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-600 shadow-sm md:flex">
-              <span className="text-xs text-slate-400">Currency</span>
-              <span className="font-semibold">KES</span>
-              <ChevronDown className="h-3.5 w-3.5" />
+            <button 
+              onClick={() => navigate('/admin')}
+              className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              ← Operations Desk
             </button>
 
-            <button className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition-colors">
-              <Bell className="h-4.5 w-4.5" />
+            <button 
+              onClick={() => navigate('/')}
+              className="hidden sm:flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-emerald-700 shadow-xs hover:bg-emerald-50 transition-colors cursor-pointer"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>Public Site ↗</span>
             </button>
+
+            <div className="hidden h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 shadow-xs md:flex">
+              <span className="text-xs text-slate-400">Currency</span>
+              <span className="font-semibold text-xs">{currency}</span>
+            </div>
 
             <button
               onClick={onExport}
-              className="hidden h-10 items-center gap-2 rounded-lg bg-[#0b1733] hover:bg-[#132247] px-4 text-sm font-semibold text-white shadow-sm transition-colors sm:flex cursor-pointer"
+              className="hidden h-10 items-center gap-2 rounded-xl bg-[#0b1733] hover:bg-[#132247] px-4 text-xs font-semibold text-white shadow-xs transition-colors sm:flex cursor-pointer"
             >
               <Download className="h-4 w-4" />
               Export

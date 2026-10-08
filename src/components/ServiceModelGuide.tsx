@@ -6,17 +6,29 @@ import {
   Car, 
   Briefcase, 
   Heart, 
-  Compass
+  Compass,
+  ArrowLeft
 } from './Icons';
 
-export const ServiceModelGuide: React.FC<{ onBookNow: () => void }> = ({ onBookNow }) => {
+export const ServiceModelGuide: React.FC<{ onBookNow: () => void; onBack?: () => void }> = ({ onBookNow, onBack }) => {
   return (
     <div className="space-y-10 max-w-5xl mx-auto px-4 sm:px-6 py-8">
       
       {/* Hero Header */}
       <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-10 shadow-xl border border-slate-800 space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
-          <span>Official Operational Doctrine</span>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
+            <span>Official Operational Doctrine</span>
+          </div>
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>← Back</span>
+            </button>
+          )}
         </div>
         <h1 className="text-2xl sm:text-4xl font-extrabold font-display tracking-tight text-white">
           DiasporaVerify Service Model & Trust Controls

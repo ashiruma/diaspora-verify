@@ -547,15 +547,31 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
           {/* Quick Admin Actions */}
           <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
             <button
+              onClick={() => navigate('/')}
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Inspect public marketing site as visitor"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>Public Site ↗</span>
+            </button>
+            <button
+              onClick={() => navigate('/cockpit')}
+              className="px-3 py-1.5 rounded-xl bg-blue-600/30 hover:bg-blue-600/50 border border-blue-500/40 text-xs font-semibold text-blue-200 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Open dedicated standalone financial & operations cockpit"
+            >
+              <Wallet className="w-3.5 h-3.5" />
+              <span>Fullscreen Cockpit ↗</span>
+            </button>
+            <button
               onClick={seedSampleData}
-              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
               title="Populate test operational cases"
             >
-              Seed Test Cases
+              Seed Cases
             </button>
             <button
               onClick={resetAllData}
-              className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-800 text-xs font-semibold text-slate-400 hover:text-rose-300 transition-colors"
+              className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-800 text-xs font-semibold text-slate-400 hover:text-rose-300 transition-colors cursor-pointer"
               title="Clear all runtime data back to pristine state"
             >
               Reset Data

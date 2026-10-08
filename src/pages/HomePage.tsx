@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -8,19 +8,16 @@ import {
   Building2,
   Camera,
   Check,
-  ChevronDown,
   ClipboardCheck,
   FileCheck2,
   Globe2,
   Landmark,
   MapPin,
-  Menu,
   Search,
   Shield,
   ShieldCheck,
   Smartphone,
   Users,
-  X,
 } from "lucide-react";
 import { useVerification } from "../context/VerificationContext";
 import type { CurrencyCode } from "../types";
@@ -36,28 +33,28 @@ export function HomePage({
   onGetStarted,
   onViewServices,
   onViewLegal,
-  currency: propCurrency,
 }: HomePageProps = {}) {
   const navigate = useNavigate();
-  const { currency: contextCurrency, setCurrency } = useVerification();
-  const activeCurrency = propCurrency || contextCurrency || "KES";
+  const { currentUser } = useVerification();
+  const isAdmin = currentUser?.role === "admin";
+  const isClient = currentUser?.role === "client";
 
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false);
-
-  const supportedCurrencies: CurrencyCode[] = [
-    "KES",
-    "USD",
-    "GBP",
-    "EUR",
-    "AED",
-    "CAD",
-    "AUD",
-  ];
+  // Smooth scroll support when navigating via hashes (e.g. #how-it-works)
+  useEffect(() => {
+    if (window.location.hash) {
+      const id = window.location.hash.replace("#", "");
+      const el = document.getElementById(id);
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 150);
+      }
+    }
+  }, []);
 
   const handleStart = () => {
     if (onGetStarted) {
       onGetStarted();
+    } else if (isAdmin) {
+      navigate("/admin");
     } else {
       navigate("/new-request");
     }
@@ -71,241 +68,25 @@ export function HomePage({
     }
   };
 
-  const handleLegal = () => {
+  const handleLegal = (doc?: string) => {
     if (onViewLegal) {
       onViewLegal();
     } else {
-      navigate("/legal");
+      navigate(doc ? `/legal?doc=${doc}` : "/legal");
+    }
+  };
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
     }
   };
 
   return (
     <div className="min-h-screen bg-[#f7faf9] text-[#07152f]">
       {/* =========================================================
-          TOP BAR
-      ========================================================= */}
-      <div className="bg-[#061329] px-5 py-2 text-[11px] text-slate-300">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 font-bold uppercase tracking-wide text-emerald-300">
-              Kenya ground verification
-            </span>
-
-            <span className="hidden sm:inline">
-              Independent on-ground due diligence
-            </span>
-          </div>
-
-          <div className="hidden items-center gap-5 sm:flex">
-            <a href="#how-it-works" className="hover:text-white transition-colors">
-              How it works
-            </a>
-
-            <button
-              onClick={handleLegal}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Legal & Compliance
-            </button>
-
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="font-semibold text-emerald-300 hover:text-emerald-200 transition-colors cursor-pointer"
-            >
-              Public site →
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* =========================================================
-          NAVIGATION
-      ========================================================= */}
-      <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 lg:px-8">
-          {/* LOGO */}
-          <a
-            href="/"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate("/");
-            }}
-            className="flex items-center gap-3 cursor-pointer"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#07152f] shadow-sm">
-              <ShieldCheck className="h-6 w-6 text-emerald-400" />
-            </div>
-
-            <div>
-              <div className="text-[18px] font-bold tracking-tight">
-                Diaspora<span className="text-emerald-500">Verify</span>
-              </div>
-
-              <div className="text-[10px] font-medium tracking-wide text-slate-400">
-                FIELD VERIFICATION & SAFEGUARDING
-              </div>
-            </div>
-
-            <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700 sm:block">
-              KENYA PILOT
-            </span>
-          </a>
-
-          {/* DESKTOP NAV */}
-          <nav className="hidden items-center gap-8 lg:flex">
-            <a
-              href="#how-it-works"
-              className="text-sm font-medium text-slate-600 transition hover:text-slate-950"
-            >
-              How It Works
-            </a>
-
-            <a
-              href="#services"
-              className="text-sm font-medium text-slate-600 transition hover:text-slate-950"
-            >
-              Services
-            </a>
-
-            <a
-              href="#coverage"
-              className="text-sm font-medium text-slate-600 transition hover:text-slate-950"
-            >
-              Coverage
-            </a>
-
-            <button
-              onClick={handleLegal}
-              className="text-sm font-medium text-slate-600 transition hover:text-slate-950 cursor-pointer"
-            >
-              Legal & Compliance
-            </button>
-          </nav>
-
-          {/* ACTIONS */}
-          <div className="hidden items-center gap-2 sm:flex relative">
-            <div className="relative">
-              <button
-                onClick={() => setCurrencyMenuOpen(!currencyMenuOpen)}
-                className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-              >
-                {activeCurrency}
-                <ChevronDown className="h-3.5 w-3.5" />
-              </button>
-
-              {currencyMenuOpen && (
-                <div className="absolute right-0 mt-2 w-28 rounded-xl border border-slate-200 bg-white py-1 shadow-lg z-50">
-                  {supportedCurrencies.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => {
-                        setCurrency?.(c);
-                        setCurrencyMenuOpen(false);
-                      }}
-                      className={`w-full px-4 py-1.5 text-left text-xs font-semibold hover:bg-slate-50 transition cursor-pointer ${
-                        c === activeCurrency
-                          ? "text-emerald-600 bg-emerald-50/50"
-                          : "text-slate-700"
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => navigate("/login")}
-              className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-            >
-              Sign in
-            </button>
-
-            <button
-              onClick={handleStart}
-              className="flex h-10 items-center gap-2 rounded-xl bg-emerald-500 px-5 text-sm font-bold text-[#061329] shadow-sm transition hover:bg-emerald-400 cursor-pointer"
-            >
-              Get started
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* MOBILE */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="rounded-lg border border-slate-200 p-2 lg:hidden cursor-pointer"
-            aria-label="Toggle mobile menu"
-          >
-            {mobileOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
-        </div>
-
-        {/* MOBILE MENU */}
-        {mobileOpen && (
-          <div className="border-t border-slate-100 bg-white p-5 lg:hidden animate-fadeIn">
-            <div className="flex flex-col gap-4">
-              <a
-                href="#how-it-works"
-                onClick={() => setMobileOpen(false)}
-                className="text-sm font-medium text-slate-700 py-1"
-              >
-                How It Works
-              </a>
-              <a
-                href="#services"
-                onClick={() => setMobileOpen(false)}
-                className="text-sm font-medium text-slate-700 py-1"
-              >
-                Services
-              </a>
-              <a
-                href="#coverage"
-                onClick={() => setMobileOpen(false)}
-                className="text-sm font-medium text-slate-700 py-1"
-              >
-                Coverage
-              </a>
-              <button
-                onClick={() => {
-                  setMobileOpen(false);
-                  handleLegal();
-                }}
-                className="text-left text-sm font-medium text-slate-700 py-1 cursor-pointer"
-              >
-                Legal & Compliance
-              </button>
-
-              <button
-                onClick={() => {
-                  setMobileOpen(false);
-                  navigate("/login");
-                }}
-                className="rounded-xl border border-slate-200 px-4 py-2.5 text-center font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-              >
-                Sign in
-              </button>
-
-              <button
-                onClick={() => {
-                  setMobileOpen(false);
-                  handleStart();
-                }}
-                className="rounded-xl bg-emerald-500 px-4 py-3 text-center font-bold text-[#061329] hover:bg-emerald-400 transition cursor-pointer"
-              >
-                Get started
-              </button>
-            </div>
-          </div>
-        )}
-      </header>
-
-      {/* =========================================================
-          HERO
+          HERO SECTION
       ========================================================= */}
       <section className="relative overflow-hidden bg-[#061329]">
         {/* Background effects */}
@@ -323,8 +104,8 @@ export function HomePage({
           />
         </div>
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-5 py-20 md:py-28 lg:grid-cols-[1.05fr_.95fr] lg:px-8">
-          {/* LEFT */}
+        <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-5 py-16 md:py-24 lg:grid-cols-[1.05fr_.95fr] lg:px-8">
+          {/* LEFT COLUMN */}
           <div>
             <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-4 py-2 text-xs font-bold uppercase tracking-wide text-emerald-300">
               <ShieldCheck className="h-4 w-4" />
@@ -343,22 +124,60 @@ export function HomePage({
               wellbeing.
             </p>
 
-            {/* CTA */}
+            {/* ROLE-AWARE HERO CTA BUTTONS */}
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <button
-                onClick={handleStart}
-                className="group flex h-14 items-center justify-center gap-3 rounded-xl bg-emerald-500 px-7 text-base font-bold text-[#061329] shadow-lg shadow-emerald-500/10 transition hover:bg-emerald-400 cursor-pointer"
-              >
-                Start a verification
-                <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
-              </button>
+              {isAdmin ? (
+                <>
+                  <button
+                    onClick={() => navigate("/admin")}
+                    className="group flex h-14 items-center justify-center gap-3 rounded-xl bg-emerald-500 px-7 text-base font-bold text-[#061329] shadow-lg shadow-emerald-500/10 transition hover:bg-emerald-400 cursor-pointer"
+                  >
+                    Go to Operations Desk
+                    <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
+                  </button>
 
-              <a
-                href="#how-it-works"
-                className="flex h-14 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-7 text-base font-semibold text-white backdrop-blur transition hover:bg-white/10"
-              >
-                See how it works
-              </a>
+                  <button
+                    onClick={() => navigate("/cockpit")}
+                    className="flex h-14 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-7 text-base font-semibold text-white backdrop-blur transition hover:bg-white/10 cursor-pointer"
+                  >
+                    Financial Cockpit ↗
+                  </button>
+                </>
+              ) : isClient ? (
+                <>
+                  <button
+                    onClick={() => navigate("/new-request")}
+                    className="group flex h-14 items-center justify-center gap-3 rounded-xl bg-emerald-500 px-7 text-base font-bold text-[#061329] shadow-lg shadow-emerald-500/10 transition hover:bg-emerald-400 cursor-pointer"
+                  >
+                    Start a Verification
+                    <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/dashboard")}
+                    className="flex h-14 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-7 text-base font-semibold text-white backdrop-blur transition hover:bg-white/10 cursor-pointer"
+                  >
+                    My Dashboard →
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={handleStart}
+                    className="group flex h-14 items-center justify-center gap-3 rounded-xl bg-emerald-500 px-7 text-base font-bold text-[#061329] shadow-lg shadow-emerald-500/10 transition hover:bg-emerald-400 cursor-pointer"
+                  >
+                    Start a verification
+                    <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
+                  </button>
+
+                  <button
+                    onClick={() => scrollToSection("how-it-works")}
+                    className="flex h-14 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-7 text-base font-semibold text-white backdrop-blur transition hover:bg-white/10 cursor-pointer"
+                  >
+                    See how it works
+                  </button>
+                </>
+              )}
             </div>
 
             {/* TRUST METRICS */}
@@ -369,7 +188,7 @@ export function HomePage({
             </div>
           </div>
 
-          {/* RIGHT - REPORT CARD */}
+          {/* RIGHT COLUMN - REPORT CARD PREVIEW */}
           <div className="relative mx-auto w-full max-w-[500px]">
             {/* Floating location */}
             <div className="absolute -left-5 top-10 z-20 hidden rounded-xl border border-white/10 bg-white p-3 shadow-2xl sm:flex">
@@ -447,7 +266,7 @@ export function HomePage({
               </div>
             </div>
 
-            {/* Floating verifier */}
+            {/* Floating verifier badge */}
             <div className="absolute -bottom-5 -right-5 hidden rounded-xl border border-white/10 bg-white p-3 shadow-2xl sm:block">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#061329] text-xs font-bold text-white">
@@ -687,7 +506,7 @@ export function HomePage({
             </div>
           </div>
 
-          {/* MAP PLACEHOLDER */}
+          {/* MAP DISPLAY */}
           <div className="relative h-[420px] overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04]">
             <div className="absolute inset-0 opacity-20">
               <div
@@ -700,7 +519,7 @@ export function HomePage({
               />
             </div>
 
-            {/* Kenya-like visual shape */}
+            {/* Kenya shape representation */}
             <div className="absolute left-1/2 top-1/2 h-[300px] w-[230px] -translate-x-1/2 -translate-y-1/2 rotate-12 rounded-[48%_52%_45%_55%] border-2 border-emerald-400/40 bg-emerald-400/5" />
 
             {[
@@ -789,20 +608,58 @@ export function HomePage({
             </p>
 
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-              <button
-                onClick={handleStart}
-                className="flex h-14 items-center justify-center gap-3 rounded-xl bg-emerald-500 px-8 font-bold text-[#061329] hover:bg-emerald-400 transition cursor-pointer"
-              >
-                Start a verification
-                <ArrowRight className="h-5 w-5" />
-              </button>
+              {isAdmin ? (
+                <>
+                  <button
+                    onClick={() => navigate("/admin")}
+                    className="flex h-14 items-center justify-center gap-3 rounded-xl bg-emerald-500 px-8 font-bold text-[#061329] hover:bg-emerald-400 transition cursor-pointer"
+                  >
+                    Go to Operations Desk
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
 
-              <button
-                onClick={handleServices}
-                className="flex h-14 items-center justify-center rounded-xl border border-white/15 px-8 font-semibold text-white hover:bg-white/5 transition cursor-pointer"
-              >
-                Calculate indicative fee
-              </button>
+                  <button
+                    onClick={() => navigate("/cockpit")}
+                    className="flex h-14 items-center justify-center rounded-xl border border-white/15 px-8 font-semibold text-white hover:bg-white/5 transition cursor-pointer"
+                  >
+                    Financial Cockpit ↗
+                  </button>
+                </>
+              ) : isClient ? (
+                <>
+                  <button
+                    onClick={() => navigate("/new-request")}
+                    className="flex h-14 items-center justify-center gap-3 rounded-xl bg-emerald-500 px-8 font-bold text-[#061329] hover:bg-emerald-400 transition cursor-pointer"
+                  >
+                    Start a Verification
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/dashboard")}
+                    className="flex h-14 items-center justify-center rounded-xl border border-white/15 px-8 font-semibold text-white hover:bg-white/5 transition cursor-pointer"
+                  >
+                    Go to My Dashboard →
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={handleStart}
+                    className="flex h-14 items-center justify-center gap-3 rounded-xl bg-emerald-500 px-8 font-bold text-[#061329] hover:bg-emerald-400 transition cursor-pointer"
+                  >
+                    Start a verification
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
+
+                  <button
+                    onClick={handleServices}
+                    className="flex h-14 items-center justify-center rounded-xl border border-white/15 px-8 font-semibold text-white hover:bg-white/5 transition cursor-pointer"
+                  >
+                    Calculate indicative fee
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -817,28 +674,28 @@ export function HomePage({
 
           <div className="flex gap-6">
             <button
-              onClick={handleLegal}
+              onClick={() => handleLegal("privacy")}
               className="hover:text-slate-600 transition cursor-pointer"
             >
               Privacy
             </button>
             <button
-              onClick={handleLegal}
+              onClick={() => handleLegal("terms")}
               className="hover:text-slate-600 transition cursor-pointer"
             >
               Terms
             </button>
             <button
-              onClick={handleLegal}
+              onClick={() => handleLegal("boundaries")}
               className="hover:text-slate-600 transition cursor-pointer"
             >
               Safeguarding
             </button>
             <button
-              onClick={handleLegal}
+              onClick={() => handleLegal("code_of_conduct")}
               className="hover:text-slate-600 transition cursor-pointer"
             >
-              Contact
+              Code of Conduct
             </button>
           </div>
         </div>
@@ -937,7 +794,7 @@ export function Service({
 
       <button
         onClick={onLearnMore}
-        className="mt-5 flex items-center gap-1 text-xs font-bold text-emerald-600 cursor-pointer"
+        className="mt-5 flex items-center gap-1 text-xs font-bold text-emerald-600 cursor-pointer hover:underline"
       >
         Learn more
         <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" />

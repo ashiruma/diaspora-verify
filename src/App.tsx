@@ -49,8 +49,30 @@ function AppRoutes() {
     reportModalRequest, 
     currency,
     commandMenuOpen,
-    setCommandMenuOpen 
+    setCommandMenuOpen,
+    currentUser,
+    activeRole
   } = useVerification();
+
+  const handleBackFromRequest = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else if (currentUser?.role === 'admin' || activeRole === 'admin' || activeRole === 'operations') {
+      navigate('/admin');
+    } else if (currentUser?.role === 'agent' || activeRole === 'agent' || activeRole === 'field_agent') {
+      navigate('/agent');
+    } else {
+      navigate('/requests');
+    }
+  };
+
+  const handleBackToPublic = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
 
   return (
     <>
@@ -96,10 +118,10 @@ function AppRoutes() {
               />
             } 
           />
-          <Route path="/legal" element={<LegalAndCompliance />} />
+          <Route path="/legal" element={<LegalAndCompliance onBack={handleBackToPublic} />} />
           <Route 
             path="/service-model" 
-            element={<ServiceModelGuide onBookNow={() => navigate('/new-request')} />} 
+            element={<ServiceModelGuide onBookNow={() => navigate('/new-request')} onBack={handleBackToPublic} />} 
           />
 
           {/* Diaspora Client Protected Routes */}
@@ -163,7 +185,16 @@ function AppRoutes() {
             path="/new-request" 
             element={
               <ProtectedRoute allowedRoles={['client', 'admin']}>
-                <NewRequestWizard onSuccess={(newId) => navigate(`/request/${newId}`)} onCancel={() => navigate('/dashboard')} />
+                <NewRequestWizard 
+                  onSuccess={(newId) => navigate(`/request/${newId}`)} 
+                  onCancel={() => {
+                    if (currentUser?.role === 'admin' || activeRole === 'admin') {
+                      navigate('/admin');
+                    } else {
+                      navigate('/dashboard');
+                    }
+                  }} 
+                />
               </ProtectedRoute>
             } 
           />
@@ -189,7 +220,7 @@ function AppRoutes() {
             path="/request/:id" 
             element={
               <ProtectedRoute allowedRoles={['client', 'admin']}>
-                <RequestDetailView onBack={() => navigate('/dashboard')} onOpenReport={openReportModal} />
+                <RequestDetailView onBack={handleBackFromRequest} onOpenReport={openReportModal} />
               </ProtectedRoute>
             } 
           />
@@ -197,7 +228,7 @@ function AppRoutes() {
             path="/requests/:id" 
             element={
               <ProtectedRoute allowedRoles={['client', 'admin']}>
-                <RequestDetailView onBack={() => navigate('/dashboard')} onOpenReport={openReportModal} />
+                <RequestDetailView onBack={handleBackFromRequest} onOpenReport={openReportModal} />
               </ProtectedRoute>
             } 
           />

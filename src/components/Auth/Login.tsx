@@ -170,6 +170,16 @@ export const Login: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-xl w-full mx-auto space-y-8">
         
+        {/* Top Return Link */}
+        <div className="flex items-center justify-between text-xs">
+          <Link to="/" className="font-semibold text-slate-500 hover:text-slate-900 transition-colors inline-flex items-center gap-1.5">
+            <span>← Back to DiasporaVerify Home</span>
+          </Link>
+          <Link to="/register" className="font-semibold text-emerald-700 hover:text-emerald-800 transition-colors">
+            Create an account →
+          </Link>
+        </div>
+
         {/* Brand Header */}
         <div className="text-center space-y-3">
           <Link to="/" className="inline-flex items-center gap-2 group">

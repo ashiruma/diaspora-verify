@@ -19,7 +19,8 @@ import {
   Menu,
   X,
   Users,
-  Phone
+  Phone,
+  Globe
 } from './Icons';
 import type { CurrencyCode } from '../types';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -53,8 +54,19 @@ export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // On standalone fullscreen cockpit, cockpit provides its own dedicated sidebar and top bar
+  if (location.pathname === '/cockpit' || location.pathname === '/admin/cockpit') {
+    return null;
+  }
+
   const unreadCount = notifications.filter(n => !n.read).length;
   const currentNormalizedRole = normalizeRole(activeRole);
+  const isPublicPage = 
+    location.pathname === '/' || 
+    location.pathname === '/landing' || 
+    location.pathname === '/landing-classic' || 
+    location.pathname === '/legal' || 
+    location.pathname === '/service-model';
 
   const currencies: CurrencyCode[] = ['KES', 'USD', 'GBP', 'EUR', 'AED', 'CAD', 'AUD'];
 
@@ -65,26 +77,47 @@ export const Navbar: React.FC = () => {
     setMobileMenuOpen(false);
   };
 
-  // Role-Specific Navigation Links (Concise, focused top-level anchors - no secondary tab duplication)
+  const handleAnchorNav = (hash: string, fallbackPath?: string) => {
+    if (location.pathname === '/' || location.pathname === '/landing') {
+      const el = document.getElementById(hash.replace('#', ''));
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        setMobileMenuOpen(false);
+        return;
+      }
+    }
+    if (fallbackPath && location.pathname !== '/') {
+      navigate(fallbackPath);
+    } else {
+      navigate(`/${hash}`);
+    }
+    setMobileMenuOpen(false);
+  };
+
+  // Role-Specific Navigation Links
   const clientNavLinks = [
     { path: '/dashboard', label: 'Dashboard', icon: <FileText className="w-3.5 h-3.5 text-slate-500" /> },
     { path: '/requests', label: 'My Requests', icon: <FileText className="w-3.5 h-3.5 text-emerald-600" /> },
     { path: '/properties', label: 'Properties', icon: <MapPin className="w-3.5 h-3.5 text-emerald-600" /> },
     { path: '/reports', label: 'Reports', icon: <FileText className="w-3.5 h-3.5 text-blue-600" /> },
+    { path: '/', label: 'Public Site ↗', icon: <Globe className="w-3.5 h-3.5 text-slate-400" /> },
   ];
 
   const agentNavLinks = [
     { path: '/agent', label: 'Field Tasks', icon: <Smartphone className="w-3.5 h-3.5 text-amber-600" /> },
     { path: '/agent#checkin', label: 'GPS Check-In', icon: <MapPin className="w-3.5 h-3.5 text-emerald-600" /> },
     { path: '/agent#earnings', label: 'Earnings', icon: <DollarSign className="w-3.5 h-3.5 text-blue-600" /> },
+    { path: '/', label: 'Public Site ↗', icon: <Globe className="w-3.5 h-3.5 text-slate-400" /> },
   ];
 
   const adminNavLinks = [
     { path: '/admin', label: 'Operations Desk', icon: <Briefcase className="w-3.5 h-3.5 text-blue-600" /> },
+    { path: '/cockpit', label: 'Cockpit', icon: <DollarSign className="w-3.5 h-3.5 text-emerald-600" /> },
     { path: '/admin?tab=payments', label: 'Money In & Out', icon: <DollarSign className="w-3.5 h-3.5 text-emerald-600" /> },
     { path: '/admin?tab=clients', label: 'Client Base', icon: <Users className="w-3.5 h-3.5 text-amber-600" /> },
     { path: '/admin?tab=contacts', label: 'Contacts', icon: <Phone className="w-3.5 h-3.5 text-indigo-600" /> },
     { path: '/admin?tab=settings', label: 'Audit & Security', icon: <ShieldCheck className="w-3.5 h-3.5 text-purple-600" /> },
+    { path: '/', label: 'Public Site ↗', icon: <Globe className="w-3.5 h-3.5 text-slate-400" /> },
   ];
 
   const activeNavLinks =
@@ -109,39 +142,70 @@ export const Navbar: React.FC = () => {
       {/* Admin Impersonation Preview Banner */}
       <AdminPreviewBanner />
 
-      {/* Public Trust Anchor & Quick Legal Link Bar (Hidden for authenticated operations/dashboards) */}
-      {!isAuthenticated || !currentUser ? (
-        <div className="bg-slate-900 text-slate-300 text-xs py-1 px-4 sm:px-6">
+      {/* Admin Presence Bar: Displayed when an authenticated Admin is viewing public pages */}
+      {isAuthenticated && currentUser && currentNormalizedRole === 'admin' && isPublicPage && (
+        <div className="bg-[#061329] text-slate-300 text-xs py-1.5 px-4 sm:px-6 border-b border-slate-800">
           <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                ADMIN ACTIVE
+              </span>
+              <span className="text-slate-300 text-xs font-medium">
+                Viewing Public Site as <strong className="text-white">{currentUser.name}</strong> ({currentNormalizedRole.toUpperCase()})
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-xs">
+              <button
+                onClick={() => handleNav('/admin')}
+                className="font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <span>Return to Operations Desk →</span>
+              </button>
+              <span className="text-slate-600">|</span>
+              <button
+                onClick={() => handleNav('/cockpit')}
+                className="text-slate-300 hover:text-white transition-colors cursor-pointer"
+              >
+                <span>Financial Cockpit ↗</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Public Trust Anchor Bar (Displayed only for unauthenticated guests) */}
+      {!isAuthenticated || !currentUser ? (
+        <div className="bg-[#061329] text-slate-300 text-xs py-1.5 px-4 sm:px-6 border-b border-slate-800/80">
+          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide bg-emerald-400/10 text-emerald-300 border border-emerald-400/30">
                 KENYA GROUND VERIFICATION
               </span>
-              <span className="hidden sm:inline text-slate-400 text-[11px]">
-                “VERIFY KENYA. FROM ANYWHERE.” — Independent on-ground due-diligence.
+              <span className="hidden sm:inline text-slate-300 text-[11px]">
+                Independent on-ground due diligence
               </span>
             </div>
 
-            <div className="flex items-center gap-3 text-[11px]">
+            <div className="flex items-center gap-4 text-[11px]">
               <button 
-                onClick={() => handleNav('/service-model')} 
-                className="text-slate-400 hover:text-white transition-colors"
+                onClick={() => handleAnchorNav('#how-it-works', '/service-model')} 
+                className="text-slate-300 hover:text-white transition-colors cursor-pointer"
               >
-                How It Works
+                How it works
               </button>
               <span className="text-slate-700">|</span>
               <button 
                 onClick={() => handleNav('/legal')} 
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-slate-300 hover:text-white transition-colors cursor-pointer"
               >
                 Legal & Compliance
               </button>
               <span className="text-slate-700">|</span>
               <button 
-                onClick={() => handleNav('/landing')} 
-                className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
+                onClick={() => handleNav('/')} 
+                className="text-emerald-300 hover:text-emerald-200 font-bold transition-colors cursor-pointer"
               >
-                Public Site →
+                Public site →
               </button>
             </div>
           </div>
@@ -156,7 +220,7 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center gap-3 flex-shrink-0">
             <button
               onClick={() => handleNav(!isAuthenticated || !currentUser ? '/' : currentNormalizedRole === 'admin' ? '/admin' : currentNormalizedRole === 'agent' ? '/agent' : '/dashboard')}
-              className="flex items-center gap-2.5 text-left group"
+              className="flex items-center gap-2.5 text-left group cursor-pointer"
             >
               <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs group-hover:bg-emerald-700 transition-colors">
                 <ShieldCheck className="w-5 h-5 text-emerald-400" />
@@ -183,33 +247,31 @@ export const Navbar: React.FC = () => {
             </button>
           </div>
 
-          {/* Clean Desktop Navigation Links (No horizontal scrollbar) */}
+          {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-1 py-1">
             {!isAuthenticated || !currentUser ? (
               <>
                 <button
-                  onClick={() => handleNav('/service-model')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    location.pathname === '/service-model'
-                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
+                  onClick={() => handleAnchorNav('#how-it-works', '/service-model')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
                 >
                   How It Works
                 </button>
                 <button
-                  onClick={() => handleNav('/corporate')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    location.pathname === '/corporate'
-                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
+                  onClick={() => handleAnchorNav('#services', '/service-model')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
                 >
-                  Corporate Portfolios
+                  Services
+                </button>
+                <button
+                  onClick={() => handleAnchorNav('#coverage')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
+                >
+                  Coverage
                 </button>
                 <button
                   onClick={() => handleNav('/legal')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     location.pathname === '/legal'
                       ? 'bg-slate-100 text-slate-900 border border-slate-200'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -220,12 +282,14 @@ export const Navbar: React.FC = () => {
               </>
             ) : (
               activeNavLinks.map((link) => {
-                const isActive = location.pathname === link.path || (link.path.includes('?') && location.pathname + location.search === link.path);
+                const isActive = 
+                  location.pathname === link.path || 
+                  (link.path.includes('?') && location.pathname + location.search === link.path);
                 return (
                   <button
                     key={link.path}
                     onClick={() => handleNav(link.path)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                       isActive 
                         ? 'bg-slate-100 text-slate-900 font-semibold border border-slate-200 shadow-2xs' 
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -249,7 +313,7 @@ export const Navbar: React.FC = () => {
                   setRoleMenuOpen(false);
                   setNotifMenuOpen(false);
                 }}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 flex items-center gap-1 transition-colors"
+                className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <span>{currency}</span>
                 <ChevronDown className="w-3 h-3 text-slate-400" />
@@ -264,7 +328,7 @@ export const Navbar: React.FC = () => {
                         setCurrency(curr);
                         setCurrencyMenuOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center justify-between hover:bg-slate-50 ${
+                      className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center justify-between hover:bg-slate-50 cursor-pointer ${
                         currency === curr ? 'text-emerald-700 bg-emerald-50/50' : 'text-slate-700'
                       }`}
                     >
@@ -280,14 +344,14 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleNav('/login')}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-xs transition-colors flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <LogIn className="w-3.5 h-3.5 text-slate-500" />
                   <span>Sign In</span>
                 </button>
                 <button
-                  onClick={() => handleNav('/register')}
-                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5"
+                  onClick={() => handleNav('/new-request')}
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5 text-white" />
                   <span>Get Started</span>
@@ -295,11 +359,23 @@ export const Navbar: React.FC = () => {
               </div>
             ) : (
               <>
+                {/* Client Quick Action: New Verification */}
+                {currentNormalizedRole === 'client' && (
+                  <button
+                    onClick={() => handleNav('/new-request')}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <UserPlus className="w-3.5 h-3.5 text-white" />
+                    <span className="hidden sm:inline">New Verification</span>
+                    <span className="sm:hidden">New</span>
+                  </button>
+                )}
+
                 {/* Admin Command Menu Shortcut */}
                 {currentNormalizedRole === 'admin' && (
                   <button
                     onClick={() => setCommandMenuOpen(true)}
-                    className="hidden md:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-slate-600 transition-colors"
+                    className="hidden md:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-slate-600 transition-colors cursor-pointer"
                     title="Search records (Ctrl+K or ⌘K)"
                   >
                     <Search className="w-3.5 h-3.5 text-slate-400" />
@@ -314,7 +390,7 @@ export const Navbar: React.FC = () => {
                 {currentNormalizedRole === 'admin' && (
                   <button
                     onClick={() => setViewAsModalOpen(true)}
-                    className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-900 border border-amber-200/90 hover:bg-amber-500/20 whitespace-nowrap transition-colors"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-900 border border-amber-200/90 hover:bg-amber-500/20 whitespace-nowrap transition-colors cursor-pointer"
                     title="View Experience as Client or Agent"
                   >
                     <Eye className="w-3.5 h-3.5 text-amber-700" />
@@ -330,7 +406,7 @@ export const Navbar: React.FC = () => {
                       setRoleMenuOpen(false);
                       setCurrencyMenuOpen(false);
                     }}
-                    className="p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-transparent hover:border-slate-200 relative transition-colors"
+                    className="p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-transparent hover:border-slate-200 relative transition-colors cursor-pointer"
                     aria-label="View notifications"
                   >
                     <Bell className="w-4 h-4" />
@@ -346,7 +422,7 @@ export const Navbar: React.FC = () => {
                         {unreadCount > 0 && (
                           <button
                             onClick={clearAllNotifications}
-                            className="text-[10px] text-emerald-700 hover:underline font-semibold"
+                            className="text-[10px] text-emerald-700 hover:underline font-semibold cursor-pointer"
                           >
                             Mark all read
                           </button>
@@ -385,7 +461,7 @@ export const Navbar: React.FC = () => {
                       setCurrencyMenuOpen(false);
                       setNotifMenuOpen(false);
                     }}
-                    className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors shadow-2xs"
+                    className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                   >
                     <div className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
                       {currentUser?.name?.[0]?.toUpperCase() || 'U'}
@@ -424,7 +500,7 @@ export const Navbar: React.FC = () => {
                               setRoleMenuOpen(false);
                               navigate('/admin');
                             }}
-                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 hover:bg-slate-50 flex items-center justify-between"
+                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 hover:bg-slate-50 flex items-center justify-between cursor-pointer"
                           >
                             <span>Operations Command Desk</span>
                             <span className="text-[10px] text-blue-600 font-bold">HQ</span>
@@ -432,9 +508,29 @@ export const Navbar: React.FC = () => {
                           <button
                             onClick={() => {
                               setRoleMenuOpen(false);
+                              navigate('/cockpit');
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 hover:bg-slate-50 flex items-center justify-between cursor-pointer"
+                          >
+                            <span>Financial Cockpit</span>
+                            <span className="text-[10px] text-emerald-600 font-bold">LIVE</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              navigate('/');
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 hover:bg-slate-50 flex items-center justify-between cursor-pointer"
+                          >
+                            <span>View Public Site</span>
+                            <Globe className="w-3.5 h-3.5 text-slate-400" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
                               setViewAsModalOpen(true);
                             }}
-                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-amber-900 bg-amber-50/60 hover:bg-amber-100/70 border border-amber-200 flex items-center justify-between"
+                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-amber-900 bg-amber-50/60 hover:bg-amber-100/70 border border-amber-200 flex items-center justify-between cursor-pointer"
                           >
                             <span>Launch "View As" Preview...</span>
                             <span className="text-[10px] text-amber-700 font-bold">Audited</span>
@@ -450,7 +546,7 @@ export const Navbar: React.FC = () => {
                               setRoleMenuOpen(false);
                               navigate('/dashboard');
                             }}
-                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                           >
                             <FileText className="w-3.5 h-3.5 text-slate-400" />
                             <span>Dashboard Overview</span>
@@ -460,7 +556,7 @@ export const Navbar: React.FC = () => {
                               setRoleMenuOpen(false);
                               navigate('/requests');
                             }}
-                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                           >
                             <FileText className="w-3.5 h-3.5 text-emerald-600" />
                             <span>My Requests ({clientRequests.length})</span>
@@ -470,10 +566,20 @@ export const Navbar: React.FC = () => {
                               setRoleMenuOpen(false);
                               navigate('/properties');
                             }}
-                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                           >
                             <MapPin className="w-3.5 h-3.5 text-slate-400" />
                             <span>My Properties</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              navigate('/');
+                            }}
+                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                          >
+                            <Globe className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Public Website</span>
                           </button>
                         </div>
                       )}
@@ -486,10 +592,20 @@ export const Navbar: React.FC = () => {
                               setRoleMenuOpen(false);
                               navigate('/agent');
                             }}
-                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                           >
                             <Smartphone className="w-3.5 h-3.5 text-amber-600" />
                             <span>Assigned Field Tasks</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              navigate('/');
+                            }}
+                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                          >
+                            <Globe className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Public Website</span>
                           </button>
                         </div>
                       )}
@@ -501,7 +617,7 @@ export const Navbar: React.FC = () => {
                               setRoleMenuOpen(false);
                               navigate('/profile');
                             }}
-                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                           >
                             <User className="w-3.5 h-3.5 text-slate-500" />
                             <span>Account Profile</span>
@@ -513,7 +629,7 @@ export const Navbar: React.FC = () => {
                             logout();
                             navigate('/login');
                           }}
-                          className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center justify-between transition-colors"
+                          className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center justify-between transition-colors cursor-pointer"
                         >
                           <div className="flex items-center gap-2">
                             <LogOut className="w-3.5 h-3.5 text-rose-600" />
@@ -529,7 +645,7 @@ export const Navbar: React.FC = () => {
                 {/* Mobile Menu Toggle Button */}
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="md:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
+                  className="md:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
                   aria-label="Toggle navigation menu"
                 >
                   {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -547,33 +663,39 @@ export const Navbar: React.FC = () => {
           {!isAuthenticated || !currentUser ? (
             <>
               <button
-                onClick={() => handleNav('/service-model')}
-                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                onClick={() => handleAnchorNav('#how-it-works', '/service-model')}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
               >
                 How It Works
               </button>
               <button
-                onClick={() => handleNav('/corporate')}
-                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                onClick={() => handleAnchorNav('#services', '/service-model')}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
               >
-                Corporate Portfolios
+                Services
+              </button>
+              <button
+                onClick={() => handleAnchorNav('#coverage')}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+              >
+                Coverage
               </button>
               <button
                 onClick={() => handleNav('/legal')}
-                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
               >
                 Legal & Compliance
               </button>
               <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
                 <button
                   onClick={() => handleNav('/login')}
-                  className="flex-1 py-2 text-center rounded-xl border border-slate-200 text-xs font-semibold text-slate-700"
+                  className="flex-1 py-2 text-center rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"
                 >
                   Sign In
                 </button>
                 <button
-                  onClick={() => handleNav('/register')}
-                  className="flex-1 py-2 text-center rounded-xl bg-emerald-600 text-xs font-bold text-white"
+                  onClick={() => handleNav('/new-request')}
+                  className="flex-1 py-2 text-center rounded-xl bg-emerald-600 text-xs font-bold text-white cursor-pointer"
                 >
                   Get Started
                 </button>
@@ -585,7 +707,7 @@ export const Navbar: React.FC = () => {
                 <button
                   key={link.path}
                   onClick={() => handleNav(link.path)}
-                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                 >
                   {link.icon}
                   <span>{link.label}</span>
@@ -597,7 +719,7 @@ export const Navbar: React.FC = () => {
                     setMobileMenuOpen(false);
                     setViewAsModalOpen(true);
                   }}
-                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 flex items-center gap-2 cursor-pointer"
                 >
                   <Eye className="w-3.5 h-3.5 text-amber-700" />
                   <span>Launch "View As" Mode...</span>
@@ -610,7 +732,7 @@ export const Navbar: React.FC = () => {
                     logout();
                     navigate('/login');
                   }}
-                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5 text-rose-600" />
                   <span>Sign Out ({currentUser?.name?.split(' ')[0]})</span>
@@ -634,7 +756,7 @@ export const Navbar: React.FC = () => {
               </div>
               <button
                 onClick={() => setViewAsModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 ✕
               </button>
@@ -654,7 +776,7 @@ export const Navbar: React.FC = () => {
                         setViewAsModalOpen(false);
                         navigate('/dashboard');
                       }}
-                      className="w-full text-left p-2.5 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all text-xs flex items-center justify-between"
+                      className="w-full text-left p-2.5 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all text-xs flex items-center justify-between cursor-pointer"
                     >
                       <div>
                         <div className="font-bold text-slate-900">{client.name}</div>
@@ -679,7 +801,7 @@ export const Navbar: React.FC = () => {
                         setViewAsModalOpen(false);
                         navigate('/agent');
                       }}
-                      className="w-full text-left p-2.5 rounded-xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50/50 transition-all text-xs flex items-center justify-between"
+                      className="w-full text-left p-2.5 rounded-xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50/50 transition-all text-xs flex items-center justify-between cursor-pointer"
                     >
                       <div>
                         <div className="font-bold text-slate-900">{agent.name}</div>
