@@ -281,6 +281,13 @@ export const Login: React.FC = () => {
                 />
                 <span className="text-slate-600 font-medium">Keep me signed in</span>
               </label>
+
+              <Link
+                to="/forgot-password"
+                className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors"
+              >
+                Forgot password?
+              </Link>
             </div>
 
             <button

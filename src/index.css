@@ -10,7 +10,7 @@
   color-scheme: light;
 
   /* Centralized Design Tokens */
-  --color-brand-primary: #0f172a; /* Slate 900 */
+  --color-brand-primary: #172A3A; /* Deep Navy per Spec Section 4 */
   --color-brand-accent: #047857;  /* Emerald 700 */
   --color-brand-accent-light: #ecfdf5;
   --color-bg-base: #f8fafc;       /* Slate 50 */

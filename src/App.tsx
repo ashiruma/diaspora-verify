@@ -31,6 +31,15 @@ const ClientMessagesView = lazy(() => import('./components/ClientPortal/ClientMe
 const ClientProfileView = lazy(() => import('./components/ClientPortal/ClientProfileView').then(m => ({ default: m.ClientProfileView })));
 const Login = lazy(() => import('./components/Auth/Login').then(m => ({ default: m.Login })));
 const Register = lazy(() => import('./components/Auth/Register').then(m => ({ default: m.Register })));
+const ForgotPassword = lazy(() => import('./components/Auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = lazy(() => import('./components/Auth/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const VerifyEmail = lazy(() => import('./components/Auth/VerifyEmail').then(m => ({ default: m.VerifyEmail })));
+const ServicesPage = lazy(() => import('./components/Public/ServicesPage').then(m => ({ default: m.ServicesPage })));
+const ServiceDetailPage = lazy(() => import('./components/Public/ServiceDetailPage').then(m => ({ default: m.ServiceDetailPage })));
+const HowItWorksPage = lazy(() => import('./components/Public/HowItWorksPage').then(m => ({ default: m.HowItWorksPage })));
+const SampleReportPage = lazy(() => import('./components/Public/SampleReportPage').then(m => ({ default: m.SampleReportPage })));
+const AboutPage = lazy(() => import('./components/Public/AboutPage').then(m => ({ default: m.AboutPage })));
+const ContactPage = lazy(() => import('./components/Public/ContactPage').then(m => ({ default: m.ContactPage })));
 
 const RouteLoadingFallback = () => (
   <div className="min-h-[50vh] flex items-center justify-center p-8" aria-busy="true" aria-label="Loading page">
@@ -80,9 +89,12 @@ function AppRoutes() {
       <ErrorBoundary>
         <Suspense fallback={<RouteLoadingFallback />}>
           <Routes>
-          {/* Authentication Routes */}
+          {/* Authentication & Account Recovery Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
           {/* Public & Informational Routes */}
           <Route 
@@ -90,18 +102,24 @@ function AppRoutes() {
             element={
               <HomePage 
                 onGetStarted={() => navigate('/new-request')} 
-                onViewServices={() => navigate('/service-model')} 
+                onViewServices={() => navigate('/services')} 
                 onViewLegal={() => navigate('/legal')} 
                 currency={currency} 
               />
             } 
           />
+          <Route path="/services" element={<ServicesPage />} />
+          <Route path="/services/:categoryId" element={<ServiceDetailPage />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/sample-report" element={<SampleReportPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route 
             path="/landing" 
             element={
               <HomePage 
                 onGetStarted={() => navigate('/new-request')} 
-                onViewServices={() => navigate('/service-model')} 
+                onViewServices={() => navigate('/services')} 
                 onViewLegal={() => navigate('/legal')} 
                 currency={currency} 
               />
@@ -112,7 +130,7 @@ function AppRoutes() {
             element={
               <LandingPage 
                 onGetStarted={() => navigate('/new-request')} 
-                onViewServices={() => navigate('/service-model')} 
+                onViewServices={() => navigate('/services')} 
                 onViewLegal={() => navigate('/legal')} 
                 currency={currency} 
               />

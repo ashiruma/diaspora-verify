@@ -77,22 +77,6 @@ export const Navbar: React.FC = () => {
     setMobileMenuOpen(false);
   };
 
-  const handleAnchorNav = (hash: string, fallbackPath?: string) => {
-    if (location.pathname === '/' || location.pathname === '/landing') {
-      const el = document.getElementById(hash.replace('#', ''));
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-        setMobileMenuOpen(false);
-        return;
-      }
-    }
-    if (fallbackPath && location.pathname !== '/') {
-      navigate(fallbackPath);
-    } else {
-      navigate(`/${hash}`);
-    }
-    setMobileMenuOpen(false);
-  };
 
   // Role-Specific Navigation Links
   const clientNavLinks = [
@@ -188,12 +172,19 @@ export const Navbar: React.FC = () => {
 
             <div className="flex items-center gap-2 sm:gap-4 text-[11px] shrink-0">
               <button 
-                onClick={() => handleAnchorNav('#how-it-works', '/service-model')} 
+                onClick={() => handleNav('/how-it-works')} 
                 className="text-slate-300 hover:text-white transition-colors cursor-pointer"
               >
                 How it works
               </button>
               <span className="text-slate-700">|</span>
+              <button 
+                onClick={() => handleNav('/sample-report')} 
+                className="text-slate-300 hover:text-white transition-colors cursor-pointer hidden sm:inline"
+              >
+                Sample report
+              </button>
+              <span className="text-slate-700 hidden sm:inline">|</span>
               <button 
                 onClick={() => handleNav('/legal')} 
                 className="text-slate-300 hover:text-white transition-colors cursor-pointer hidden xs:inline"
@@ -252,22 +243,54 @@ export const Navbar: React.FC = () => {
             {!isAuthenticated || !currentUser ? (
               <>
                 <button
-                  onClick={() => handleAnchorNav('#how-it-works', '/service-model')}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
-                >
-                  How It Works
-                </button>
-                <button
-                  onClick={() => handleAnchorNav('#services', '/service-model')}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
+                  onClick={() => handleNav('/services')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    location.pathname.startsWith('/services')
+                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
                 >
                   Services
                 </button>
                 <button
-                  onClick={() => handleAnchorNav('#coverage')}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
+                  onClick={() => handleNav('/how-it-works')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    location.pathname === '/how-it-works'
+                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
                 >
-                  Coverage
+                  How It Works
+                </button>
+                <button
+                  onClick={() => handleNav('/sample-report')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    location.pathname === '/sample-report'
+                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  Sample Report
+                </button>
+                <button
+                  onClick={() => handleNav('/about')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    location.pathname === '/about'
+                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  About
+                </button>
+                <button
+                  onClick={() => handleNav('/contact')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    location.pathname === '/contact'
+                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  Contact
                 </button>
                 <button
                   onClick={() => handleNav('/legal')}
@@ -277,7 +300,7 @@ export const Navbar: React.FC = () => {
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  Legal & Compliance
+                  Legal
                 </button>
               </>
             ) : (
@@ -663,22 +686,34 @@ export const Navbar: React.FC = () => {
           {!isAuthenticated || !currentUser ? (
             <>
               <button
-                onClick={() => handleAnchorNav('#how-it-works', '/service-model')}
-                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
-              >
-                How It Works
-              </button>
-              <button
-                onClick={() => handleAnchorNav('#services', '/service-model')}
+                onClick={() => handleNav('/services')}
                 className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
               >
                 Services
               </button>
               <button
-                onClick={() => handleAnchorNav('#coverage')}
+                onClick={() => handleNav('/how-it-works')}
                 className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
               >
-                Coverage
+                How It Works
+              </button>
+              <button
+                onClick={() => handleNav('/sample-report')}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-emerald-700 hover:bg-emerald-50 cursor-pointer font-bold"
+              >
+                Sample Report ↗
+              </button>
+              <button
+                onClick={() => handleNav('/about')}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+              >
+                About DiasporaVerify
+              </button>
+              <button
+                onClick={() => handleNav('/contact')}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+              >
+                Contact & Inquiries
               </button>
               <button
                 onClick={() => handleNav('/legal')}

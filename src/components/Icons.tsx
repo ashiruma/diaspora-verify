@@ -581,4 +581,11 @@ export const Wallet: React.FC<IconProps> = ({ className = "w-5 h-5", size, ...pr
   </svg>
 );
 
+export const Building2 = Building;
+export const HeartHandshake = Heart;
+export const FileCheck2 = FileText;
+export const FileCheck = FileText;
+export const XCircle = AlertCircle;
+
+
 
