@@ -9,6 +9,7 @@ import {
 import { StatusBadge, CategoryIcon } from './CommonBadges';
 import { hasStopPaymentWarning } from '../data/mockData';
 import { EmptyState } from './ui/EmptyState';
+import { PortalLayout } from './layout/PortalLayout';
 
 export const ReportsLibrary: React.FC = () => {
   const { requests, clientRequests, currentUser, openReportModal } = useVerification();
@@ -33,7 +34,13 @@ export const ReportsLibrary: React.FC = () => {
   });
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 py-6 font-sans">
+    <PortalLayout
+      title="Reports Library"
+      subtitle="Thursday, 8 October 2026 · Verified Inspection Certificates"
+      role={currentUser?.role === 'admin' ? 'admin' : 'client'}
+      activeTab="reports"
+    >
+      <div className="space-y-6">
       
       {/* Header */}
       <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -220,6 +227,7 @@ export const ReportsLibrary: React.FC = () => {
         </div>
       )}
 
-    </div>
+      </div>
+    </PortalLayout>
   );
 };

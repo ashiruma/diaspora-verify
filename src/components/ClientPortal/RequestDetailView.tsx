@@ -28,6 +28,7 @@ import { EvidenceGallery } from '../ui/EvidenceGallery';
 import { StatusBadge, ProcessStageBadge } from '../CommonBadges';
 import { FORMAT_CURRENCY, hasStopPaymentWarning } from '../../data/mockData';
 import type { CurrencyCode } from '../../types';
+import { PortalLayout } from '../layout/PortalLayout';
 
 interface RequestDetailViewProps {
   onBack: () => void;
@@ -113,7 +114,32 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto px-4 sm:px-6 py-6">
+    <PortalLayout
+      title={`Mission Dossier ${req.id}`}
+      subtitle={`${req.location.town}, ${req.location.county} · ${req.category}`}
+      role={currentUser?.role === 'admin' ? 'admin' : 'client'}
+      activeTab="requests"
+      actions={
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onBack}
+            className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            ← Back
+          </button>
+          {req.qaReview?.publishedToClient && (
+            <button
+              onClick={() => onOpenReport(req)}
+              className="flex h-10 items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Audit Report</span>
+            </button>
+          )}
+        </div>
+      }
+    >
+      <div className="space-y-6">
       
       {/* Back and Action bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1059,6 +1085,7 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
         </div>
       )}
 
-    </div>
+      </div>
+    </PortalLayout>
   );
 };

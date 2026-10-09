@@ -29,6 +29,7 @@ import {
 import type { ServiceCategory, ServiceOfferModel, CurrencyCode } from '../../types';
 import { KENYA_COUNTIES, FORMAT_CURRENCY } from '../../data/mockData';
 import { calculateFeeBreakdown } from '../../services/paymentService';
+import { PortalLayout } from '../layout/PortalLayout';
 
 interface NewRequestWizardProps {
   onSuccess: (newId: string) => void;
@@ -477,7 +478,21 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
   const currentPillarDef = MASTER_PILLARS.find(p => p.id === masterPillar) || MASTER_PILLARS[0];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 font-sans text-left">
+    <PortalLayout
+      title="Book Ground Verification"
+      subtitle="Thursday, 8 October 2026 · 5-Step Intake & Instant Quoting"
+      role="client"
+      activeTab="new-request"
+      actions={
+        <button
+          onClick={onCancel}
+          className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
+        >
+          ✕ Cancel
+        </button>
+      }
+    >
+      <div className="max-w-4xl mx-auto space-y-6">
       {/* Toast Notification for Saved Draft */}
       {draftSavedToast && (
         <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs border border-slate-700 animate-fadeIn">
@@ -1777,7 +1792,8 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
 
         </form>
 
+        </div>
       </div>
-    </div>
+    </PortalLayout>
   );
 };

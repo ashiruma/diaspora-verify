@@ -9,6 +9,8 @@ import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { FORMAT_CURRENCY, hasStopPaymentWarning } from '../../data/mockData';
 import { useNavigate } from 'react-router-dom';
+import { PortalLayout } from '../layout/PortalLayout';
+import { CheckCircle2 } from 'lucide-react';
 
 export const ClientPaymentsView: React.FC = () => {
   const { clientRequests, currency, payInvoice, currentUser } = useVerification();
@@ -55,16 +57,30 @@ export const ClientPaymentsView: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans text-left">
-      {/* Page Header */}
-      <div className="pb-6 border-b border-slate-200">
-        <h1 className="text-2xl font-bold font-display text-slate-900 tracking-tight">
-          Payments & Billing
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 max-w-xl mt-1">
-          Direct settlement for independent inspection fees and milestone disbursements with M-Pesa, card, or international wire.
-        </p>
-      </div>
+    <PortalLayout
+      title="Invoices & Escrow Payments"
+      subtitle="Thursday, 8 October 2026 · Transparent Fee Schedule"
+      role={currentUser?.role === 'admin' ? 'admin' : 'client'}
+      activeTab="payments"
+    >
+      <div className="space-y-6">
+        {/* Intro */}
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Milestone Escrow Safeguard
+            </div>
+
+            <h2 className="text-2xl font-bold tracking-tight md:text-3xl text-slate-900">
+              Payments & Billing
+            </h2>
+
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+              Direct settlement for independent inspection fees and milestone disbursements with M-Pesa, card, or international wire.
+            </p>
+          </div>
+        </div>
 
       {toastMessage && (
         <div className="bg-emerald-600 text-white px-5 py-3 rounded-2xl flex items-center justify-between text-xs font-semibold shadow-sm">
@@ -359,6 +375,7 @@ export const ClientPaymentsView: React.FC = () => {
           </div>
         </Modal>
       )}
-    </div>
+      </div>
+    </PortalLayout>
   );
 };

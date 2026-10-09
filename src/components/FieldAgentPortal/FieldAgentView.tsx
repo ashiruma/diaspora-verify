@@ -19,6 +19,7 @@ import {
 } from '../Icons';
 import { StatusBadge } from '../CommonBadges';
 import { EmptyState } from '../ui/EmptyState';
+import { PortalLayout } from '../layout/PortalLayout';
 
 export const FieldAgentView: React.FC = () => {
   const { 
@@ -257,7 +258,13 @@ export const FieldAgentView: React.FC = () => {
   const agentFirstName = (currentUser?.name || agent.name || 'Agent').replace(/^(Eng\.|Dr\.|Mr\.|Ms\.)\s*/, '').split(' ')[0];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6 text-left font-sans">
+    <PortalLayout
+      title="Field Verifier Workspace"
+      subtitle="Thursday, 8 October 2026 · Nairobi Hub"
+      role="agent"
+      activeTab="agent"
+    >
+      <div className="space-y-6">
       
       {/* 1. Header: Good morning, [Agent] */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200">
@@ -1166,6 +1173,7 @@ export const FieldAgentView: React.FC = () => {
         </>
       )}
 
-    </div>
+      </div>
+    </PortalLayout>
   );
 };

@@ -33,6 +33,7 @@ import { FORMAT_CURRENCY, hasStopPaymentWarning } from '../../data/mockData';
 import { calculateConfidenceScore } from '../../services/confidenceScorer';
 import { ROLE_PERMISSIONS } from '../../auth/authorization';
 import { CockpitContent } from './OperationsCockpit';
+import { PortalLayout } from '../layout/PortalLayout';
 
 export type OperationsTab = 
   | 'operations' 
@@ -445,10 +446,34 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
       notes: r.contactOnGround.notes
     }));
 
+  const tabTitles: Record<OperationsTab, string> = {
+    operations: 'Operations Center & Register',
+    requests: 'Verification Requests Register',
+    payments: 'Financial Control & Escrow Ledgers',
+    clients: 'Client Directory & Diaspora Accounts',
+    contacts: 'On-Ground Caretakers & Site Contacts',
+    assignments: 'Mission Dispatch & Field Verifier Assignment',
+    agents: 'Ground Verifiers Registry & Vetting',
+    reports: 'QA Review & Official Dossier Publishing',
+    disputes: 'Independent Dispute Resolution Desk',
+    analytics: 'Regional Ground Intelligence & Operations Map',
+    services: 'Service Catalogue & Scope Definitions',
+    settings: 'Audit Trail & Compliance Control Log',
+  };
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 font-sans">
-      
-      {/* Top Operational Counters (Operations Center Command Overview) */}
+    <PortalLayout
+      title={tabTitles[activeTab] || 'Operations Center'}
+      subtitle="Thursday, 8 October 2026 · Nairobi HQ"
+      role="admin"
+      activeTab={activeTab}
+      onNavigateTab={(tab: string) => handleTabChange(tab as OperationsTab)}
+      onRefresh={() => setToastMessage('Operations dashboard data refreshed.')}
+      onExport={() => alert('Exporting Operations Audit Report...')}
+    >
+      <div className="space-y-6">
+        
+        {/* Top Operational Counters (Operations Center Command Overview) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Counter 1: Requiring Attention */}
         <button 
@@ -3081,6 +3106,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
         </div>
       )}
 
-    </div>
+      </div>
+    </PortalLayout>
   );
 };

@@ -39,7 +39,7 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-800">
+    <>
       {/* Main Content Area */}
       {renderRoleView()}
 
@@ -47,7 +47,7 @@ export const Dashboard: React.FC = () => {
       {reportModalRequest && (
         <StandardReportModal request={reportModalRequest} onClose={closeReportModal} />
       )}
-    </div>
+    </>
   );
 };
 

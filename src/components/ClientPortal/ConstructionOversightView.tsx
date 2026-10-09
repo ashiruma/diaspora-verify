@@ -22,6 +22,7 @@ import { FORMAT_CURRENCY } from '../../data/mockData';
 import type { PaymentDecisionStatus } from '../../types';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '../ui/EmptyState';
+import { PortalLayout } from '../layout/PortalLayout';
 
 export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> = () => {
   const { 
@@ -59,22 +60,29 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
 
   if (!request) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 text-left">
-        <EmptyState
-          icon={<Building className="w-8 h-8 text-slate-400" />}
-          title="No Construction Verifications Found"
-          description="You do not have any active or past construction milestone inspections. Submit a verification request to track your foundation, walling, or roofing progress with photo comparisons and stop-payment advisories."
-          action={
-            <Link
-              to="/new-request"
-              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-2 shadow-md transition"
-            >
-              <span>Request Construction Verification</span>
-            </Link>
-          }
-          className="bg-white border-slate-200 py-16"
-        />
-      </div>
+      <PortalLayout
+        title="Construction Oversight"
+        subtitle="Thursday, 8 October 2026 · Independent Structural & Milestone Audit"
+        role="client"
+        activeTab="construction"
+      >
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 text-left">
+          <EmptyState
+            icon={<Building className="w-8 h-8 text-slate-400" />}
+            title="No Construction Verifications Found"
+            description="You do not have any active or past construction milestone inspections. Submit a verification request to track your foundation, walling, or roofing progress with photo comparisons and stop-payment advisories."
+            action={
+              <Link
+                to="/new-request"
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-2 shadow-md transition"
+              >
+                <span>Request Construction Verification</span>
+              </Link>
+            }
+            className="bg-white border-slate-200 py-16"
+          />
+        </div>
+      </PortalLayout>
     );
   }
 
@@ -108,7 +116,13 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <PortalLayout
+      title="Construction Oversight"
+      subtitle="Thursday, 8 October 2026 · Independent Structural & Milestone Audit"
+      role="client"
+      activeTab="construction"
+    >
+      <div className="space-y-6">
       
       {/* Hero Header */}
       <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
@@ -861,6 +875,7 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
         </div>
       )}
 
-    </div>
+      </div>
+    </PortalLayout>
   );
 };

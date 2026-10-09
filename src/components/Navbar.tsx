@@ -54,8 +54,27 @@ export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // On standalone fullscreen cockpit, cockpit provides its own dedicated sidebar and top bar
-  if (location.pathname === '/cockpit' || location.pathname === '/admin/cockpit') {
+  // Portal routes have their own unified sidebar and header shell via PortalLayout
+  const isPortalRoute = 
+    location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/cockpit') ||
+    location.pathname.startsWith('/operations') ||
+    location.pathname.startsWith('/dashboard') ||
+    location.pathname.startsWith('/requests') ||
+    location.pathname.startsWith('/request/') ||
+    location.pathname.startsWith('/payments') ||
+    location.pathname.startsWith('/messages') ||
+    location.pathname.startsWith('/profile') ||
+    location.pathname.startsWith('/properties') ||
+    location.pathname.startsWith('/construction') ||
+    location.pathname.startsWith('/reports') ||
+    location.pathname.startsWith('/disputes') ||
+    location.pathname.startsWith('/agent') ||
+    location.pathname.startsWith('/corporate') ||
+    location.pathname.startsWith('/new-request') ||
+    location.pathname === '/admin-page';
+
+  if (isPortalRoute) {
     return null;
   }
 

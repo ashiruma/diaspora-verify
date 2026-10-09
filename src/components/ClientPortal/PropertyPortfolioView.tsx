@@ -9,6 +9,7 @@ import {
 import { KENYA_COUNTIES } from '../../data/mockData';
 import type { PropertyRecord } from '../../types';
 import { EmptyState } from '../ui/EmptyState';
+import { PortalLayout } from '../layout/PortalLayout';
 
 interface PropertyPortfolioViewProps {
   onNewVerificationForProperty?: (prop: PropertyRecord) => void;
@@ -81,7 +82,22 @@ export const PropertyPortfolioView: React.FC<PropertyPortfolioViewProps> = ({ on
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <PortalLayout
+      title="Property Portfolio"
+      subtitle="Thursday, 8 October 2026 · Geotagged Real Estate Assets"
+      role="client"
+      activeTab="properties"
+      actions={
+        <button
+          onClick={() => setAddModalOpen(true)}
+          className="flex h-10 items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Add Property</span>
+        </button>
+      }
+    >
+      <div className="space-y-6">
       
       {/* Toast Feedback */}
       {toastMessage && (
@@ -443,6 +459,7 @@ export const PropertyPortfolioView: React.FC<PropertyPortfolioViewProps> = ({ on
         </div>
       )}
 
-    </div>
+      </div>
+    </PortalLayout>
   );
 };

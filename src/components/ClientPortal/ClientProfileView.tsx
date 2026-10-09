@@ -10,6 +10,8 @@ import {
   LogOut
 } from '../Icons';
 import { Button } from '../ui/Button';
+import { PortalLayout } from '../layout/PortalLayout';
+import { CheckCircle2 } from 'lucide-react';
 
 export const ClientProfileView: React.FC = () => {
   const navigate = useNavigate();
@@ -41,16 +43,30 @@ export const ClientProfileView: React.FC = () => {
   );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans text-left">
-      {/* Page Header */}
-      <div className="pb-6 border-b border-slate-200">
-        <h1 className="text-2xl font-bold font-display text-slate-900 tracking-tight">
-          Account & Security Settings
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 max-w-xl mt-1">
-          Diaspora verification credentials, multi-factor authentication (MFA), and audit log history.
-        </p>
-      </div>
+    <PortalLayout
+      title="Account & Security"
+      subtitle="Thursday, 8 October 2026 · Diaspora Client Profile"
+      role={currentUser?.role === 'admin' ? 'admin' : 'client'}
+      activeTab="profile"
+    >
+      <div className="space-y-6">
+        {/* Intro */}
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Identity & Consent Verified
+            </div>
+
+            <h2 className="text-2xl font-bold tracking-tight md:text-3xl text-slate-900">
+              Account & Security Settings
+            </h2>
+
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+              Diaspora verification credentials, multi-factor authentication (MFA), and audit log history.
+            </p>
+          </div>
+        </div>
 
       {toastMessage && (
         <div className="bg-emerald-600 text-white px-5 py-3 rounded-2xl flex items-center justify-between text-xs font-semibold shadow-sm">
@@ -241,6 +257,7 @@ export const ClientProfileView: React.FC = () => {
           </Button>
         </div>
       </div>
-    </div>
+      </div>
+    </PortalLayout>
   );
 };

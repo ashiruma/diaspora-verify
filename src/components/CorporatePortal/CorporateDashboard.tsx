@@ -9,6 +9,7 @@ import {
   Check
 } from '../Icons';
 import { FORMAT_CURRENCY } from '../../data/mockData';
+import { PortalLayout } from '../layout/PortalLayout';
 
 export const CorporateDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -102,7 +103,13 @@ export const CorporateDashboard: React.FC = () => {
   const orgRequests = requests.slice(0, 4);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <PortalLayout
+      title="Corporate Oversight Desk"
+      subtitle="Thursday, 8 October 2026 · Institutional Portfolio Due Diligence"
+      role="corporate"
+      activeTab="corporate"
+    >
+      <div className="space-y-6">
       
       {/* Toast Feedback */}
       {toastMessage && (
@@ -465,6 +472,7 @@ export const CorporateDashboard: React.FC = () => {
         </div>
       )}
 
-    </div>
+      </div>
+    </PortalLayout>
   );
 };

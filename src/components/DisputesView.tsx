@@ -7,6 +7,7 @@ import {
   Check
 } from './Icons';
 import type { DisputeRecord } from '../types';
+import { PortalLayout } from './layout/PortalLayout';
 
 export const DisputesView: React.FC = () => {
   const { 
@@ -64,7 +65,13 @@ export const DisputesView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <PortalLayout
+      title="Disputes & Escalations"
+      subtitle="Thursday, 8 October 2026 · Formal Accountability Desk"
+      role={activeRole === 'admin' ? 'admin' : 'client'}
+      activeTab="disputes"
+    >
+      <div className="space-y-6">
       
       {/* Toast Feedback */}
       {toastMessage && (
@@ -392,6 +399,7 @@ export const DisputesView: React.FC = () => {
         </div>
       )}
 
-    </div>
+      </div>
+    </PortalLayout>
   );
 };

@@ -7,13 +7,14 @@ import {
   FileText,
   Clock,
   ExternalLink,
-  ShieldCheck
 } from '../Icons';
 import { StatusBadge } from '../ui/StatusBadge';
 import { CategoryIcon } from '../CommonBadges';
 import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
 import { useNavigate } from 'react-router-dom';
+import { PortalLayout } from '../layout/PortalLayout';
+import { CheckCircle2, TrendingUp, Wallet, MoreHorizontal, FileCheck2 } from 'lucide-react';
 
 interface ClientDashboardProps {
   onSelectRequest: (id: string) => void;
@@ -39,59 +40,162 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
   );
 
   const firstName = currentUser?.name?.split(' ')[0] || 'Client';
+  const escrowTotalKES = clientRequests.reduce((sum, r) => sum + (r.pricing?.serviceFeeKES || 0), 0);
+  const siteCount = new Set(clientRequests.map(r => r.location.town)).size || 1;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8 font-sans text-left">
-      
-      {/* 1. Header & Primary Dominant Quick Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-200/80">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold font-display text-slate-900 tracking-tight">
-            Good morning, {firstName}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-xl leading-relaxed">
-            Here is the live status of your verification missions across Kenya. Your assigned field verifiers provide dated evidence and objective findings.
-          </p>
+    <PortalLayout
+      title="Client Portal Overview"
+      subtitle="Thursday, 8 October 2026 · Nairobi Ground Operations"
+      role="client"
+      activeTab="dashboard"
+      actions={
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={onNavigateToNewRequest}
+          leftIcon={<Plus className="w-4 h-4 stroke-[2.5]" />}
+        >
+          New Verification
+        </Button>
+      }
+    >
+      <div className="space-y-6">
+        {/* PAGE INTRO (Cockpit Style) */}
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Active Diaspora Safeguard Protection
+            </div>
+
+            <h2 className="text-2xl font-bold tracking-tight md:text-3xl text-slate-900">
+              Good morning, {firstName}
+            </h2>
+
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+              Live status of your verification missions across Kenya. Your assigned field verifiers provide dated evidence and objective findings.
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate('/requests')}
+              className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-semibold shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              <FileText className="h-4 w-4 text-slate-500" />
+              View All Requests
+            </button>
+
+            <button
+              onClick={onNavigateToNewRequest}
+              className="flex h-10 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-xs font-bold text-white shadow-2xs hover:bg-emerald-700 transition-colors cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              New Verification
+            </button>
+          </div>
         </div>
 
-        {/* One Dominant Quick Action */}
-        <div className="flex-shrink-0">
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={onNavigateToNewRequest}
-            leftIcon={<Plus className="w-4 h-4 stroke-[2.5]" />}
-          >
-            New Verification
-          </Button>
-        </div>
-      </div>
+        {/* KPI CARDS (Matches Cockpit Grid Structure) */}
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {/* Card 1 */}
+          <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_10px_rgba(15,23,42,0.03)] transition hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-start justify-between">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                <Clock className="h-5 w-5" />
+              </div>
+              <MoreHorizontal className="h-5 w-5 text-slate-300" />
+            </div>
+            <p className="mt-5 text-xs font-medium uppercase tracking-wide text-slate-400">
+              Active Missions
+            </p>
+            <div className="mt-1 flex items-end justify-between gap-3">
+              <p className="text-2xl font-bold tracking-tight text-slate-900 font-mono">
+                {activeRequests.length}
+              </p>
+              <span className="mb-1 inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
+                <TrendingUp className="h-3.5 w-3.5" />
+                Live on-ground
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              In progress across Kenya
+            </p>
+          </div>
 
-      {/* 2. Restrained Operational Summary Bar (No excessive statistics) */}
-      <div className="flex flex-wrap items-center gap-3 sm:gap-6 py-3 px-3.5 sm:px-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs text-xs">
-        <div className="flex items-center gap-2.5">
-          <span className="text-slate-400 font-medium">Active Requests:</span>
-          <span className="font-bold text-slate-900 font-mono text-sm bg-slate-100 px-2 py-0.5 rounded-md">
-            {activeRequests.length}
-          </span>
-        </div>
+          {/* Card 2 */}
+          <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_10px_rgba(15,23,42,0.03)] transition hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-start justify-between">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <FileCheck2 className="h-5 w-5" />
+              </div>
+              <MoreHorizontal className="h-5 w-5 text-slate-300" />
+            </div>
+            <p className="mt-5 text-xs font-medium uppercase tracking-wide text-slate-400">
+              Reports Ready
+            </p>
+            <div className="mt-1 flex items-end justify-between gap-3">
+              <p className="text-2xl font-bold tracking-tight text-slate-900 font-mono">
+                {reportsAvailable.length}
+              </p>
+              <span className="mb-1 inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
+                QA Certified
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              Signed audit dossiers
+            </p>
+          </div>
 
-        <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+          {/* Card 3 */}
+          <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_10px_rgba(15,23,42,0.03)] transition hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-start justify-between">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                <MapPin className="h-5 w-5 text-emerald-600" />
+              </div>
+              <MoreHorizontal className="h-5 w-5 text-slate-300" />
+            </div>
+            <p className="mt-5 text-xs font-medium uppercase tracking-wide text-slate-400">
+              Monitored Locations
+            </p>
+            <div className="mt-1 flex items-end justify-between gap-3">
+              <p className="text-2xl font-bold tracking-tight text-slate-900 font-mono">
+                {siteCount}
+              </p>
+              <span className="mb-1 inline-flex items-center gap-1 text-xs font-bold text-blue-600">
+                Geotagged
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              Towns & sites tracked
+            </p>
+          </div>
 
-        <div className="flex items-center gap-2.5">
-          <span className="text-slate-400 font-medium">Reports Available:</span>
-          <span className="font-bold text-emerald-800 font-mono text-sm bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-            {reportsAvailable.length}
-          </span>
-        </div>
-
-        <div className="h-4 w-px bg-slate-200 hidden sm:block" />
-
-        <div className="text-slate-400 hidden sm:flex items-center gap-1.5 ml-auto text-[11px]">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Independent on-ground due diligence</span>
-        </div>
-      </div>
+          {/* Card 4 */}
+          <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_10px_rgba(15,23,42,0.03)] transition hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-start justify-between">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                <Wallet className="h-5 w-5 text-blue-600" />
+              </div>
+              <MoreHorizontal className="h-5 w-5 text-slate-300" />
+            </div>
+            <p className="mt-5 text-xs font-medium uppercase tracking-wide text-slate-400">
+              Escrow Protected
+            </p>
+            <div className="mt-1 flex items-end justify-between gap-3">
+              <p className="text-xl font-bold tracking-tight text-slate-900 font-mono">
+                KES {escrowTotalKES.toLocaleString()}
+              </p>
+              <span className="mb-1 inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
+                Safeguarded
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              Milestone released funds
+            </p>
+          </div>
+        </section>
 
       {/* 3. ACTIVE REQUESTS — What is happening with my requests? */}
       <section className="space-y-4">
@@ -254,6 +358,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
         )}
       </section>
 
-    </div>
+      </div>
+    </PortalLayout>
   );
 };
