@@ -155,12 +155,6 @@ export function HomePage({
             <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-14">
               {/* LEFT COLUMN: Strategic Value Proposition */}
               <div className="lg:col-span-7 space-y-6 sm:space-y-7">
-                {/* Eyebrow Pill */}
-                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3.5 py-1.5 text-xs font-bold tracking-wide text-emerald-300">
-                  <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
-                  <span>Independent Ground Due Diligence · Nairobi, Kenya</span>
-                </div>
-
                 {/* Primary Headline */}
                 <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black leading-[1.08] tracking-tight text-white font-display">
                   Your trusted eyes and hands on the ground in Kenya.
