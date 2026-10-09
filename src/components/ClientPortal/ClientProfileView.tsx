@@ -7,7 +7,8 @@ import {
   Check, 
   Lock,
   Layers,
-  LogOut
+  LogOut,
+  Eye
 } from '../Icons';
 import { Button } from '../ui/Button';
 import { PortalLayout } from '../layout/PortalLayout';
@@ -15,7 +16,7 @@ import { CheckCircle2 } from 'lucide-react';
 
 export const ClientProfileView: React.FC = () => {
   const navigate = useNavigate();
-  const { currentUser, setCurrentUser, logout, mfaEnabled, toggleMFA, auditLogs } = useVerification();
+  const { currentUser, setCurrentUser, logout, mfaEnabled, toggleMFA, auditLogs, startViewAs, agents } = useVerification();
 
   const [name, setName] = useState(currentUser?.name || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
@@ -205,6 +206,61 @@ export const ClientProfileView: React.FC = () => {
               <p className="text-[11px] text-slate-500">
                 Strict zero-contact isolation relay protocol between clients and agents.
               </p>
+            </div>
+          </div>
+
+          {/* Audited Role Simulation ("View As") */}
+          <div className="pt-4 border-t border-slate-100 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Audited Role Simulation ("View As")</span>
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Preview the live portal experience as a diaspora client or field verifier while retaining Level 4 Admin clearance.
+                </p>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold shrink-0 self-start sm:self-auto">
+                Audited Session
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  startViewAs('client', 'client-01', 'Amara Okafor', 'amara.okafor@diaspora.co.uk');
+                  navigate('/dashboard');
+                }}
+                className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-emerald-50/50 hover:border-emerald-300 transition-all text-left group cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">Preview Client Portal</span>
+                  <span className="text-xs text-emerald-600 font-bold">Preview Client →</span>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Simulate Amara Okafor (London) with active construction oversight & escrow records.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const agt = agents[0] || { id: 'agt-01', name: 'Evans Kiptoo', email: 'evans.kiptoo@diasporaverify.co.ke' };
+                  startViewAs('agent', agt.id, agt.name, agt.email);
+                  navigate('/agent');
+                }}
+                className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-amber-50/50 hover:border-amber-300 transition-all text-left group cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900 group-hover:text-amber-700">Preview Field Operative Workspace</span>
+                  <span className="text-xs text-amber-600 font-bold">Preview Agent →</span>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Simulate Eng. Evans Kiptoo with live field assignments, GPS check-in & photo evidence capture.
+                </p>
+              </button>
             </div>
           </div>
         </div>
