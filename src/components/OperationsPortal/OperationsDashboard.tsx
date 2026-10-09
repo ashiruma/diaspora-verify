@@ -2973,7 +2973,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
               <label className="block text-xs font-bold text-slate-800">
                 1. Select Vetted Verifier Roster
               </label>
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                 {agents.map((agt) => {
                   const isSelected = agt.id === selectedAgentId;
                   const coversCounty = agt.primaryCounties.includes(assigningRequest.location.county);

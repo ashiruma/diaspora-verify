@@ -175,7 +175,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ isOpen, onClose }) => 
         </div>
 
         {/* Results List */}
-        <div className="max-h-96 overflow-y-auto p-2 divide-y divide-slate-100">
+        <div className="max-h-96 overflow-y-auto custom-scrollbar p-2 divide-y divide-slate-100">
           {filteredItems.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-400">
               No matching records found for "{query}".

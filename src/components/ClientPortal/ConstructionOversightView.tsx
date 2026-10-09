@@ -723,7 +723,7 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
                   <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                     Immutable Decision Ledger:
                   </span>
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                     {pdr.history.map((hist, idx) => (
                       <div key={idx} className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 text-[11px] space-y-1">
                         <div className="flex items-center justify-between font-bold text-slate-800">

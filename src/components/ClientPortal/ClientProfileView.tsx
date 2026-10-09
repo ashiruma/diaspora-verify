@@ -278,7 +278,7 @@ export const ClientProfileView: React.FC = () => {
         {userAudits.length === 0 ? (
           <p className="text-xs text-slate-400">No session security events recorded yet.</p>
         ) : (
-          <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
             {userAudits.map((log) => (
               <div key={log.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
                 <div>

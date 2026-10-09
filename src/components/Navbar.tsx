@@ -32,6 +32,7 @@ export const Navbar: React.FC = () => {
   const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false);
   const [notifMenuOpen, setNotifMenuOpen] = useState(false);
   const [viewAsModalOpen, setViewAsModalOpen] = useState(false);
+  const [viewAsTab, setViewAsTab] = useState<'clients' | 'agents'>('clients');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const {
@@ -134,6 +135,14 @@ export const Navbar: React.FC = () => {
       ])
     ).values()
   );
+
+  const fallbackClients = [
+    { id: 'client-01', name: 'Amara Okafor', email: 'amara.okafor@diaspora.co.uk', location: 'London, United Kingdom' },
+    { id: 'client-02', name: 'Dr. Kwame Mensah', email: 'kwame.mensah@diaspora.org', location: 'Toronto, Canada' },
+    { id: 'client-03', name: 'Zainab Al-Mansoori', email: 'zainab@investments.ae', location: 'Dubai, UAE' },
+    { id: 'client-04', name: 'David Kiprono Chemweno', email: 'david.chemweno@techcorp.com', location: 'Dallas, TX, USA' },
+  ];
+  const displayClients = clientsList.length > 0 ? clientsList : fallbackClients;
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
@@ -411,7 +420,7 @@ export const Navbar: React.FC = () => {
                           </button>
                         )}
                       </div>
-                      <div className="max-h-64 overflow-y-auto space-y-2">
+                      <div className="max-h-64 overflow-y-auto space-y-2 custom-scrollbar pr-1">
                         {notifications.length === 0 ? (
                           <p className="text-xs text-slate-400 py-4 text-center">No notifications.</p>
                         ) : (
@@ -738,75 +747,153 @@ export const Navbar: React.FC = () => {
         </div>
       )}
 
-      {/* Admin "View As" Selector Modal */}
+      {/* Admin "View As" Experience Modal */}
       {viewAsModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 text-left space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">Admin "View As" Preview Mode</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Inspect the platform from a specific client or agent's perspective. Your underlying role remains ADMIN.
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm overflow-y-auto"
+          onClick={() => setViewAsModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl p-5 sm:p-7 max-w-xl w-full shadow-2xl border border-slate-200 text-left space-y-5 my-auto relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                  <Eye className="w-3 h-3 text-amber-700" />
+                  <span>Audited Simulation Mode</span>
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 font-display">
+                  Admin "View As" Experience
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed max-w-md">
+                  Simulate the exact portal experience of a diaspora client or on-ground field verifier. Your underlying authentication and privileges remain <strong>ADMIN</strong>.
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setViewAsModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                aria-label="Close dialog"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-3">
-              <div>
-                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  View Client Experience
-                </h4>
-                <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                  {clientsList.map((client) => (
+            {/* Tab Selector */}
+            <div className="flex items-center gap-2 p-1 rounded-2xl bg-slate-100/80 border border-slate-200/60 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setViewAsTab('clients')}
+                className={`flex-1 py-2 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                  viewAsTab === 'clients'
+                    ? 'bg-white text-slate-900 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span>Diaspora Clients</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">
+                  {displayClients.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewAsTab('agents')}
+                className={`flex-1 py-2 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                  viewAsTab === 'agents'
+                    ? 'bg-white text-slate-900 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span>Field Operatives</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-mono">
+                  {agents.length}
+                </span>
+              </button>
+            </div>
+
+            {/* Tab Contents: Clients */}
+            {viewAsTab === 'clients' && (
+              <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
+                {displayClients.map((client) => (
+                  <div
+                    key={client.email}
+                    className="p-3.5 rounded-2xl border border-slate-200/90 bg-slate-50/50 hover:bg-emerald-50/30 hover:border-emerald-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                        {client.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-slate-900 truncate">{client.name}</div>
+                        <div className="text-[11px] text-slate-500 truncate">{client.email} · {client.location}</div>
+                      </div>
+                    </div>
+
                     <button
-                      key={client.email}
+                      type="button"
                       onClick={() => {
                         startViewAs('client', client.id, client.name, client.email);
                         setViewAsModalOpen(false);
                         navigate('/dashboard');
                       }}
-                      className="w-full text-left p-2.5 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all text-xs flex items-center justify-between cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-2xs transition-colors shrink-0 cursor-pointer text-center"
                     >
-                      <div>
-                        <div className="font-bold text-slate-900">{client.name}</div>
-                        <div className="text-[11px] text-slate-500">{client.email} · {client.location}</div>
-                      </div>
-                      <span className="text-[11px] font-semibold text-emerald-700">Preview Client →</span>
+                      Preview Client →
                     </button>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
+            )}
 
-              <div className="pt-2 border-t border-slate-100">
-                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  View Agent Experience
-                </h4>
-                <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                  {agents.slice(0, 4).map((agent) => (
+            {/* Tab Contents: Agents */}
+            {viewAsTab === 'agents' && (
+              <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
+                {agents.map((agent) => (
+                  <div
+                    key={agent.id}
+                    className="p-3.5 rounded-2xl border border-slate-200/90 bg-slate-50/50 hover:bg-amber-50/30 hover:border-amber-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-900 border border-amber-300/60 flex items-center justify-center font-bold text-sm shrink-0">
+                        {agent.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-slate-900 truncate">{agent.name}</div>
+                        <div className="text-[11px] text-slate-500 truncate">
+                          <span className="font-semibold text-amber-800">{agent.badgeLevel}</span> · {agent.primaryCounties.join(', ')}
+                        </div>
+                      </div>
+                    </div>
+
                     <button
-                      key={agent.id}
+                      type="button"
                       onClick={() => {
                         startViewAs('agent', agent.id, agent.name, agent.email);
                         setViewAsModalOpen(false);
                         navigate('/agent');
                       }}
-                      className="w-full text-left p-2.5 rounded-xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50/50 transition-all text-xs flex items-center justify-between cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-2xs transition-colors shrink-0 cursor-pointer text-center"
                     >
-                      <div>
-                        <div className="font-bold text-slate-900">{agent.name}</div>
-                        <div className="text-[11px] text-slate-500">{agent.badgeLevel} · {agent.primaryCounties.join(', ')}</div>
-                      </div>
-                      <span className="text-[11px] font-semibold text-amber-700">Preview Agent →</span>
+                      Preview Agent →
                     </button>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
+            )}
+
+            {/* Footer Notice */}
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+              <span>View-As sessions are recorded in the Nairobi HQ security audit log.</span>
+              <button
+                type="button"
+                onClick={() => setViewAsModalOpen(false)}
+                className="font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
