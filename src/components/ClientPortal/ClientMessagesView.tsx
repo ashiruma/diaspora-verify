@@ -93,6 +93,22 @@ export const ClientMessagesView: React.FC = () => {
         </p>
       </div>
 
+      {/* Anti-Collusion Relay Banner */}
+      <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 text-xs text-blue-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <ShieldCheck className="w-5 h-5 text-blue-700 shrink-0" />
+          <div>
+            <span className="font-bold">Nairobi HQ Anti-Collusion Relay Active:</span>
+            <p className="text-[11px] text-blue-800 leading-relaxed">
+              All communications are routed through your assigned Nairobi Operations Desk Coordinator. Client contact details and agent contact details remain 100% masked to prevent off-platform collusion or conflict of interest.
+            </p>
+          </div>
+        </div>
+        <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-900 font-bold text-[10px] uppercase tracking-wider shrink-0 font-mono">
+          Zero Contact Leaks
+        </span>
+      </div>
+
       {clientRequests.length === 0 ? (
         <EmptyState
           icon={<FileText className="w-6 h-6" />}

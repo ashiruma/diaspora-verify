@@ -27,6 +27,7 @@ import { Timeline } from '../ui/Timeline';
 import { EvidenceGallery } from '../ui/EvidenceGallery';
 import { StatusBadge, ProcessStageBadge } from '../CommonBadges';
 import { FORMAT_CURRENCY, hasStopPaymentWarning } from '../../data/mockData';
+import type { CurrencyCode } from '../../types';
 
 interface RequestDetailViewProps {
   onBack: () => void;
@@ -41,6 +42,7 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
     activeRequest, 
     selectRequest, 
     currency, 
+    setCurrency,
     recordClientDecision, 
     payInvoice,
     currentUser,
@@ -467,6 +469,30 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
                 <StatusBadge status={req.status} size="sm" />
               </div>
 
+              {/* 4-State Standard Finding Schema */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pb-2">
+                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                  <span className="text-[10px] font-bold uppercase text-emerald-800 font-mono">1. Observed</span>
+                  <div className="font-bold text-xs text-emerald-950 mt-0.5">Verified on Site</div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-center">
+                  <span className="text-[10px] font-bold uppercase text-amber-800 font-mono">2. Partly Observed</span>
+                  <div className="font-bold text-xs text-amber-950 mt-0.5">
+                    {req.qaReview.contradictions.length > 0 ? `${req.qaReview.contradictions.length} Flagged` : '0 Discrepancies'}
+                  </div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-center">
+                  <span className="text-[10px] font-bold uppercase text-slate-700 font-mono">3. Not Observed</span>
+                  <div className="font-bold text-xs text-slate-900 mt-0.5">Missing Items</div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-purple-50 border border-purple-200 text-center">
+                  <span className="text-[10px] font-bold uppercase text-purple-800 font-mono">4. Cannot Confirm</span>
+                  <div className="font-bold text-xs text-purple-950 mt-0.5">
+                    {req.qaReview.whatCouldNotBeVerified.length > 0 ? `${req.qaReview.whatCouldNotBeVerified.length} Inaccessible` : '0 Obscured'}
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-3 text-xs">
                 <div>
                   <span className="font-bold text-slate-800 block mb-1">Findings Summary:</span>
@@ -530,10 +556,11 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
                 <label className="font-bold text-slate-800 block mb-1.5">
                   Select Formal Instruction / Payment Action:
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                   {[
                     { action: 'Approve Findings & Authorize Payment', color: 'border-emerald-500 bg-emerald-50 text-emerald-950' },
-                    { action: 'Pause Payment & Issue Rectification Notice', color: 'border-amber-500 bg-amber-50 text-amber-950' },
+                    { action: 'Approve with Withholding (Stop-Payment)', color: 'border-amber-500 bg-amber-50 text-amber-950' },
+                    { action: 'Pause Payment & Issue Rectification Notice', color: 'border-rose-500 bg-rose-50 text-rose-950' },
                     { action: 'Request Specialist Follow-Up Inspection', color: 'border-blue-500 bg-blue-50 text-blue-950' },
                   ].map((btn, i) => (
                     <button
@@ -724,9 +751,27 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
 
           {/* Pricing & Service Terms */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-3 text-xs">
-            <h3 className="font-bold uppercase tracking-wider text-slate-400 text-xs">
-              Service Fee & Payment
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold uppercase tracking-wider text-slate-400 text-xs">
+                Service Fee & Payment
+              </h3>
+              <div className="flex items-center gap-1">
+                {(['KES', 'USD', 'GBP', 'EUR'] as CurrencyCode[]).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setCurrency(c)}
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold cursor-pointer transition ${
+                      currency === c
+                        ? 'bg-slate-900 text-white'
+                        : 'text-slate-500 hover:text-slate-900 bg-slate-100'
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="flex items-center justify-between text-slate-700">
               <span>DiasporaVerify Service Fee:</span>
               <span className="font-mono font-bold text-base text-slate-900">
