@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useVerification } from '../../context/VerificationContext';
 import { 
   ArrowRight, 
@@ -6,6 +7,7 @@ import {
   FileText, 
   Lock,
   Building,
+  Building2,
   MapPin,
   Car,
   Briefcase,
@@ -16,9 +18,15 @@ import {
   Camera,
   Video,
   Upload,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle2,
+  Printer,
+  Download,
+  X,
+  ShieldCheck,
+  Clock
 } from '../Icons';
-import type { ServiceCategory, ServiceOfferModel } from '../../types';
+import type { ServiceCategory, ServiceOfferModel, CurrencyCode } from '../../types';
 import { KENYA_COUNTIES, FORMAT_CURRENCY } from '../../data/mockData';
 import { calculateFeeBreakdown } from '../../services/paymentService';
 
@@ -27,60 +35,200 @@ interface NewRequestWizardProps {
   onCancel: () => void;
 }
 
+// 5 Master Service Pillars matching canonical Specification
+interface MasterCategoryDef {
+  id: string; // Master Slug
+  title: string;
+  tagline: string;
+  icon: React.ReactNode;
+  defaultInternal: ServiceCategory;
+  subTypes: {
+    id: ServiceCategory;
+    label: string;
+    description: string;
+    defaultTitle: string;
+  }[];
+}
+
+const MASTER_PILLARS: MasterCategoryDef[] = [
+  {
+    id: 'projects-assets',
+    title: 'Projects & Assets',
+    tagline: 'Construction milestones, land boundaries, perimeter walls, and property condition',
+    icon: <Building2 className="w-5 h-5 text-emerald-600" />,
+    defaultInternal: 'construction',
+    subTypes: [
+      {
+        id: 'construction',
+        label: 'Construction Milestone Oversight',
+        description: 'Physical progress inspection (slab, lintel, roofing, finishes) and materials stock tally.',
+        defaultTitle: 'Construction Milestone Inspection'
+      },
+      {
+        id: 'property',
+        label: 'Land Boundary & Plot Verification',
+        description: 'Cadastral beacon search, perimeter fence condition, encroachment, and vacancy check.',
+        defaultTitle: 'Land Parcel & Beacon Verification'
+      }
+    ]
+  },
+  {
+    id: 'purchases-vehicles',
+    title: 'Purchases & Vehicles',
+    tagline: 'Independent pre-purchase inspection of motor vehicles, machinery & high-value equipment',
+    icon: <Car className="w-5 h-5 text-amber-600" />,
+    defaultInternal: 'vehicle',
+    subTypes: [
+      {
+        id: 'vehicle',
+        label: 'Vehicle Pre-Purchase Inspection',
+        description: 'Chassis/VIN verification, paint depth gauge, computer OBD-II scan, and test-drive observation.',
+        defaultTitle: 'Pre-Purchase Motor Vehicle Inspection'
+      },
+      {
+        id: 'purchase',
+        label: 'Machinery & Equipment Check',
+        description: 'Solar installations, water pumps, generators, and physical supplier consignment inspection.',
+        defaultTitle: 'High-Value Equipment & Machinery Check'
+      }
+    ]
+  },
+  {
+    id: 'business-support',
+    title: 'Business Support',
+    tagline: 'Commercial premises check, physical stock count, and statutory permit verification',
+    icon: <Briefcase className="w-5 h-5 text-blue-600" />,
+    defaultInternal: 'business',
+    subTypes: [
+      {
+        id: 'business',
+        label: 'Commercial Due Diligence & Storefront Audit',
+        description: 'Physical premises confirmation, inventory/stock count, county permit check, and staff presence.',
+        defaultTitle: 'Commercial Business Premises Audit'
+      }
+    ]
+  },
+  {
+    id: 'family-support',
+    title: 'Family Support',
+    tagline: 'Dignified welfare observations, clinic accompaniment & compassionate care coordination',
+    icon: <Heart className="w-5 h-5 text-rose-600" />,
+    defaultInternal: 'family',
+    subTypes: [
+      {
+        id: 'family',
+        label: 'Family Welfare & Elderly Well-being Visit',
+        description: 'Living conditions check, nutrition & comfort observation, and respectful family coordination.',
+        defaultTitle: 'Family Welfare & Well-being Check-in'
+      },
+      {
+        id: 'person',
+        label: 'Medical Clinic & Appointment Accompaniment',
+        description: 'Escorting family member to hospital/clinic, appointment attendance, and facility observation.',
+        defaultTitle: 'Clinic Visit & Care Accompaniment'
+      }
+    ]
+  },
+  {
+    id: 'custom-requests',
+    title: 'Custom Requests',
+    tagline: 'Ministry & land registry document retrieval, official follow-ups, and specialized missions',
+    icon: <Compass className="w-5 h-5 text-purple-600" />,
+    defaultInternal: 'document',
+    subTypes: [
+      {
+        id: 'document',
+        label: 'Ministry & Registry Document Search',
+        description: 'Physical document follow-up at Ardhi House, Sheria House, Huduma Centre, or County Lands.',
+        defaultTitle: 'Official Registry Document Search'
+      },
+      {
+        id: 'custom',
+        label: 'Bespoke Field Assignment',
+        description: 'Tailored on-ground mission, specialized verification, or custom coordination.',
+        defaultTitle: 'Custom On-Ground Field Assignment'
+      },
+      {
+        id: 'field_assistance',
+        label: 'General Ground Errand & Meeting Attendance',
+        description: 'Representational presence at site meetings, document collection, and local administrative tasks.',
+        defaultTitle: 'General Field Assistance & Coordination'
+      }
+    ]
+  }
+];
+
 export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, onCancel }) => {
-  const { createRequest, currency } = useVerification();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { createRequest, currency, setCurrency, currentUser, isAuthenticated } = useVerification();
 
   const [step, setStep] = useState(1);
+  const [draftSavedToast, setDraftSavedToast] = useState(false);
+  const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
 
-  // Step 1: Category & Task
-  const [category, setCategory] = useState<ServiceCategory>('property');
+  // Quote identifier generated deterministically for review
+  const [quoteId] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
+
+  // Step 1: Master Pillar & Sub-type
+  const [masterPillar, setMasterPillar] = useState<string>('projects-assets');
+  const [category, setCategory] = useState<ServiceCategory>('construction');
   const [offerType, setOfferType] = useState<ServiceOfferModel>('one-time');
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState('Construction Milestone Inspection');
 
-  // Step 2: Location
-  const [county, setCounty] = useState('Kajiado');
+  // Step 2: Location & County Coverage
+  const [county, setCounty] = useState('Nairobi');
   const [town, setTown] = useState('');
   const [area, setArea] = useState('');
   const [exactAddress, setExactAddress] = useState('');
-  const [gpsCoords, setGpsCoords] = useState('-1.4892, 36.9583');
+  const [gpsCoords, setGpsCoords] = useState('-1.2921, 36.8219');
 
-  // Step 3: Dynamic Category-Specific Questions
-  // Property questions
-  const [propertyType, setPropertyType] = useState('Land / Plot');
+  // Local Site Contact
+  const [contactName, setContactName] = useState('');
+  const [contactRole, setContactRole] = useState('Site Representative / Foreman');
+  const [contactPhone, setContactPhone] = useState('+254 ');
+
+  // Step 3: Category-Specific Structured Brief
+  // Projects & Assets (Construction & Property)
+  const [propertyType, setPropertyType] = useState('Residential Villa');
+  const [milestoneStage, setMilestoneStage] = useState('First Floor Lintel Ring Beam');
+  const [cementBagsBilled, setCementBagsBilled] = useState('100');
+  const [rebarSteelCheck, setRebarSteelCheck] = useState(true);
   const [beaconSearchRequested, setBeaconSearchRequested] = useState(true);
   const [fenceCheckRequested, setFenceCheckRequested] = useState(true);
   const [occupancyCheckRequested, setOccupancyCheckRequested] = useState(true);
   const [titleDeedRef, setTitleDeedRef] = useState('');
 
-  // Business questions
-  const [businessName, setBusinessName] = useState('');
-  const [inventoryCountRequested, setInventoryCountRequested] = useState(true);
-  const [permitCheckRequested, setPermitCheckRequested] = useState(true);
-  const [staffCheckRequested, setStaffCheckRequested] = useState(true);
-
-  // Vehicle questions
+  // Purchases & Vehicles
   const [vehicleMakeModel, setVehicleMakeModel] = useState('');
   const [vinNumber, setVinNumber] = useState('');
+  const [dealershipLocation, setDealershipLocation] = useState('');
   const [paintGaugeRequested, setPaintGaugeRequested] = useState(true);
   const [odometerCheckRequested, setOdometerCheckRequested] = useState(true);
-
-  // Document questions
-  const [documentType, setDocumentType] = useState('Land Registry Green Card / Title Record');
-  const [issuingInstitution, setIssuingInstitution] = useState('Ministry of Lands (Ardhi House)');
-  const [registryFileNumber, setRegistryFileNumber] = useState('');
-
-  // Person questions (Rule 13 Safeguarding Invariant)
-  const [personName, setPersonName] = useState('');
-  const [familyRelationship, setFamilyRelationship] = useState('Parent / Elder');
-  const [familyConsentConfirmed, setFamilyConsentConfirmed] = useState(false);
-  const [familyEmergencyContact, setFamilyEmergencyContact] = useState('');
-
-  // Purchase questions
+  const [obdScanRequested, setObdScanRequested] = useState(true);
+  const [testDriveAuthorized, setTestDriveAuthorized] = useState(true);
   const [purchaseItemName, setPurchaseItemName] = useState('');
   const [supplierName, setSupplierName] = useState('');
   const [functionalTestRequested, setFunctionalTestRequested] = useState(true);
 
-  // Field assistance questions
+  // Business Support
+  const [businessName, setBusinessName] = useState('');
+  const [storefrontAddress, setStorefrontAddress] = useState('');
+  const [inventoryCountRequested, setInventoryCountRequested] = useState(true);
+  const [permitCheckRequested, setPermitCheckRequested] = useState(true);
+  const [staffCheckRequested, setStaffCheckRequested] = useState(true);
+
+  // Family Support (Preserving Rule 13 Invariants)
+  const [personName, setPersonName] = useState('');
+  const [familyRelationship, setFamilyRelationship] = useState('Parent / Elder');
+  const [familyConsentConfirmed, setFamilyConsentConfirmed] = useState(false);
+  const [familyEmergencyContact, setFamilyEmergencyContact] = useState('');
+  const [wellnessFocus, setWellnessFocus] = useState('General living condition & nutrition observation');
+
+  // Custom Requests & Documents
+  const [documentType, setDocumentType] = useState('Land Registry Green Card / Title Record');
+  const [issuingInstitution, setIssuingInstitution] = useState('Ministry of Lands (Ardhi House)');
+  const [registryFileNumber, setRegistryFileNumber] = useState('');
   const [errandDescription, setErrandDescription] = useState('');
   const [officeToVisit, setOfficeToVisit] = useState('');
 
@@ -92,16 +240,96 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
     'Video Walkthrough'
   ]);
 
-  // Step 5: Urgency
+  // Step 5: Urgency & Timing
   const [urgency, setUrgency] = useState<'standard' | 'priority' | 'urgent'>('standard');
+  const [preferredDate, setPreferredDate] = useState('');
 
-  // Step 6: Additional Instructions & Attachments & Contact
+  // Step 6: Detailed Instructions & Attachments
   const [scopeBrief, setScopeBrief] = useState('');
-  const [contactName, setContactName] = useState('');
-  const [contactRole, setContactRole] = useState('Site Representative / Seller');
-  const [contactPhone, setContactPhone] = useState('+254 ');
   const [uploadedFiles, setUploadedFiles] = useState<{ name: string; sizeKb: number; type: string }[]>([]);
   const [agreedToBoundaries, setAgreedToBoundaries] = useState(false);
+
+  // Pre-populate category from URL search params (e.g. ?category=projects-assets)
+  useEffect(() => {
+    const paramCat = searchParams.get('category');
+    if (paramCat) {
+      const matchedPillar = MASTER_PILLARS.find(p => p.id === paramCat || p.subTypes.some(st => st.id === paramCat));
+      if (matchedPillar) {
+        setMasterPillar(matchedPillar.id);
+        const sub = matchedPillar.subTypes.find(st => st.id === paramCat) || matchedPillar.subTypes[0];
+        setCategory(sub.id);
+        setTitle(sub.defaultTitle);
+      }
+    }
+  }, [searchParams]);
+
+  // Check for saved draft in localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('dv_intake_draft');
+      if (saved && !hasRestoredDraft) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.title) {
+          setHasRestoredDraft(true);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not inspect draft', e);
+    }
+  }, [hasRestoredDraft]);
+
+  const handleRestoreDraft = () => {
+    try {
+      const saved = localStorage.getItem('dv_intake_draft');
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.masterPillar) setMasterPillar(data.masterPillar);
+        if (data.category) setCategory(data.category);
+        if (data.title) setTitle(data.title);
+        if (data.county) setCounty(data.county);
+        if (data.town) setTown(data.town);
+        if (data.area) setArea(data.area);
+        if (data.exactAddress) setExactAddress(data.exactAddress);
+        if (data.contactName) setContactName(data.contactName);
+        if (data.contactRole) setContactRole(data.contactRole);
+        if (data.contactPhone) setContactPhone(data.contactPhone);
+        if (data.scopeBrief) setScopeBrief(data.scopeBrief);
+        if (data.urgency) setUrgency(data.urgency);
+        if (data.familyConsentConfirmed !== undefined) setFamilyConsentConfirmed(data.familyConsentConfirmed);
+        if (data.familyEmergencyContact) setFamilyEmergencyContact(data.familyEmergencyContact);
+        setHasRestoredDraft(false);
+      }
+    } catch (e) {
+      console.error('Failed to restore draft', e);
+    }
+  };
+
+  const handleSaveDraft = () => {
+    try {
+      const draftPayload = {
+        masterPillar,
+        category,
+        title,
+        county,
+        town,
+        area,
+        exactAddress,
+        contactName,
+        contactRole,
+        contactPhone,
+        scopeBrief,
+        urgency,
+        familyConsentConfirmed,
+        familyEmergencyContact,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem('dv_intake_draft', JSON.stringify(draftPayload));
+      setDraftSavedToast(true);
+      setTimeout(() => setDraftSavedToast(false), 3500);
+    } catch (e) {
+      console.error('Failed to save draft', e);
+    }
+  };
 
   // Calculate pricing breakdown via centralized service
   const feeBreakdown = calculateFeeBreakdown(category, urgency, county, currency);
@@ -126,6 +354,24 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
     }
   };
 
+  const removeUploadedFile = (idx: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleSelectMasterPillar = (pillarId: string) => {
+    setMasterPillar(pillarId);
+    const pillar = MASTER_PILLARS.find(p => p.id === pillarId);
+    if (pillar && pillar.subTypes.length > 0) {
+      setCategory(pillar.subTypes[0].id);
+      setTitle(pillar.subTypes[0].defaultTitle);
+    }
+  };
+
+  const handleSelectSubType = (subId: ServiceCategory, defaultTitle: string) => {
+    setCategory(subId);
+    setTitle(defaultTitle);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreedToBoundaries) {
@@ -133,6 +379,7 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
       return;
     }
 
+    // Rule 13 Safeguarding Invariant
     if (category === 'family' || category === 'person') {
       if (!familyConsentConfirmed) {
         alert('Family Welfare requests require explicit confirmation of care recipient consent or legal guardian authority.');
@@ -148,16 +395,27 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
     let detailedScope = scopeBrief;
     if (category === 'property') {
       detailedScope = `Property check: ${propertyType}. Title ref: ${titleDeedRef || 'N/A'}. Beacons: ${beaconSearchRequested ? 'Yes' : 'No'}. Fence check: ${fenceCheckRequested ? 'Yes' : 'No'}. Occupancy: ${occupancyCheckRequested ? 'Yes' : 'No'}. ${scopeBrief}`;
+    } else if (category === 'construction') {
+      detailedScope = `Construction Milestone: ${milestoneStage}. Property: ${propertyType}. Cement stock check: ${cementBagsBilled} bags billed. Rebar inspection: ${rebarSteelCheck ? 'Yes' : 'No'}. ${scopeBrief}`;
     } else if (category === 'business') {
-      detailedScope = `Business verification: ${businessName}. Inventory count: ${inventoryCountRequested ? 'Yes' : 'No'}. Permit check: ${permitCheckRequested ? 'Yes' : 'No'}. Staff check: ${staffCheckRequested ? 'Yes' : 'No'}. ${scopeBrief}`;
+      detailedScope = `Business verification: ${businessName} at ${storefrontAddress || 'site'}. Inventory count: ${inventoryCountRequested ? 'Yes' : 'No'}. Permit check: ${permitCheckRequested ? 'Yes' : 'No'}. Staff check: ${staffCheckRequested ? 'Yes' : 'No'}. ${scopeBrief}`;
     } else if (category === 'vehicle') {
-      detailedScope = `Vehicle inspection: ${vehicleMakeModel}. VIN: ${vinNumber || 'N/A'}. Paint gauge: ${paintGaugeRequested ? 'Yes' : 'No'}. Odometer: ${odometerCheckRequested ? 'Yes' : 'No'}. ${scopeBrief}`;
+      detailedScope = `Vehicle inspection: ${vehicleMakeModel}. VIN: ${vinNumber || 'N/A'}. Yard: ${dealershipLocation || 'N/A'}. Paint gauge: ${paintGaugeRequested ? 'Yes' : 'No'}. Odometer: ${odometerCheckRequested ? 'Yes' : 'No'}. OBD scan: ${obdScanRequested ? 'Yes' : 'No'}. Test-drive auth: ${testDriveAuthorized ? 'Yes' : 'No'}. ${scopeBrief}`;
     } else if (category === 'document') {
       detailedScope = `Document inspection: ${documentType} at ${issuingInstitution}. File no: ${registryFileNumber || 'N/A'}. ${scopeBrief}`;
     } else if (category === 'purchase') {
       detailedScope = `Purchase verification: ${purchaseItemName} at ${supplierName}. Functional test: ${functionalTestRequested ? 'Yes' : 'No'}. ${scopeBrief}`;
+    } else if (category === 'family' || category === 'person') {
+      detailedScope = `Family welfare visit: ${personName} (${familyRelationship}). Focus: ${wellnessFocus}. Emergency contact: ${familyEmergencyContact}. ${scopeBrief}`;
     } else if (category === 'field_assistance') {
       detailedScope = `Field assistance: ${errandDescription} at ${officeToVisit}. ${scopeBrief}`;
+    }
+
+    // If unauthenticated, redirect to register/login saving draft
+    if (!isAuthenticated || !currentUser) {
+      handleSaveDraft();
+      navigate(`/register?redirect=/new-request`);
+      return;
     }
 
     const newId = createRequest({
@@ -199,19 +457,13 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
       }))
     });
 
+    // Clear saved draft on successful submission
+    try {
+      localStorage.removeItem('dv_intake_draft');
+    } catch {}
+
     onSuccess(newId);
   };
-
-  const categories = [
-    { id: 'property', label: 'Property & Land', icon: <MapPin className="w-5 h-5 text-blue-600" />, desc: 'Land beacons, boundary fences, house condition, rentals' },
-    { id: 'construction', label: 'Construction Oversight', icon: <Building className="w-5 h-5 text-emerald-600" />, desc: 'Milestone progress, materials count, rebar, slab casting' },
-    { id: 'business', label: 'Business & Due Diligence', icon: <Briefcase className="w-5 h-5 text-purple-600" />, desc: 'Physical premises, stock counts, permits, operational check' },
-    { id: 'vehicle', label: 'Vehicle Inspection', icon: <Car className="w-5 h-5 text-amber-600" />, desc: 'VIN match, paint depth gauge, chassis rust, test start' },
-    { id: 'document', label: 'Document Verification', icon: <FileText className="w-5 h-5 text-indigo-600" />, desc: 'Physical registry check at Ardhi House, courts, ministries' },
-    { id: 'person', label: 'Person & Welfare Support', icon: <Users className="w-5 h-5 text-rose-600" />, desc: 'Elderly welfare check, clinic accompaniment, reference check' },
-    { id: 'purchase', label: 'Purchase & Machinery', icon: <DollarSign className="w-5 h-5 text-teal-600" />, desc: 'High-value equipment, solar generators, consignment inspection' },
-    { id: 'field_assistance', label: 'General Field Assistance', icon: <Compass className="w-5 h-5 text-cyan-600" />, desc: 'Collect documents, attend meetings, physical errands' },
-  ];
 
   const evidenceOptions = [
     { id: 'High-Resolution Photos', icon: <Camera className="w-4 h-4 text-emerald-600" />, label: 'High-Resolution Photos', desc: 'Calibrated timestamped photos of perimeter and key assets' },
@@ -220,11 +472,49 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
     { id: 'Document Inspections', icon: <FileText className="w-4 h-4 text-purple-600" />, label: 'Physical Documents', desc: 'Photograph official certificates, permits, or invoices on site' },
     { id: 'Interviews & Audio', icon: <Users className="w-4 h-4 text-cyan-600" />, label: 'Site Interviews', desc: 'Structured interviews with site contact, neighbor, or manager' },
     { id: 'Written Observations', icon: <FileText className="w-4 h-4 text-slate-600" />, label: 'Detailed Written Findings', desc: 'Objective factual observations separated from agent opinions' },
-    { id: 'Multiple Angles', icon: <Camera className="w-4 h-4 text-indigo-600" />, label: 'Multiple Independent Angles', desc: 'Calibrated repeat camera angles for periodic milestone tracking' },
   ];
 
+  const currentPillarDef = MASTER_PILLARS.find(p => p.id === masterPillar) || MASTER_PILLARS[0];
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 py-8 font-sans text-left">
+      {/* Toast Notification for Saved Draft */}
+      {draftSavedToast && (
+        <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs border border-slate-700 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>Draft request saved securely to your browser.</span>
+        </div>
+      )}
+
+      {/* Restorable Draft Banner */}
+      {hasRestoredDraft && (
+        <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-center justify-between text-xs text-emerald-900">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-emerald-700 shrink-0" />
+            <span>You have an uncompleted draft from an earlier session.</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleRestoreDraft}
+              className="px-3 py-1 rounded-lg bg-emerald-700 text-white font-bold hover:bg-emerald-800 transition cursor-pointer"
+            >
+              Resume Draft
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.removeItem('dv_intake_draft');
+                setHasRestoredDraft(false);
+              }}
+              className="px-2 py-1 text-slate-500 hover:text-slate-800 transition cursor-pointer"
+            >
+              Discard
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-xl space-y-8">
         
         {/* Wizard Header */}
@@ -233,12 +523,22 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
             <span className="text-xs uppercase font-bold tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
               Step {step} of 7 • Verification Request Wizard
             </span>
-            <button
-              onClick={onCancel}
-              className="text-xs font-semibold text-slate-400 hover:text-slate-600 transition"
-            >
-              Cancel
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition cursor-pointer"
+              >
+                Save Draft
+              </button>
+              <button
+                type="button"
+                onClick={onCancel}
+                className="text-xs font-semibold text-slate-400 hover:text-slate-600 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-slate-900 mt-2">
             Request an On-Ground Verification in Kenya
@@ -257,13 +557,13 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
             '4. Evidence',
             '5. Urgency',
             '6. Details',
-            '7. Review'
+            '7. Quote Dossier'
           ].map((label, idx) => (
             <div 
               key={idx}
               className={`p-1.5 rounded-lg transition-colors ${
                 step === idx + 1 
-                  ? 'bg-emerald-600 text-white font-bold' 
+                  ? 'bg-slate-900 text-white font-bold' 
                   : step > idx + 1 
                   ? 'bg-emerald-50 text-emerald-800' 
                   : 'text-slate-400'
@@ -276,38 +576,110 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
 
         <form onSubmit={handleSubmit} className="space-y-6">
           
-          {/* STEP 1: What do you need verified? */}
+          {/* STEP 1: What do you need verified? (5 Master Pillars) */}
           {step === 1 && (
-            <div className="space-y-5 animate-fadeIn">
+            <div className="space-y-6 animate-fadeIn">
               <div>
                 <h2 className="text-lg font-bold text-slate-900">Step 1: What do you need verified?</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Select the primary service category for this verification mission.</p>
+                <p className="text-xs text-slate-500 mt-0.5">Select from our 5 master service pillars and define the target focus.</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {categories.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setCategory(c.id as ServiceCategory)}
-                    className={`p-4 rounded-2xl border text-left flex items-start gap-3.5 transition-all ${
-                      category === c.id
-                        ? 'border-emerald-600 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-500/20'
-                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="p-2 rounded-xl bg-white shadow-xs border border-slate-200 flex-shrink-0">
-                      {c.icon}
-                    </div>
-                    <div>
-                      <div className="font-bold text-sm text-slate-900">{c.label}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">{c.desc}</div>
-                    </div>
-                  </button>
-                ))}
+              {/* Master Pillars Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {MASTER_PILLARS.map((p) => {
+                  const isSelected = masterPillar === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handleSelectMasterPillar(p.id)}
+                      className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-emerald-600 bg-emerald-50/40 shadow-xs ring-2 ring-emerald-500/20'
+                          : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="p-2 rounded-xl bg-white shadow-2xs border border-slate-200 w-fit">
+                          {p.icon}
+                        </div>
+                        <div className="font-bold text-sm text-slate-900">{p.title}</div>
+                        <div className="text-xs text-slate-500 leading-snug">{p.tagline}</div>
+                      </div>
+                      <div className="pt-3 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                        {isSelected ? '✓ Selected Pillar' : 'Select Pillar →'}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="pt-2">
+              {/* Sub-Service Focus Area */}
+              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Specific Focus for {currentPillarDef.title}:
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    Determines checklist & questions
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {currentPillarDef.subTypes.map((sub) => {
+                    const isSubSelected = category === sub.id;
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => handleSelectSubType(sub.id, sub.defaultTitle)}
+                        className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          isSubSelected
+                            ? 'border-slate-900 bg-white shadow-xs ring-2 ring-slate-900/10'
+                            : 'border-slate-200 bg-white/70 hover:bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-xs text-slate-900">{sub.label}</span>
+                          {isSubSelected && <span className="w-2 h-2 rounded-full bg-emerald-500" />}
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-snug">{sub.description}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Service Model Selector */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  Engagement Model
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { id: 'one-time', title: 'One-Time Verification', desc: 'Single comprehensive physical site inspection with full dossier' },
+                    { id: 'follow-through', title: 'Phased Follow-Through', desc: 'Multi-visit tracking across milestones or follow-up remediation' },
+                    { id: 'ongoing-assistant', title: 'Recurring Assistance', desc: 'Scheduled monthly checks for properties, farms or businesses' }
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setOfferType(m.id as ServiceOfferModel)}
+                      className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        offerType === m.id
+                          ? 'border-emerald-600 bg-emerald-50/50 shadow-2xs ring-1 ring-emerald-500/20'
+                          : 'border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="font-bold text-xs text-slate-900">{m.title}</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5 leading-snug">{m.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Request Title */}
+              <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Request Title / Short Reference (Optional)
                 </label>
@@ -315,528 +687,743 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder={`e.g. Kitengela Plot Beacon Check or Westlands Storefront Audit`}
-                  className="w-full text-sm px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="e.g. Kitengela Villa Lintel Inspection or Westlands Storefront Audit"
+                  className="w-full text-sm px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900"
                 />
-              </div>
-
-              <div className="pt-2">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Service Engagement Model
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { id: 'one-time', title: 'One-Time Verification', desc: 'Single discrete visit & definitive report' },
-                    { id: 'follow-through', title: 'Follow-Through (2+ Visits)', desc: 'Multi-stage visit or purchase coordination' },
-                    { id: 'ongoing-assistant', title: 'Recurring Monitoring', desc: 'Monthly or quarterly ongoing supervision' }
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setOfferType(m.id as ServiceOfferModel)}
-                      className={`p-3 rounded-xl border text-left text-xs transition ${
-                        offerType === m.id
-                          ? 'border-emerald-600 bg-emerald-50 text-emerald-950 font-semibold'
-                          : 'border-slate-200 hover:bg-slate-50 text-slate-600'
-                      }`}
-                    >
-                      <div className="font-bold text-slate-900">{m.title}</div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">{m.desc}</div>
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           )}
 
-          {/* STEP 2: Where is it? */}
+          {/* STEP 2: Location & County Coverage */}
           {step === 2 && (
-            <div className="space-y-5 animate-fadeIn">
+            <div className="space-y-6 animate-fadeIn">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Step 2: Where is it?</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Provide geographical target in Kenya. Accurate location ensures vetted agent routing.</p>
+                <h2 className="text-lg font-bold text-slate-900">Step 2: Where is the task located in Kenya?</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Specify county, town, and local landmarks. Travel logistics are calculated automatically.</p>
               </div>
 
+              {/* Pilot Direct Coverage Notice */}
+              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <div>
+                    <span className="font-bold">Nairobi Metropolitan Pilot Foundation Active:</span>
+                    <p className="text-[11px] text-emerald-800">
+                      Nairobi, Kiambu, Machakos, and Kajiado benefit from same-day dispatch and optimal logistics rates.
+                    </p>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 font-bold text-[10px] uppercase tracking-wider shrink-0">
+                  Primary Pilot Hub
+                </span>
+              </div>
+
+              {/* County Selector */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Kenya County *
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    County *
                   </label>
                   <select
                     value={county}
                     onChange={(e) => setCounty(e.target.value)}
-                    className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
                   >
-                    {KENYA_COUNTIES.map(c => (
-                      <option key={c} value={c}>{c} County</option>
-                    ))}
+                    <optgroup label="Nairobi Metropolitan Pilot (Fastest SLA)">
+                      <option value="Nairobi">Nairobi County (HQ Hub)</option>
+                      <option value="Kiambu">Kiambu County (Thika, Ruiru, Kikuyu)</option>
+                      <option value="Machakos">Machakos County (Mlolongo, Syokimau, Athi River)</option>
+                      <option value="Kajiado">Kajiado County (Kitengela, Ongata Rongai, Ngong)</option>
+                    </optgroup>
+                    <optgroup label="Regional Hubs (Phased Dispatch)">
+                      {KENYA_COUNTIES.filter(c => !['Nairobi', 'Kiambu', 'Machakos', 'Kajiado'].includes(c)).map(c => (
+                        <option key={c} value={c}>{c} County</option>
+                      ))}
+                    </optgroup>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Town / Municipality / Ward *
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Town / Sub-County *
                   </label>
                   <input
                     type="text"
-                    required
                     value={town}
                     onChange={(e) => setTown(e.target.value)}
-                    placeholder="e.g. Kitengela, Westlands, Tigoni, Shimanzi"
-                    className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="e.g. Kitengela, Westlands, Kilimani, Ruiru"
+                    className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                    required
                   />
                 </div>
               </div>
 
+              {/* Area & Address */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Area / Neighborhood / Estate
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Specific Area / Neighborhood / Landmark
                   </label>
                   <input
                     type="text"
                     value={area}
                     onChange={(e) => setArea(e.target.value)}
-                    placeholder="e.g. Acacia Crest, Sarit Centre vicinity, Bofa Beach"
-                    className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="e.g. Acacia Estate, Near Deliverance Church"
+                    className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Estimated GPS Coordinates (Optional)
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    GPS Coordinates / Pin (Optional)
                   </label>
                   <input
                     type="text"
                     value={gpsCoords}
                     onChange={(e) => setGpsCoords(e.target.value)}
-                    placeholder="e.g. -1.4892, 36.9583"
-                    className="w-full text-sm font-mono px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="-1.2921, 36.8219"
+                    className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Exact Physical Directions & Landmarks *
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Detailed Directions / Access Notes
                 </label>
                 <textarea
                   rows={2}
                   value={exactAddress}
                   onChange={(e) => setExactAddress(e.target.value)}
-                  placeholder="e.g. 1.2km off Namanga Road at Acacia Junction, take red-gate feeder road, plot is on the left adjacent to yellow water tank."
-                  className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="e.g. Off Namanga Highway, take second left after Shell petrol station, black gate opposite borehole."
+                  className="w-full text-sm px-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900"
                 />
+              </div>
+
+              {/* Local Contact on Ground & Anti-Collusion Protection */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    On-Ground Access Contact (Foreman, Caretaker, or Seller)
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                    <Lock className="w-3 h-3" />
+                    Masked by HQ Dispatch
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Contact Name
+                    </label>
+                    <input
+                      type="text"
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
+                      placeholder="e.g. Peter Kariuki"
+                      className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Role / Relationship
+                    </label>
+                    <input
+                      type="text"
+                      value={contactRole}
+                      onChange={(e) => setContactRole(e.target.value)}
+                      placeholder="e.g. Site Foreman, Land Seller"
+                      className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Kenyan Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      placeholder="+254 722 000 000"
+                      className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Anti-collusion protocol: Your personal email and phone number are strictly concealed from local ground personnel. DiasporaVerify contacts this individual solely to coordinate physical gate access.
+                </p>
               </div>
             </div>
           )}
 
-          {/* STEP 3: What exactly should we verify? (Dynamic per category) */}
+          {/* STEP 3: Category-Specific Structured Brief */}
           {step === 3 && (
-            <div className="space-y-5 animate-fadeIn">
+            <div className="space-y-6 animate-fadeIn">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Step 3: What exactly should we verify?</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Dynamic criteria tailored strictly to {category.toUpperCase()} verification.</p>
+                <h2 className="text-lg font-bold text-slate-900">Step 3: Structured Task Brief & Specifications</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Category-specific questions to ensure clear objectives and objective evidence.</p>
               </div>
 
-              {/* PROPERTY SPECIFIC QUESTIONS */}
-              {category === 'property' && (
-                <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200 space-y-4 text-xs">
-                  <div className="font-bold text-blue-900 text-sm flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-blue-600" />
-                    <span>Property & Land Scope Protocol</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Property Type</label>
-                      <select 
-                        value={propertyType} 
-                        onChange={(e) => setPropertyType(e.target.value)}
-                        className="w-full p-2 rounded-lg border border-slate-300 bg-white"
-                      >
-                        <option value="Land / Plot">Vacant Land / Residential Plot</option>
-                        <option value="Commercial Land">Commercial Plot / Highway Parcel</option>
-                        <option value="House / Villa">Completed House / Villa</option>
-                        <option value="Apartment">Apartment Block / Rental Unit</option>
-                        <option value="Agricultural Farm">Agricultural Farm / Shamba</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Title Deed / Green Card Reference</label>
-                      <input 
-                        type="text" 
-                        value={titleDeedRef} 
-                        onChange={(e) => setTitleDeedRef(e.target.value)}
-                        placeholder="e.g. KJD/KITENGELA/42910"
-                        className="w-full p-2 rounded-lg border border-slate-300"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2 pt-1">
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" checked={beaconSearchRequested} onChange={(e) => setBeaconSearchRequested(e.target.checked)} className="rounded text-emerald-600" />
-                      <span>Physical beacon discovery (Locate 4 corner cadastral concrete markers)</span>
-                    </label>
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" checked={fenceCheckRequested} onChange={(e) => setFenceCheckRequested(e.target.checked)} className="rounded text-emerald-600" />
-                      <span>Boundary fence inspection & encroachment check</span>
-                    </label>
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" checked={occupancyCheckRequested} onChange={(e) => setOccupancyCheckRequested(e.target.checked)} className="rounded text-emerald-600" />
-                      <span>Occupancy verification & neighbor inquiry on ownership disputes</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {/* CONSTRUCTION SPECIFIC QUESTIONS */}
+              {/* Projects & Assets: Construction Brief */}
               {category === 'construction' && (
-                <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-4 text-xs">
-                  <div className="font-bold text-emerald-900 text-sm flex items-center gap-2">
+                <div className="space-y-4 p-5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                  <div className="font-bold text-sm text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
                     <Building className="w-4 h-4 text-emerald-600" />
-                    <span>Construction Milestone Oversight Protocol</span>
+                    <span>Construction Milestone Inspection Checklist</span>
                   </div>
-                  <p className="text-slate-600">
-                    We compare physical site progress against billed milestone invoices and reconcile on-site materials.
-                  </p>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" defaultChecked className="rounded text-emerald-600" />
-                      <span>Physical percentage completion assessment vs milestone claim</span>
-                    </label>
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" defaultChecked className="rounded text-emerald-600" />
-                      <span>Physical store inventory count (Cement bags, rebar bundles, timber)</span>
-                    </label>
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" defaultChecked className="rounded text-emerald-600" />
-                      <span>Repeat-angle photographs for side-by-side progression tracking</span>
-                    </label>
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" defaultChecked className="rounded text-emerald-600" />
-                      <span>Site foreman audio interview regarding timeline and subcontractor wages</span>
-                    </label>
-                  </div>
-                </div>
-              )}
 
-              {/* BUSINESS SPECIFIC QUESTIONS */}
-              {category === 'business' && (
-                <div className="p-4 rounded-2xl bg-purple-50/50 border border-purple-200 space-y-4 text-xs">
-                  <div className="font-bold text-purple-900 text-sm flex items-center gap-2">
-                    <Briefcase className="w-4 h-4 text-purple-600" />
-                    <span>Business Due Diligence Protocol</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Business Name to Verify</label>
-                      <input 
-                        type="text" 
-                        value={businessName} 
-                        onChange={(e) => setBusinessName(e.target.value)}
-                        placeholder="e.g. Apex Agrovet Supplies Ltd"
-                        className="w-full p-2 rounded-lg border border-slate-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Premises Type</label>
-                      <select className="w-full p-2 rounded-lg border border-slate-300 bg-white">
-                        <option>Retail Storefront / Shop</option>
-                        <option>Warehouse / Distribution Hub</option>
-                        <option>Office Suite / Corporate Premises</option>
-                        <option>Industrial Manufacturing Yard</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="space-y-2 pt-1">
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" checked={inventoryCountRequested} onChange={(e) => setInventoryCountRequested(e.target.checked)} className="rounded text-purple-600" />
-                      <span>Audit physical inventory stock on shelves / in warehouse</span>
-                    </label>
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" checked={permitCheckRequested} onChange={(e) => setPermitCheckRequested(e.target.checked)} className="rounded text-purple-600" />
-                      <span>Verify displayed County Business Permit & KRA Tax Compliance Certificate</span>
-                    </label>
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" checked={staffCheckRequested} onChange={(e) => setStaffCheckRequested(e.target.checked)} className="rounded text-purple-600" />
-                      <span>Document staff presence and observe customer foot traffic</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {/* VEHICLE SPECIFIC QUESTIONS */}
-              {category === 'vehicle' && (
-                <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-4 text-xs">
-                  <div className="font-bold text-amber-900 text-sm flex items-center gap-2">
-                    <Car className="w-4 h-4 text-amber-600" />
-                    <span>Automotive Pre-Purchase Inspection Protocol</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Make, Model & Year</label>
-                      <input 
-                        type="text" 
-                        value={vehicleMakeModel} 
-                        onChange={(e) => setVehicleMakeModel(e.target.value)}
-                        placeholder="e.g. 2018 Toyota Land Cruiser Prado TX-L"
-                        className="w-full p-2 rounded-lg border border-slate-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Chassis / VIN Number</label>
-                      <input 
-                        type="text" 
-                        value={vinNumber} 
-                        onChange={(e) => setVinNumber(e.target.value)}
-                        placeholder="e.g. GDJ150-0042918"
-                        className="w-full p-2 rounded-lg border border-slate-300 font-mono"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2 pt-1">
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" checked={paintGaugeRequested} onChange={(e) => setPaintGaugeRequested(e.target.checked)} className="rounded text-amber-600" />
-                      <span>Digital paint gauge thickness scan (Detect repaired collision body filler)</span>
-                    </label>
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" checked={odometerCheckRequested} onChange={(e) => setOdometerCheckRequested(e.target.checked)} className="rounded text-amber-600" />
-                      <span>Odometer reading check and dashboard warning lights verification</span>
-                    </label>
-                    <label className="flex items-center gap-2 font-medium text-slate-800">
-                      <input type="checkbox" defaultChecked className="rounded text-amber-600" />
-                      <span>Engine cold-start smoke check and 4WD transfer case test</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {/* DOCUMENT SPECIFIC QUESTIONS */}
-              {category === 'document' && (
-                <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-4 text-xs">
-                  <div className="font-bold text-indigo-900 text-sm flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-indigo-600" />
-                    <span>Physical Document Inspection Protocol</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Document Description</label>
-                      <input 
-                        type="text" 
-                        value={documentType} 
-                        onChange={(e) => setDocumentType(e.target.value)}
-                        placeholder="e.g. Land Registry Green Card copy"
-                        className="w-full p-2 rounded-lg border border-slate-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Institution to Visit</label>
-                      <input 
-                        type="text" 
-                        value={issuingInstitution} 
-                        onChange={(e) => setIssuingInstitution(e.target.value)}
-                        placeholder="e.g. Ardhi House, High Court, Nairobi City County"
-                        className="w-full p-2 rounded-lg border border-slate-300"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Registry Index / Case / Parcel Reference</label>
-                    <input 
-                      type="text" 
-                      value={registryFileNumber} 
-                      onChange={(e) => setRegistryFileNumber(e.target.value)}
-                      placeholder="e.g. NBI/BLOCK-82/104"
-                      className="w-full p-2 rounded-lg border border-slate-300 font-mono"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* PERSON / FAMILY SPECIFIC QUESTIONS (RULE 13 SAFEGUARDING) */}
-              {(category === 'family' || category === 'person') && (
-                <div className="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-4 text-xs">
-                  <div className="font-bold text-rose-900 text-sm flex items-center gap-2">
-                    <Heart className="w-4 h-4 text-rose-600" />
-                    <span>Family Care & Welfare Safeguarding Protocol</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Subject / Relative Full Name *</label>
-                      <input 
-                        type="text" 
-                        value={personName} 
-                        onChange={(e) => setPersonName(e.target.value)}
-                        placeholder="e.g. Mary Jepkemboi Kiprop"
-                        className="w-full p-2 rounded-lg border border-slate-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Your Relationship to Subject</label>
-                      <input 
-                        type="text" 
-                        value={familyRelationship} 
-                        onChange={(e) => setFamilyRelationship(e.target.value)}
-                        placeholder="e.g. Son / Daughter, Legal Guardian"
-                        className="w-full p-2 rounded-lg border border-slate-300"
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Rule 13 Exact Invariant Block */}
-                  <div className="p-3.5 rounded-xl bg-white border-2 border-rose-300 space-y-2">
-                    <div className="font-bold text-rose-950 uppercase tracking-wider text-[11px]">
-                      Mandatory Recipient Consent & Emergency Safeguarding
-                    </div>
-                    <label className="flex items-start gap-2 text-rose-900 font-medium">
-                      <input 
-                        type="checkbox" 
-                        checked={familyConsentConfirmed} 
-                        onChange={(e) => setFamilyConsentConfirmed(e.target.checked)} 
-                        className="mt-0.5 rounded text-rose-600" 
-                      />
-                      <span>
-                        Family Welfare requests require explicit confirmation of care recipient consent or legal guardian authority. I certify that the recipient or their authorized caregiver has given informed consent for this visit.
-                      </span>
-                    </label>
-                    <div className="pt-1">
-                      <label className="block font-bold text-rose-900 mb-1">
-                        Named emergency contact in Kenya (Name & Phone) *
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Current Milestone Under Review
                       </label>
-                      <input 
-                        type="text" 
-                        value={familyEmergencyContact} 
-                        onChange={(e) => setFamilyEmergencyContact(e.target.value)}
-                        placeholder="e.g. Dr. Janet Rotich (+254 722 000 000)"
-                        className="w-full p-2 rounded-lg border border-rose-300"
+                      <input
+                        type="text"
+                        value={milestoneStage}
+                        onChange={(e) => setMilestoneStage(e.target.value)}
+                        placeholder="e.g. First Floor Lintel Ring Beam & Slab Preparation"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
                       />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Structure Type
+                      </label>
+                      <input
+                        type="text"
+                        value={propertyType}
+                        onChange={(e) => setPropertyType(e.target.value)}
+                        placeholder="e.g. 4-Bedroom Residential Villa"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 space-y-2">
+                    <div className="font-bold text-amber-900 flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Materials Verification Count (Stop-Payment Safeguard)</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-[11px] text-slate-600">Cement Bags Billed by Contractor:</span>
+                        <input
+                          type="number"
+                          value={cementBagsBilled}
+                          onChange={(e) => setCementBagsBilled(e.target.value)}
+                          placeholder="100"
+                          className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white mt-1 text-xs"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 pt-4">
+                        <input
+                          type="checkbox"
+                          checked={rebarSteelCheck}
+                          onChange={(e) => setRebarSteelCheck(e.target.checked)}
+                          id="rebarCheck"
+                          className="rounded text-emerald-600"
+                        />
+                        <label htmlFor="rebarCheck" className="text-slate-700 font-medium cursor-pointer">
+                          Inspect steel rebar tie-ins & structural spacing
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* PURCHASE SPECIFIC QUESTIONS */}
+              {/* Projects & Assets: Property & Land Plot */}
+              {category === 'property' && (
+                <div className="space-y-4 p-5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                  <div className="font-bold text-sm text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-blue-600" />
+                    <span>Land Parcel & Demarcation Checklist</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Plot / Parcel Designation
+                      </label>
+                      <input
+                        type="text"
+                        value={propertyType}
+                        onChange={(e) => setPropertyType(e.target.value)}
+                        placeholder="e.g. 50x100 Residential Plot / 5 Acres Agricultural"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Title Deed / Registry Reference (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={titleDeedRef}
+                        onChange={(e) => setTitleDeedRef(e.target.value)}
+                        placeholder="e.g. KAJIADO/KITENGELA/4829"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                    <label className="p-3 rounded-xl bg-white border border-slate-200 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={beaconSearchRequested}
+                        onChange={(e) => setBeaconSearchRequested(e.target.checked)}
+                        className="rounded text-emerald-600"
+                      />
+                      <span>Locate 4 concrete beacons</span>
+                    </label>
+                    <label className="p-3 rounded-xl bg-white border border-slate-200 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={fenceCheckRequested}
+                        onChange={(e) => setFenceCheckRequested(e.target.checked)}
+                        className="rounded text-emerald-600"
+                      />
+                      <span>Verify boundary fence/wall</span>
+                    </label>
+                    <label className="p-3 rounded-xl bg-white border border-slate-200 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={occupancyCheckRequested}
+                        onChange={(e) => setOccupancyCheckRequested(e.target.checked)}
+                        className="rounded text-emerald-600"
+                      />
+                      <span>Check unauthorized squatters</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Purchases & Vehicles: Motor Vehicle Inspection */}
+              {category === 'vehicle' && (
+                <div className="space-y-4 p-5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                  <div className="font-bold text-sm text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <Car className="w-4 h-4 text-amber-600" />
+                    <span>Vehicle Pre-Purchase Diagnostic Brief</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Vehicle Make, Model & Year
+                      </label>
+                      <input
+                        type="text"
+                        value={vehicleMakeModel}
+                        onChange={(e) => setVehicleMakeModel(e.target.value)}
+                        placeholder="e.g. Toyota Prado TX 2018"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Chassis / VIN Number
+                      </label>
+                      <input
+                        type="text"
+                        value={vinNumber}
+                        onChange={(e) => setVinNumber(e.target.value)}
+                        placeholder="e.g. KDJ150-004829"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Dealership / Yard Location
+                      </label>
+                      <input
+                        type="text"
+                        value={dealershipLocation}
+                        onChange={(e) => setDealershipLocation(e.target.value)}
+                        placeholder="e.g. Kiambu Road Auto Yard"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                    <label className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={paintGaugeRequested}
+                        onChange={(e) => setPaintGaugeRequested(e.target.checked)}
+                        className="rounded text-emerald-600"
+                      />
+                      <span>Paint depth gauge</span>
+                    </label>
+                    <label className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={odometerCheckRequested}
+                        onChange={(e) => setOdometerCheckRequested(e.target.checked)}
+                        className="rounded text-emerald-600"
+                      />
+                      <span>Odometer verification</span>
+                    </label>
+                    <label className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={obdScanRequested}
+                        onChange={(e) => setObdScanRequested(e.target.checked)}
+                        className="rounded text-emerald-600"
+                      />
+                      <span>OBD-II computer scan</span>
+                    </label>
+                    <label className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={testDriveAuthorized}
+                        onChange={(e) => setTestDriveAuthorized(e.target.checked)}
+                        className="rounded text-emerald-600"
+                      />
+                      <span>Seller test-drive auth</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Purchases & Equipment */}
               {category === 'purchase' && (
-                <div className="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-4 text-xs">
-                  <div className="font-bold text-teal-900 text-sm flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-teal-600" />
-                    <span>Purchase & Asset Inspection Protocol</span>
+                <div className="space-y-4 p-5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                  <div className="font-bold text-sm text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-emerald-600" />
+                    <span>Machinery & Commercial Goods Verification</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Item / Machinery Description</label>
-                      <input 
-                        type="text" 
-                        value={purchaseItemName} 
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Equipment / Item Name
+                      </label>
+                      <input
+                        type="text"
+                        value={purchaseItemName}
                         onChange={(e) => setPurchaseItemName(e.target.value)}
-                        placeholder="e.g. 50kVA Perkins Diesel Generator"
-                        className="w-full p-2 rounded-lg border border-slate-300"
+                        placeholder="e.g. 50kVA Perkins Diesel Generator or Solar Inverter Set"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Supplier / Vendor Name</label>
-                      <input 
-                        type="text" 
-                        value={supplierName} 
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Supplier / Vendor Name
+                      </label>
+                      <input
+                        type="text"
+                        value={supplierName}
                         onChange={(e) => setSupplierName(e.target.value)}
-                        placeholder="e.g. PowerGen Industrial Kenya Ltd"
-                        className="w-full p-2 rounded-lg border border-slate-300"
+                        placeholder="e.g. Industrial Area Machinery Ltd"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
                       />
                     </div>
                   </div>
-                  <label className="flex items-center gap-2 font-medium text-slate-800">
-                    <input type="checkbox" checked={functionalTestRequested} onChange={(e) => setFunctionalTestRequested(e.target.checked)} className="rounded text-teal-600" />
-                    <span>Test power-on and functional status before disbursement</span>
+
+                  <label className="p-3 rounded-xl bg-white border border-slate-200 flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={functionalTestRequested}
+                      onChange={(e) => setFunctionalTestRequested(e.target.checked)}
+                      className="rounded text-emerald-600"
+                    />
+                    <span>Witness live power-on test & observe operational output gauges</span>
                   </label>
                 </div>
               )}
 
-              {/* FIELD ASSISTANCE SPECIFIC QUESTIONS */}
-              {category === 'field_assistance' && (
-                <div className="p-4 rounded-2xl bg-cyan-50/50 border border-cyan-200 space-y-4 text-xs">
-                  <div className="font-bold text-cyan-900 text-sm flex items-center gap-2">
-                    <Compass className="w-4 h-4 text-cyan-600" />
-                    <span>General Field Assistance Protocol</span>
+              {/* Business Support */}
+              {category === 'business' && (
+                <div className="space-y-4 p-5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                  <div className="font-bold text-sm text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-blue-600" />
+                    <span>Commercial Due Diligence & Storefront Audit</span>
                   </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Office / Institution / Location to Visit</label>
-                    <input 
-                      type="text" 
-                      value={officeToVisit} 
-                      onChange={(e) => setOfficeToVisit(e.target.value)}
-                      placeholder="e.g. High Court Probate Registry, Milimani Law Courts"
-                      className="w-full p-2 rounded-lg border border-slate-300"
-                    />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Registered Business Trading Name
+                      </label>
+                      <input
+                        type="text"
+                        value={businessName}
+                        onChange={(e) => setBusinessName(e.target.value)}
+                        placeholder="e.g. Apex Hardware & Construction Supplies"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Commercial Premises / Suite
+                      </label>
+                      <input
+                        type="text"
+                        value={storefrontAddress}
+                        onChange={(e) => setStorefrontAddress(e.target.value)}
+                        placeholder="e.g. Ground Floor, Westlands Plaza, Stall 4B"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Errand / Task Execution Brief</label>
-                    <textarea 
-                      rows={2}
-                      value={errandDescription} 
-                      onChange={(e) => setErrandDescription(e.target.value)}
-                      placeholder="e.g. Collect certified copies of probate cause grant letters, check filing date in court diary, obtain official receipt."
-                      className="w-full p-2 rounded-lg border border-slate-300"
-                    />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                    <label className="p-3 rounded-xl bg-white border border-slate-200 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={inventoryCountRequested}
+                        onChange={(e) => setInventoryCountRequested(e.target.checked)}
+                        className="rounded text-emerald-600"
+                      />
+                      <span>Physical stock count sample</span>
+                    </label>
+                    <label className="p-3 rounded-xl bg-white border border-slate-200 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={permitCheckRequested}
+                        onChange={(e) => setPermitCheckRequested(e.target.checked)}
+                        className="rounded text-emerald-600"
+                      />
+                      <span>Single business permit check</span>
+                    </label>
+                    <label className="p-3 rounded-xl bg-white border border-slate-200 flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={staffCheckRequested}
+                        onChange={(e) => setStaffCheckRequested(e.target.checked)}
+                        className="rounded text-emerald-600"
+                      />
+                      <span>Staff count & open trade check</span>
+                    </label>
                   </div>
                 </div>
               )}
+
+              {/* Family Support (Preserving Rule 13 Safeguarding Invariant) */}
+              {(category === 'family' || category === 'person') && (
+                <div className="space-y-4 p-5 rounded-2xl bg-rose-50/60 border border-rose-200 text-xs">
+                  <div className="font-bold text-sm text-rose-950 border-b border-rose-200 pb-2 flex items-center gap-2">
+                    <Heart className="w-4 h-4 text-rose-600" />
+                    <span>Family Welfare Safeguarding & Consent Brief</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-bold text-rose-950 uppercase tracking-wider mb-1">
+                        Care Recipient Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={personName}
+                        onChange={(e) => setPersonName(e.target.value)}
+                        placeholder="e.g. Mama Grace Wambui"
+                        className="w-full px-3 py-2 rounded-xl border border-rose-300 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-rose-950 uppercase tracking-wider mb-1">
+                        Relationship to Client
+                      </label>
+                      <input
+                        type="text"
+                        value={familyRelationship}
+                        onChange={(e) => setFamilyRelationship(e.target.value)}
+                        placeholder="e.g. Mother, Grandparent, Relative"
+                        className="w-full px-3 py-2 rounded-xl border border-rose-300 bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-rose-950 uppercase tracking-wider mb-1">
+                      Observation Focus
+                    </label>
+                    <input
+                      type="text"
+                      value={wellnessFocus}
+                      onChange={(e) => setWellnessFocus(e.target.value)}
+                      placeholder="e.g. Living conditions, compound safety, physical comfort, clinic accompaniment"
+                      className="w-full px-3 py-2 rounded-xl border border-rose-300 bg-white"
+                    />
+                  </div>
+
+                  {/* Mandatory Safeguarding Invariant Requirements (Rule 13) */}
+                  <div className="p-4 rounded-xl bg-white border border-rose-200 space-y-3">
+                    <div className="flex items-start gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={familyConsentConfirmed}
+                        onChange={(e) => setFamilyConsentConfirmed(e.target.checked)}
+                        id="familyConsentConfirmed"
+                        className="rounded text-rose-600 mt-0.5"
+                      />
+                      <label htmlFor="familyConsentConfirmed" className="text-rose-950 font-bold leading-snug cursor-pointer">
+                        Care Recipient Consent: Family Welfare requests require explicit confirmation of care recipient consent or legal guardian authority.
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-rose-950 mb-1">
+                        Kenyan Emergency Contact *
+                      </label>
+                      <input
+                        type="text"
+                        value={familyEmergencyContact}
+                        onChange={(e) => setFamilyEmergencyContact(e.target.value)}
+                        placeholder="Please provide a named emergency contact and phone number in Kenya (e.g. Dr. Kamau, +254 722 111 222)"
+                        className="w-full px-3 py-2 rounded-xl border border-rose-300 bg-rose-50/30 text-rose-950"
+                      />
+                    </div>
+
+                    <p className="text-[11px] text-slate-500 italic">
+                      Notice: DiasporaVerify verifiers are polite observers. We do not provide clinical emergency rescue or distribute unmonitored cash disbursements.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Requests & Documents */}
+              {(category === 'document' || category === 'custom' || category === 'field_assistance') && (
+                <div className="space-y-4 p-5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                  <div className="font-bold text-sm text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <Compass className="w-4 h-4 text-purple-600" />
+                    <span>Official Registry Search & Custom Mission Brief</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Institution / Office to Visit
+                      </label>
+                      <input
+                        type="text"
+                        value={issuingInstitution}
+                        onChange={(e) => setIssuingInstitution(e.target.value)}
+                        placeholder="e.g. Ministry of Lands (Ardhi House), Sheria House"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Document / Record Type
+                      </label>
+                      <input
+                        type="text"
+                        value={documentType}
+                        onChange={(e) => setDocumentType(e.target.value)}
+                        placeholder="e.g. Title Deed Green Card, Official Search, Business Certificate"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      File / Parcel / Tracking Number
+                    </label>
+                    <input
+                      type="text"
+                      value={registryFileNumber}
+                      onChange={(e) => setRegistryFileNumber(e.target.value)}
+                      placeholder="e.g. NAIROBI/BLOCK 82/104"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-mono"
+                    />
+                  </div>
+
+                  {(category === 'field_assistance' || category === 'custom') && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                      <div>
+                        <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                          Specific Office or Venue to Visit
+                        </label>
+                        <input
+                          type="text"
+                          value={officeToVisit}
+                          onChange={(e) => setOfficeToVisit(e.target.value)}
+                          placeholder="e.g. County Planning Office or Supplier Warehouse"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                          Errand Objective / Description
+                        </label>
+                        <input
+                          type="text"
+                          value={errandDescription}
+                          onChange={(e) => setErrandDescription(e.target.value)}
+                          placeholder="e.g. Inquire on approval status of building plan"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
             </div>
           )}
 
-          {/* STEP 4: Evidence Required */}
+          {/* STEP 4: Evidence Required Selection */}
           {step === 4 && (
             <div className="space-y-5 animate-fadeIn">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Step 4: Evidence required</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Select every evidence format our field agent must capture on the ground.</p>
+                <h2 className="text-lg font-bold text-slate-900">Step 4: Select required evidence deliverables</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Which verified proof formats must be captured and logged in your report dossier?</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {evidenceOptions.map((ev) => {
-                  const isSelected = evidenceRequested.includes(ev.id);
+                  const isChecked = evidenceRequested.includes(ev.id);
                   return (
-                    <button
+                    <div
                       key={ev.id}
-                      type="button"
                       onClick={() => toggleEvidence(ev.id)}
-                      className={`p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all ${
-                        isSelected 
-                          ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-500/20' 
+                      className={`p-4 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
+                        isChecked 
+                          ? 'border-emerald-600 bg-emerald-50/40 shadow-2xs ring-1 ring-emerald-500/20' 
                           : 'border-slate-200 hover:bg-slate-50'
                       }`}
                     >
-                      <div className="mt-0.5 p-1.5 rounded-lg bg-white border border-slate-200 flex-shrink-0">
-                        {ev.icon}
+                      <div className="mt-0.5">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}} // handled by parent onClick
+                          className="rounded text-emerald-600"
+                        />
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          {ev.icon}
                           <span className="font-bold text-xs text-slate-900">{ev.label}</span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isSelected ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                            {isSelected ? '✓ Selected' : '+ Add'}
-                          </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{ev.desc}</p>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-snug">{ev.desc}</p>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center gap-2">
-                <Lock className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                <span>
-                  All captured evidence is cryptographically fingerprinted using <strong>SHA-256 digests</strong> to prevent post-capture tampering.
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+                <span>All evidence items are stamped with GPS hardware coordinates and tamper-evident SHA-256 hashes.</span>
+                <span className="font-mono text-[10px] text-emerald-700 font-bold shrink-0">
+                  Cryptographic Standard
                 </span>
               </div>
             </div>
           )}
 
-          {/* STEP 5: Urgency */}
+          {/* STEP 5: Urgency & Timing */}
           {step === 5 && (
             <div className="space-y-5 animate-fadeIn">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Step 5: Urgency & Scheduling</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Choose deployment speed. Urgent requests activate rapid field responder dispatch.</p>
+                <h2 className="text-lg font-bold text-slate-900">Step 5: When do you need this verified?</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Choose your desired turnaround window. Urgency surcharges are clearly itemized.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
@@ -845,24 +1432,24 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                     id: 'standard',
                     label: 'Standard',
                     timeframe: '3 to 5 business days',
-                    multiplier: 'Standard Rate',
-                    desc: 'Regular scheduled inspection during next route cycle.',
+                    multiplier: 'Base Fee',
+                    desc: 'Regular scheduled inspection queue. Optimal route coordination.',
                     color: 'border-slate-200 hover:border-slate-300'
                   },
                   {
                     id: 'priority',
                     label: 'Priority',
-                    timeframe: '48 to 72 hours',
-                    multiplier: '+20% Service Fee',
-                    desc: 'Priority queueing and scheduled within 48 hours.',
+                    timeframe: '24 to 48 hours',
+                    multiplier: '+20% Service Surcharge',
+                    desc: 'Prioritized verifier assignment with fast-track report review.',
                     color: 'border-blue-300 bg-blue-50/30'
                   },
                   {
                     id: 'urgent',
                     label: 'Urgent',
-                    timeframe: 'Within 24 to 36 hours',
-                    multiplier: '+40% Service Fee',
-                    desc: 'Immediate dedicated agent dispatch to site.',
+                    timeframe: 'Within 24 hours / Same-Day',
+                    multiplier: '+40% Service Surcharge',
+                    desc: 'Emergency queue with dedicated verifier dispatched immediately.',
                     color: 'border-amber-400 bg-amber-50/40'
                   }
                 ].map((u) => (
@@ -870,7 +1457,7 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                     key={u.id}
                     type="button"
                     onClick={() => setUrgency(u.id as any)}
-                    className={`p-4 rounded-2xl border text-left transition-all ${
+                    className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                       urgency === u.id
                         ? 'border-emerald-600 bg-emerald-50 shadow-sm ring-2 ring-emerald-500/20'
                         : `${u.color} hover:bg-slate-50`
@@ -888,6 +1475,18 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                 ))}
               </div>
 
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Target Preferred Visit Date (Optional)
+                </label>
+                <input
+                  type="date"
+                  value={preferredDate}
+                  onChange={(e) => setPreferredDate(e.target.value)}
+                  className="text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
+                />
+              </div>
+
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
                 <div>
                   <span className="text-slate-500">Estimated Total for {urgency.toUpperCase()} delivery in {county}:</span>
@@ -896,18 +1495,18 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                   </div>
                 </div>
                 <div className="text-right text-[11px] text-slate-500">
-                  Includes base fee, field operations, travel, & urgency
+                  Includes base fee, field operations, travel logistics & urgency
                 </div>
               </div>
             </div>
           )}
 
-          {/* STEP 6: Additional Instructions & Attachments */}
+          {/* STEP 6: Additional Instructions, Attachments & Boundaries */}
           {step === 6 && (
             <div className="space-y-5 animate-fadeIn">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Step 6: Additional instructions & Local contact</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Specific questions for the agent and details of the person on the ground.</p>
+                <h2 className="text-lg font-bold text-slate-900">Step 6: Additional instructions & supporting documents</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Add specific questions for the agent and upload drawings, bills of quantities, or invoices.</p>
               </div>
 
               <div>
@@ -918,55 +1517,15 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                   rows={4}
                   value={scopeBrief}
                   onChange={(e) => setScopeBrief(e.target.value)}
-                  placeholder="e.g. Please check if the neighbor's wall encroaches on our boundary beacon, ask the caretaker who holds the key to the main meter box, and take a photo of the adjacent road drainage."
-                  className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="e.g. Please verify whether the neighbor's wall encroaches on our boundary beacon, check if the delivered cement matches brand Portland 42.5R, and photograph the roof truss joist tie-ins."
+                  className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900"
                 />
               </div>
 
-              {/* Local Contact on Ground */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Contact Name on Ground
-                  </label>
-                  <input
-                    type="text"
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                    placeholder="e.g. Peter Kariuki (Foreman)"
-                    className="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Their Role
-                  </label>
-                  <input
-                    type="text"
-                    value={contactRole}
-                    onChange={(e) => setContactRole(e.target.value)}
-                    placeholder="e.g. Plot Seller, Caretaker, Nurse"
-                    className="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Their Kenyan Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={contactPhone}
-                    onChange={(e) => setContactPhone(e.target.value)}
-                    placeholder="+254 720 000 000"
-                    className="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
-
-              {/* File Attachment Upload */}
+              {/* Supporting Document Uploads */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Attach Documents / Architectural Drawings / Invoices
+                  Attach Documents / Architectural Drawings / Supplier Invoices
                 </label>
                 <div className="border-2 border-dashed border-slate-300 rounded-2xl p-4 text-center hover:bg-slate-50 transition cursor-pointer relative">
                   <input
@@ -978,12 +1537,25 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                   <span className="text-xs font-semibold text-slate-700">Click or drag files to upload</span>
                   <p className="text-[11px] text-slate-400">PDF, PNG, JPG, or DOCX up to 25MB</p>
                 </div>
+
                 {uploadedFiles.length > 0 && (
-                  <div className="mt-2 space-y-1">
+                  <div className="mt-2 space-y-1.5">
                     {uploadedFiles.map((f, i) => (
-                      <div key={i} className="text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg flex items-center justify-between text-slate-700">
-                        <span className="truncate">{f.name} ({f.sizeKb} KB)</span>
-                        <span className="text-emerald-600 font-bold text-[10px]">Ready</span>
+                      <div key={i} className="text-xs bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl flex items-center justify-between text-slate-700">
+                        <div className="flex items-center gap-2 truncate">
+                          <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="truncate">{f.name} ({f.sizeKb} KB)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-emerald-600 font-bold text-[10px]">Ready</span>
+                          <button
+                            type="button"
+                            onClick={() => removeUploadedFile(i)}
+                            className="text-slate-400 hover:text-rose-600 p-0.5 cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -991,9 +1563,9 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
               </div>
 
               {/* Service Boundaries Agreement */}
-              <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 text-xs text-amber-950 space-y-2">
+              <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-amber-950 space-y-2.5">
                 <div className="flex items-center gap-2 font-bold text-amber-900">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>Service Boundaries & Independence Doctrine</span>
                 </div>
                 <p className="text-[11px] text-amber-900/80 leading-relaxed">
@@ -1012,20 +1584,56 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
             </div>
           )}
 
-          {/* STEP 7: Review Request & Transparent Fee Breakdown */}
+          {/* STEP 7: Official Quote Dossier Review & Submission */}
           {step === 7 && (
             <div className="space-y-6 animate-fadeIn">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Step 7: Review your request & fee breakdown</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Verify all mission details before generating official request reference.</p>
+                <h2 className="text-lg font-bold text-slate-900">Step 7: Official Quote Dossier & Acceptance</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Review your itemized quote before confirming ground deployment.</p>
               </div>
 
-              {/* Summary Card */}
-              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-5 space-y-4 text-xs">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border-b border-slate-200 pb-3">
+              {/* Official Quote Dossier Card */}
+              <div className="bg-slate-50 rounded-3xl border border-slate-200 p-6 space-y-6 text-xs">
+                
+                {/* Dossier Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400">Category</span>
-                    <div className="font-bold text-slate-900 capitalize">{category.replace('_', ' ')}</div>
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                      OFFICIAL QUOTE DOSSIER
+                    </span>
+                    <h3 className="text-lg font-bold font-display text-slate-900 mt-1">
+                      {title}
+                    </h3>
+                    <div className="text-slate-500 text-[11px] mt-0.5">
+                      Quote Ref: <strong className="text-slate-800 font-mono">QUO-2026-NBI-{quoteId}</strong> · Valid for 14 Days
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 flex items-center gap-1.5 transition text-xs font-semibold cursor-pointer"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Print Quote</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveDraft}
+                      className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 flex items-center gap-1.5 transition text-xs font-semibold cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Save Draft</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mission Scope & Location Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border-b border-slate-200 pb-4">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Pillar</span>
+                    <div className="font-bold text-slate-900">{currentPillarDef.title}</div>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400">Location</span>
@@ -1033,7 +1641,7 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400">Urgency</span>
-                    <div className="font-bold text-slate-900 capitalize">{urgency}</div>
+                    <div className="font-bold text-slate-900 capitalize">{urgency} ({urgency === 'urgent' ? '24h' : urgency === 'priority' ? '48h' : '3-5 days'})</div>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400">Model</span>
@@ -1041,71 +1649,96 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                   </div>
                 </div>
 
+                {/* Evidence Checklist Deliverables */}
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Requested Evidence Formats</span>
-                  <div className="flex flex-wrap gap-1.5 mt-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Contracted Evidence Deliverables:</span>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {evidenceRequested.map((ev, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 text-[11px] font-medium">
+                      <span key={i} className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 text-[11px] font-medium">
                         ✓ {ev}
                       </span>
                     ))}
                   </div>
                 </div>
 
+                {/* On Ground Contact Preview */}
                 {contactName && (
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400">On-Ground Contact</span>
-                    <div className="font-medium text-slate-800">{contactName} ({contactRole}) — {contactPhone}</div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">On-Ground Access Contact:</span>
+                    <div className="font-medium text-slate-800 mt-0.5">{contactName} ({contactRole}) — {contactPhone}</div>
                   </div>
                 )}
-              </div>
 
-              {/* Transparent Fee Breakdown Table */}
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden text-xs">
-                <div className="bg-slate-900 text-white px-4 py-2.5 font-bold uppercase tracking-wider text-[11px]">
-                  Transparent Fee Breakdown
-                </div>
-                <div className="divide-y divide-slate-100 p-4 space-y-2">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Base Service Intake & Mission Scoping</span>
-                    <span className="font-semibold">{FORMAT_CURRENCY(feeBreakdown.serviceBaseFeeKES, currency)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600 pt-1.5">
-                    <span>Field Operations & Telemetry Equipment Allowance</span>
-                    <span className="font-semibold">{FORMAT_CURRENCY(feeBreakdown.fieldOperationsFeeKES, currency)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600 pt-1.5">
-                    <span>{county} County Logistics & Ground Travel Fee</span>
-                    <span className="font-semibold">{FORMAT_CURRENCY(feeBreakdown.countyTravelFeeKES, currency)}</span>
-                  </div>
-                  {feeBreakdown.urgencyFeeKES > 0 && (
-                    <div className="flex justify-between text-amber-700 pt-1.5">
-                      <span>Urgency Priority Surcharge ({urgency})</span>
-                      <span className="font-bold">{FORMAT_CURRENCY(feeBreakdown.urgencyFeeKES, currency)}</span>
+                {/* Transparent Fee Breakdown Table with Currency Selector */}
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden text-xs">
+                  <div className="bg-slate-900 text-white px-4 py-2.5 font-bold uppercase tracking-wider text-[11px] flex items-center justify-between">
+                    <span>Transparent Fee Breakdown</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-slate-400 uppercase font-mono mr-1">Currency:</span>
+                      {(['KES', 'USD', 'GBP', 'EUR'] as CurrencyCode[]).map(c => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setCurrency(c)}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold cursor-pointer transition ${
+                            currency === c ? 'bg-emerald-500 text-slate-950' : 'text-slate-300 hover:text-white'
+                          }`}
+                        >
+                          {c}
+                        </button>
+                      ))}
                     </div>
-                  )}
-                  <div className="flex justify-between text-slate-600 pt-1.5">
-                    <span>Platform Cryptographic Storage & QA Review</span>
-                    <span className="font-semibold">{FORMAT_CURRENCY(feeBreakdown.platformFeeKES, currency)}</span>
                   </div>
-                  <div className="flex justify-between text-slate-900 pt-3 border-t-2 border-slate-900 font-bold text-sm">
-                    <span>Total Service Fee Quote</span>
-                    <span className="text-base text-emerald-700">{FORMAT_CURRENCY(feeBreakdown.totalKES, currency)}</span>
+
+                  <div className="divide-y divide-slate-100 p-4 space-y-2">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Base Service Intake & Mission Scoping</span>
+                      <span className="font-semibold">{FORMAT_CURRENCY(feeBreakdown.serviceBaseFeeKES, currency)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600 pt-1.5">
+                      <span>Field Operations & Telemetry Equipment Allowance</span>
+                      <span className="font-semibold">{FORMAT_CURRENCY(feeBreakdown.fieldOperationsFeeKES, currency)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600 pt-1.5">
+                      <span>{county} County Logistics & Ground Travel Fee</span>
+                      <span className="font-semibold">{FORMAT_CURRENCY(feeBreakdown.countyTravelFeeKES, currency)}</span>
+                    </div>
+                    {feeBreakdown.urgencyFeeKES > 0 && (
+                      <div className="flex justify-between text-amber-700 pt-1.5">
+                        <span>Urgency Priority Surcharge ({urgency})</span>
+                        <span className="font-bold">{FORMAT_CURRENCY(feeBreakdown.urgencyFeeKES, currency)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-slate-600 pt-1.5">
+                      <span>Platform Cryptographic Storage & QA Review</span>
+                      <span className="font-semibold">{FORMAT_CURRENCY(feeBreakdown.platformFeeKES, currency)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-900 pt-3 border-t-2 border-slate-900 font-bold text-sm">
+                      <span>Total Service Fee Quote</span>
+                      <span className="text-base text-emerald-700">{FORMAT_CURRENCY(feeBreakdown.totalKES, currency)}</span>
+                    </div>
                   </div>
+                </div>
+
+                {/* Financial Separation Guarantee */}
+                <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-200 text-[11px] text-slate-600 leading-relaxed">
+                  <strong>Strict Financial Separation:</strong> DiasporaVerify fees cover independent verification and dossier curation only. We never disburse purchase funds to third-party sellers or contractors.
                 </div>
               </div>
 
               {/* Submit CTA */}
-              <div className="pt-2">
+              <div className="pt-2 space-y-2">
                 <button
                   type="submit"
-                  className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-base shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition"
+                  className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-slate-950 font-bold text-base shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition cursor-pointer"
                 >
-                  <span>Submit Request & Generate Reference</span>
+                  <span>Accept Quote & Confirm Request</span>
                   <ArrowRight className="w-5 h-5 stroke-[2.5]" />
                 </button>
-                <p className="text-[11px] text-center text-slate-400 mt-2">
-                  Secure transmission • You will receive an official DV reference code for tracking.
+                <p className="text-[11px] text-center text-slate-400">
+                  {isAuthenticated 
+                    ? 'Authenticated as client · Reference and dispatch tracking will activate immediately.' 
+                    : 'You will be prompted to create your client account to track the dispatched verifier.'}
                 </p>
               </div>
             </div>
@@ -1117,7 +1750,7 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
               <button
                 type="button"
                 onClick={() => setStep(prev => prev - 1)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
@@ -1134,7 +1767,7 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                   }
                   setStep(prev => prev + 1);
                 }}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-1.5 transition"
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-1.5 transition cursor-pointer"
               >
                 <span>Continue to Step {step + 1}</span>
                 <ArrowRight className="w-4 h-4" />
