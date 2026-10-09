@@ -80,12 +80,6 @@ export const Navbar: React.FC = () => {
 
   const unreadCount = notifications.filter(n => !n.read).length;
   const currentNormalizedRole = normalizeRole(activeRole);
-  const isPublicPage = 
-    location.pathname === '/' || 
-    location.pathname === '/landing' || 
-    location.pathname === '/landing-classic' || 
-    location.pathname === '/legal' || 
-    location.pathname === '/service-model';
 
   const currencies: CurrencyCode[] = ['KES', 'USD', 'GBP', 'EUR', 'AED', 'CAD', 'AUD'];
 
@@ -120,6 +114,7 @@ export const Navbar: React.FC = () => {
     { path: '/admin?tab=clients', label: 'Client Base', icon: <Users className="w-3.5 h-3.5 text-amber-600" /> },
     { path: '/admin?tab=contacts', label: 'Contacts', icon: <Phone className="w-3.5 h-3.5 text-indigo-600" /> },
     { path: '/admin?tab=settings', label: 'Audit & Security', icon: <ShieldCheck className="w-3.5 h-3.5 text-purple-600" /> },
+    { path: '/profile', label: 'Profile', icon: <User className="w-3.5 h-3.5 text-slate-500" /> },
     { path: '/', label: 'Public Site ↗', icon: <Globe className="w-3.5 h-3.5 text-slate-400" /> },
   ];
 
@@ -144,37 +139,6 @@ export const Navbar: React.FC = () => {
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
       {/* Admin Impersonation Preview Banner */}
       <AdminPreviewBanner />
-
-      {/* Admin Presence Bar: Displayed when an authenticated Admin is viewing public pages */}
-      {isAuthenticated && currentUser && currentNormalizedRole === 'admin' && isPublicPage && (
-        <div className="bg-[#061329] text-slate-300 text-xs py-1.5 px-3 sm:px-6 border-b border-slate-800 w-full max-w-full overflow-hidden">
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 min-w-0">
-            <div className="flex items-center gap-2 min-w-0 max-w-full">
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
-                ADMIN ACTIVE
-              </span>
-              <span className="text-slate-300 text-xs font-medium truncate">
-                Viewing Public Site as <strong className="text-white">{currentUser.name}</strong> ({currentNormalizedRole.toUpperCase()})
-              </span>
-            </div>
-            <div className="flex items-center gap-3 text-xs shrink-0">
-              <button
-                onClick={() => handleNav('/admin')}
-                className="font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <span>Return to Operations Desk →</span>
-              </button>
-              <span className="text-slate-600 hidden sm:inline">|</span>
-              <button
-                onClick={() => handleNav('/cockpit')}
-                className="text-slate-300 hover:text-white transition-colors cursor-pointer hidden sm:inline"
-              >
-                <span>Financial Cockpit ↗</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Public Trust Anchor Bar (Displayed only for unauthenticated guests) */}
       {!isAuthenticated || !currentUser ? (
@@ -653,7 +617,7 @@ export const Navbar: React.FC = () => {
                       )}
 
                       <div className="pt-2 border-t border-slate-100 mt-1 space-y-1">
-                        {currentNormalizedRole === 'client' && (
+                        {currentNormalizedRole !== 'agent' && (
                           <button
                             onClick={() => {
                               setRoleMenuOpen(false);

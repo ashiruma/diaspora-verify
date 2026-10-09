@@ -19,12 +19,14 @@ export const ClientProfileView: React.FC = () => {
 
   const [name, setName] = useState(currentUser?.name || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
-  const [locationAbroad, setLocationAbroad] = useState(currentUser?.locationAbroad || '');
+  const [locationAbroad, setLocationAbroad] = useState(currentUser?.locationAbroad || (currentUser?.role === 'admin' ? 'Nairobi HQ · Operations Desk' : ''));
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   if (!currentUser) {
     return null;
   }
+
+  const isAdmin = currentUser.role === 'admin';
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,16 +39,19 @@ export const ClientProfileView: React.FC = () => {
     setToastMessage('Profile credentials successfully updated.');
   };
 
-  // User-specific audit entries
+  // User-specific audit entries or operational logs
   const userAudits = auditLogs.filter(
-    (log) => log.performedBy?.id === currentUser.id || log.metadata?.targetEmail === currentUser.email
+    (log) => 
+      log.performedBy?.id === currentUser.id || 
+      log.metadata?.targetEmail === currentUser.email ||
+      (isAdmin && (log.performedBy?.role === 'admin' || log.action.includes('ADMIN') || log.action.includes('AUTH') || log.action.includes('USER_LOGGED')))
   );
 
   return (
     <PortalLayout
-      title="Account & Security"
-      subtitle="Thursday, 8 October 2026 · Diaspora Client Profile"
-      role={currentUser?.role === 'admin' ? 'admin' : 'client'}
+      title={isAdmin ? "Operations Admin Profile" : "Account & Security"}
+      subtitle={isAdmin ? "Thursday, 8 October 2026 · Operations Administrator Profile" : "Thursday, 8 October 2026 · Diaspora Client Profile"}
+      role={isAdmin ? 'admin' : 'client'}
       activeTab="profile"
     >
       <div className="space-y-6">
@@ -55,15 +60,17 @@ export const ClientProfileView: React.FC = () => {
           <div>
             <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
               <CheckCircle2 className="h-3.5 w-3.5" />
-              Identity & Consent Verified
+              {isAdmin ? 'Level 4 HQ Clearance Active' : 'Identity & Consent Verified'}
             </div>
 
             <h2 className="text-2xl font-bold tracking-tight md:text-3xl text-slate-900">
-              Account & Security Settings
+              {isAdmin ? 'Admin Profile & Security Credentials' : 'Account & Security Settings'}
             </h2>
 
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              Diaspora verification credentials, multi-factor authentication (MFA), and audit log history.
+              {isAdmin
+                ? 'DiasporaVerify Nairobi HQ administrative credentials, high-privilege operations clearance, and security audit history.'
+                : 'Diaspora verification credentials, multi-factor authentication (MFA), and audit log history.'}
             </p>
           </div>
         </div>
@@ -94,7 +101,7 @@ export const ClientProfileView: React.FC = () => {
           </div>
 
           <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
-            {currentUser.role.toUpperCase()} ACCOUNT
+            {isAdmin ? 'OPERATIONS ADMIN' : `${currentUser.role.toUpperCase()} ACCOUNT`}
           </span>
         </div>
 
@@ -121,22 +128,23 @@ export const ClientProfileView: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-700">Overseas Phone (SMS / WhatsApp)</label>
+              <label className="font-bold text-slate-700">{isAdmin ? 'HQ Operations Direct Line / Mobile' : 'Overseas Phone (SMS / WhatsApp)'}</label>
               <input
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                placeholder={isAdmin ? '+254 700 000 000' : '+1 555 019 2834'}
                 className="w-full px-3 py-2 rounded-xl border border-slate-300 outline-none font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-700">Residence Abroad</label>
+              <label className="font-bold text-slate-700">{isAdmin ? 'Assigned Duty Station' : 'Residence Abroad'}</label>
               <input
                 type="text"
                 value={locationAbroad}
                 onChange={(e) => setLocationAbroad(e.target.value)}
-                placeholder="e.g. London, United Kingdom or Dallas, TX"
+                placeholder={isAdmin ? 'e.g. Nairobi HQ · Upper Hill' : 'e.g. London, United Kingdom or Dallas, TX'}
                 className="w-full px-3 py-2 rounded-xl border border-slate-300 outline-none"
               />
             </div>
@@ -149,6 +157,58 @@ export const ClientProfileView: React.FC = () => {
           </div>
         </form>
       </div>
+
+      {/* Admin Operational Scope Card (Shown for Admin accounts) */}
+      {isAdmin && (
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-5 shadow-xs">
+          <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+            <ShieldCheck className="w-5 h-5 text-emerald-600" />
+            <h2 className="text-base font-bold text-slate-900">Operations Clearance & Governance Privileges</h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1">
+              <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
+                <span>Escrow Authorization</span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Authorized to release verified milestone payouts via M-Pesa & Swift.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1">
+              <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
+                <span>QA & Tamper Review</span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Cryptographic SHA-256 seal verification and contradiction flagging.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1">
+              <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
+                <span>Verifier Dispatch</span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Vetted field operative task assignment & Nairobi GPS telemetry tracking.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1">
+              <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
+                <span>Anti-Collusion Guard</span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Strict zero-contact isolation relay protocol between clients and agents.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Security & MFA Settings */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-5 shadow-xs">

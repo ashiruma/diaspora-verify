@@ -214,6 +214,12 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             active={activeTab === 'settings'}
             onClick={() => handleNav('settings', true)}
           />
+          <NavItem
+            icon={User}
+            label="Account & Profile"
+            active={location.pathname === '/profile'}
+            onClick={() => handleNav('/profile')}
+          />
         </>
       );
     }
@@ -402,26 +408,40 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
           {/* User Profile Card */}
           <div className="border-t border-slate-100 p-4">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white shrink-0">
+              <button
+                type="button"
+                onClick={() => !isAgent && handleNav('/profile')}
+                disabled={isAgent}
+                className={`flex items-center gap-2.5 min-w-0 text-left -m-1.5 p-1.5 rounded-xl transition-all ${
+                  isAgent ? 'cursor-default' : 'cursor-pointer hover:bg-slate-50 group'
+                }`}
+                title={isAgent ? userDisplayName : 'View Account & Profile'}
+              >
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white shrink-0 ${
+                  !isAgent ? 'group-hover:bg-emerald-600 transition-colors' : ''
+                }`}>
                   {userInitial}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-slate-900">
+                  <p className={`truncate text-xs font-bold text-slate-900 ${
+                    !isAgent ? 'group-hover:text-emerald-700 transition-colors' : ''
+                  }`}>
                     {userDisplayName}
                   </p>
-                  <p className="text-[10px] text-slate-400 truncate capitalize">
-                    {userSubtitle}
+                  <p className="text-[10px] text-slate-400 truncate capitalize flex items-center gap-1">
+                    <span>{userSubtitle}</span>
+                    {!isAgent && <span className="text-[9px] text-emerald-600 font-semibold underline">Profile →</span>}
                   </p>
                 </div>
-              </div>
+              </button>
 
               <button
+                type="button"
                 onClick={() => {
                   logout();
                   navigate('/login');
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
                 title="Sign out"
               >
                 <LogOut className="w-4 h-4" />
@@ -494,26 +514,45 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
 
             <div className="border-t border-slate-100 p-4">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isAgent) {
+                      setMobileOpen(false);
+                      handleNav('/profile');
+                    }
+                  }}
+                  disabled={isAgent}
+                  className={`flex items-center gap-2.5 min-w-0 text-left -m-1.5 p-1.5 rounded-xl transition-all ${
+                    isAgent ? 'cursor-default' : 'cursor-pointer hover:bg-slate-50 group flex-1'
+                  }`}
+                  title={isAgent ? userDisplayName : 'View Account & Profile'}
+                >
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white shrink-0 ${
+                    !isAgent ? 'group-hover:bg-emerald-600 transition-colors' : ''
+                  }`}>
                     {userInitial}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-slate-900">
+                    <p className={`truncate text-xs font-bold text-slate-900 ${
+                      !isAgent ? 'group-hover:text-emerald-700 transition-colors' : ''
+                    }`}>
                       {userDisplayName}
                     </p>
-                    <p className="text-[10px] text-slate-400 truncate capitalize">
-                      {userSubtitle}
+                    <p className="text-[10px] text-slate-400 truncate capitalize flex items-center gap-1">
+                      <span>{userSubtitle}</span>
+                      {!isAgent && <span className="text-[9px] text-emerald-600 font-semibold underline">Profile →</span>}
                     </p>
                   </div>
-                </div>
+                </button>
 
                 <button
+                  type="button"
                   onClick={() => {
                     logout();
                     navigate('/login');
                   }}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
                   title="Sign out"
                 >
                   <LogOut className="w-4 h-4" />
