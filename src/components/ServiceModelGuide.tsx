@@ -16,10 +16,7 @@ export const ServiceModelGuide: React.FC<{ onBookNow: () => void; onBack?: () =>
       
       {/* Hero Header */}
       <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-10 shadow-xl border border-slate-800 space-y-4">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
-            <span>Official Operational Doctrine</span>
-          </div>
+        <div className="flex items-center justify-end gap-3 flex-wrap">
           {onBack && (
             <button
               onClick={onBack}

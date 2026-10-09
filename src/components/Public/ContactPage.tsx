@@ -77,11 +77,6 @@ export const ContactPage: React.FC = () => {
               <span>Back to Home</span>
             </button>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
-              <Mail className="w-4 h-4 text-emerald-400" />
-              <span>Nairobi HQ Operations Desk</span>
-            </div>
-
             <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-white max-w-3xl">
               Speak with our coordination desk.
             </h1>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ShieldCheck, 
   Search, 
   Users, 
   Smartphone, 
@@ -106,11 +105,6 @@ export const HowItWorksPage: React.FC = () => {
         {/* Hero Section */}
         <div className="bg-[#172A3A] text-white py-14 sm:py-20 border-b border-slate-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Rigorous 5-Stage Service Architecture</span>
-            </div>
-
             <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-white max-w-3xl">
               How DiasporaVerify Works: From Request to Objective Evidence.
             </h1>

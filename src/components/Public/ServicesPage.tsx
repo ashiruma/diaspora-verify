@@ -7,7 +7,6 @@ import {
   HeartHandshake, 
   Compass, 
   ArrowRight, 
-  ShieldCheck, 
   CheckCircle2, 
   AlertTriangle
 } from '../Icons';
@@ -33,11 +32,6 @@ export const ServicesPage: React.FC = () => {
         {/* Hero Section */}
         <div className="bg-[#172A3A] text-white py-14 sm:py-20 border-b border-slate-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Independent Ground Observation Services</span>
-            </div>
-
             <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-white max-w-3xl">
               Verified ground support across five defined categories.
             </h1>

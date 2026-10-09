@@ -147,7 +147,7 @@ export const Navbar: React.FC = () => {
       : clientNavLinks;
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
       {/* Admin Impersonation Preview Banner */}
       <AdminPreviewBanner />
 
@@ -198,7 +198,7 @@ export const Navbar: React.FC = () => {
       ) : null}
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 w-full max-w-full overflow-hidden">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 w-full relative">
         <div className="flex items-center justify-between h-16 gap-2 sm:gap-3 min-w-0">
           
           {/* Logo & Brand */}
@@ -264,7 +264,7 @@ export const Navbar: React.FC = () => {
                     onClick={() => setServicesMenuOpen(false)} 
                   />
                   <div 
-                    className="absolute left-0 mt-2 w-72 sm:w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 text-left space-y-1 animate-in fade-in duration-150"
+                    className="absolute top-full left-0 mt-2 w-72 sm:w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 text-left space-y-1 animate-in fade-in duration-150"
                   >
                     <button
                       onClick={() => handleNav('/services')}

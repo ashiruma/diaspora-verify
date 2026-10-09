@@ -705,9 +705,6 @@ export function HomePage({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-[#f8fafc] rounded-3xl border border-slate-200 p-8 sm:p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
               <div className="space-y-3 max-w-2xl">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 inline-block">
-                  TRANSPARENCY STANDARD
-                </span>
                 <h3 className="text-2xl sm:text-3xl font-bold font-display text-slate-900">
                   Inspect Our Demonstration Report Dossier
                 </h3>
