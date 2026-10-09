@@ -222,91 +222,68 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-1 py-1">
-            {!isAuthenticated || !currentUser ? (
-              <>
-                <button
-                  onClick={() => handleNav('/services')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    location.pathname.startsWith('/services')
-                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  Services
-                </button>
-                <button
-                  onClick={() => handleNav('/how-it-works')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    location.pathname === '/how-it-works'
-                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  How It Works
-                </button>
-                <button
-                  onClick={() => handleNav('/sample-report')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    location.pathname === '/sample-report'
-                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  Sample Report
-                </button>
-                <button
-                  onClick={() => handleNav('/about')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    location.pathname === '/about'
-                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  About
-                </button>
-                <button
-                  onClick={() => handleNav('/contact')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    location.pathname === '/contact'
-                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  Contact
-                </button>
-                <button
-                  onClick={() => handleNav('/legal')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    location.pathname === '/legal'
-                      ? 'bg-slate-100 text-slate-900 border border-slate-200'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  Legal
-                </button>
-              </>
-            ) : (
-              activeNavLinks.map((link) => {
-                const isActive = 
-                  location.pathname === link.path || 
-                  (link.path.includes('?') && location.pathname + location.search === link.path);
-                return (
-                  <button
-                    key={link.path}
-                    onClick={() => handleNav(link.path)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
-                      isActive 
-                        ? 'bg-slate-100 text-slate-900 font-semibold border border-slate-200 shadow-2xs' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                    }`}
-                  >
-                    {link.icon}
-                    <span>{link.label}</span>
-                  </button>
-                );
-              })
-            )}
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-1 py-1">
+            <button
+              onClick={() => handleNav('/services')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                location.pathname.startsWith('/services')
+                  ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              Services
+            </button>
+            <button
+              onClick={() => handleNav('/how-it-works')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                location.pathname === '/how-it-works'
+                  ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              How It Works
+            </button>
+            <button
+              onClick={() => handleNav('/sample-report')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                location.pathname === '/sample-report'
+                  ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              Sample Report
+            </button>
+            <button
+              onClick={() => handleNav('/about')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                location.pathname === '/about'
+                  ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              About
+            </button>
+            <button
+              onClick={() => handleNav('/contact')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                location.pathname === '/contact'
+                  ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              Contact
+            </button>
+            <button
+              onClick={() => handleNav('/legal')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                location.pathname === '/legal'
+                  ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              Legal
+            </button>
           </nav>
 
           {/* Right Action Controls */}
