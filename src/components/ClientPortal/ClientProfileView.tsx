@@ -13,6 +13,7 @@ import {
 import { Button } from '../ui/Button';
 import { PortalLayout } from '../layout/PortalLayout';
 import { CheckCircle2 } from 'lucide-react';
+import { DEMO_USERS } from '../../auth/demoUsers';
 
 export const ClientProfileView: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +23,14 @@ export const ClientProfileView: React.FC = () => {
   const [phone, setPhone] = useState(currentUser?.phone || '');
   const [locationAbroad, setLocationAbroad] = useState(currentUser?.locationAbroad || (currentUser?.role === 'admin' ? 'Nairobi HQ · Operations Desk' : ''));
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleSwitchUser = (targetUser: any) => {
+    setCurrentUser(targetUser);
+    setName(targetUser.name);
+    setPhone(targetUser.phone || '');
+    setLocationAbroad(targetUser.locationAbroad || (targetUser.role === 'admin' ? 'Nairobi HQ · Operations Desk' : ''));
+    setToastMessage(`Switched active profile to ${targetUser.name} (${targetUser.role.toUpperCase()}).`);
+  };
 
   if (!currentUser) {
     return null;
@@ -73,6 +82,33 @@ export const ClientProfileView: React.FC = () => {
                 ? 'DiasporaVerify Nairobi HQ administrative credentials, high-privilege operations clearance, and security audit history.'
                 : 'Diaspora verification credentials, multi-factor authentication (MFA), and audit log history.'}
             </p>
+
+            {/* Quick Profile View Switcher */}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500">Switch Profile:</span>
+              <button
+                type="button"
+                onClick={() => handleSwitchUser(DEMO_USERS.client)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                  currentUser.role === 'client'
+                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                Diaspora Client (Jane Doe)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSwitchUser(DEMO_USERS.admin)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                  currentUser.role === 'admin'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                Operations Admin (Sarah Kamau)
+              </button>
+            </div>
           </div>
         </div>
 

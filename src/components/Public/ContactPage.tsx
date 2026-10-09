@@ -67,21 +67,21 @@ export const ContactPage: React.FC = () => {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col justify-between text-left">
       <div>
         {/* Hero Section */}
-        <div className="bg-[#172A3A] text-white py-14 sm:py-20 border-b border-slate-800">
+        <div className="bg-slate-50 text-slate-900 py-14 sm:py-20 border-b border-slate-200">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
             <button
               onClick={() => navigate('/')}
-              className="text-xs text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors cursor-pointer font-medium"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Home</span>
             </button>
 
-            <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-white max-w-3xl">
+            <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-slate-900 max-w-3xl">
               Speak with our coordination desk.
             </h1>
 
-            <p className="text-sm sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
+            <p className="text-sm sm:text-lg text-slate-600 max-w-2xl leading-relaxed">
               Have a question about pilot coverage, pricing principles, or a custom verification task? Send an inquiry or submit a formal brief without obligation.
             </p>
           </div>
@@ -312,7 +312,7 @@ export const ContactPage: React.FC = () => {
               </div>
 
               {/* Ready to Scope a Full Mission */}
-              <div className="bg-[#172A3A] text-white rounded-3xl p-6 shadow-xs space-y-3 text-xs">
+              <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xs space-y-3 text-xs">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 font-mono">
                   READY TO START?
                 </span>

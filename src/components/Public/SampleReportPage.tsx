@@ -72,11 +72,11 @@ export const SampleReportPage: React.FC = () => {
         </div>
 
         {/* Header Breadcrumb */}
-        <div className="bg-[#172A3A] text-white py-10 sm:py-14 border-b border-slate-800">
+        <div className="bg-slate-50 text-slate-900 py-10 sm:py-14 border-b border-slate-200">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
             <button
               onClick={() => navigate('/')}
-              className="text-xs text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors cursor-pointer font-medium"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Home</span>
@@ -84,25 +84,25 @@ export const SampleReportPage: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
-                <h1 className="text-2xl sm:text-4xl font-black font-display tracking-tight text-white">
+                <h1 className="text-2xl sm:text-4xl font-black font-display tracking-tight text-slate-900">
                   Field Verification & Findings Dossier
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-300">
-                  Standard QA Review Report · Reference: <strong className="text-white font-mono">DV-DEMO-2026-NBI</strong>
+                <p className="text-xs sm:text-sm text-slate-600">
+                  Standard QA Review Report · Reference: <strong className="text-slate-900 font-mono">DV-DEMO-2026-NBI</strong>
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => window.print()}
-                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Print Dossier</span>
                 </button>
                 <button
                   onClick={() => navigate('/new-request')}
-                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                 >
                   Request Similar Audit
                 </button>

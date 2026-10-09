@@ -103,27 +103,27 @@ export const HowItWorksPage: React.FC = () => {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col justify-between text-left">
       <div>
         {/* Hero Section */}
-        <div className="bg-[#172A3A] text-white py-14 sm:py-20 border-b border-slate-800">
+        <div className="bg-slate-50 text-slate-900 py-14 sm:py-20 border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-white max-w-3xl">
+            <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-slate-900 max-w-3xl">
               How DiasporaVerify Works: From Request to Objective Evidence.
             </h1>
 
-            <p className="text-sm sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
+            <p className="text-sm sm:text-lg text-slate-600 max-w-2xl leading-relaxed">
               We do not rely on informal favors or casual promises. Every mission follows a repeatable five-stage operational framework ensuring accountability, client control, and zero conflicts of interest.
             </p>
 
             <div className="pt-2 flex flex-wrap items-center gap-4">
               <button
                 onClick={() => navigate('/new-request')}
-                className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md transition-colors flex items-center gap-2 cursor-pointer"
+                className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <span>Request a Service</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button
                 onClick={() => navigate('/sample-report')}
-                className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
+                className="px-5 py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 shadow-2xs transition-colors cursor-pointer"
               >
                 View Sample Report ↗
               </button>
@@ -173,7 +173,7 @@ export const HowItWorksPage: React.FC = () => {
               <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-10 shadow-xs space-y-8 animate-in fade-in duration-200">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-[#172A3A] text-emerald-400 flex items-center justify-center shrink-0 shadow-xs">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center shrink-0 shadow-xs">
                       <Icon className="w-7 h-7" />
                     </div>
                     <div>
@@ -312,7 +312,7 @@ export const HowItWorksPage: React.FC = () => {
           </div>
 
           {/* Final Call to Action */}
-          <div className="p-8 rounded-3xl bg-[#172A3A] text-white flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="p-8 rounded-3xl bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="space-y-1">
               <h3 className="text-xl font-bold font-display">Have a task that needs eyes on the ground?</h3>
               <p className="text-xs text-slate-300">Submit an intake brief. Our coordinators review feasibility without obligation.</p>

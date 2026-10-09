@@ -113,19 +113,46 @@ export const Login: React.FC = () => {
         console.error('Error reading registered users', err);
       }
 
-      // 2. Official HQ Operations Admin / Staff accounts
-      if (
-        (trimmedEmail === 'admin@diasporaverify.com' || 
-         trimmedEmail === 'sarah.kamau@diasporaverify.co.ke' ||
-         trimmedEmail === 'operations@diasporaverify.com') &&
-        (trimmedPassword === 'demo123' || trimmedPassword === 'Admin2026!')
-      ) {
-        const adminUser = DEMO_USERS.admin;
-        handleSuccessfulAuth({
-          ...adminUser,
-          email: trimmedEmail,
-        });
-        return;
+      // 2. Official HQ Operations Admin & Demo accounts instant authentication
+      if (trimmedPassword === 'demo123' || trimmedPassword === 'Admin2026!') {
+        if (
+          trimmedEmail === 'admin@diasporaverify.com' || 
+          trimmedEmail === 'sarah.kamau@diasporaverify.co.ke' ||
+          trimmedEmail === 'operations@diasporaverify.com'
+        ) {
+          const adminUser = DEMO_USERS.admin;
+          handleSuccessfulAuth({
+            ...adminUser,
+            email: trimmedEmail,
+          });
+          return;
+        }
+
+        if (
+          trimmedEmail === 'jane.doe@diasporaverify.demo' ||
+          trimmedEmail === 'client@diasporaverify.com' ||
+          trimmedEmail === 'david.mwangi.uk@gmail.com'
+        ) {
+          const clientUser = DEMO_USERS.client;
+          handleSuccessfulAuth({
+            ...clientUser,
+            email: trimmedEmail,
+          });
+          return;
+        }
+
+        if (
+          trimmedEmail === 'brian.omondi@diasporaverify.co.ke' ||
+          trimmedEmail === 'agent@diasporaverify.com' ||
+          trimmedEmail === 'evans.kiptoo@diasporaverify.co.ke'
+        ) {
+          const agentUser = DEMO_USERS.agent;
+          handleSuccessfulAuth({
+            ...agentUser,
+            email: trimmedEmail,
+          });
+          return;
+        }
       }
 
       // 3. Supabase Auth Integration
@@ -223,6 +250,62 @@ export const Login: React.FC = () => {
               <div className="leading-relaxed">{successNotice}</div>
             </div>
           )}
+
+          {/* Quick 1-Click Demo Profiles */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                1-CLICK PROFILE ACCESS
+              </span>
+              <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Instant Sign-In
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleSuccessfulAuth(DEMO_USERS.client)}
+                className="p-2.5 rounded-xl bg-white hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 text-left transition-colors cursor-pointer group shadow-2xs"
+              >
+                <div className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 flex items-center justify-between">
+                  <span>Client Profile</span>
+                  <span className="text-[10px] text-emerald-600 font-bold">→</span>
+                </div>
+                <div className="text-[10px] text-slate-500 truncate mt-0.5">Jane Doe · London</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSuccessfulAuth(DEMO_USERS.admin)}
+                className="p-2.5 rounded-xl bg-white hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 text-left transition-colors cursor-pointer group shadow-2xs"
+              >
+                <div className="text-xs font-bold text-slate-900 group-hover:text-blue-700 flex items-center justify-between">
+                  <span>HQ Admin Profile</span>
+                  <span className="text-[10px] text-blue-600 font-bold">→</span>
+                </div>
+                <div className="text-[10px] text-slate-500 truncate mt-0.5">Sarah Kamau · Nairobi HQ</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSuccessfulAuth(DEMO_USERS.agent)}
+                className="p-2.5 rounded-xl bg-white hover:bg-amber-50/70 border border-slate-200 hover:border-amber-300 text-left transition-colors cursor-pointer group shadow-2xs"
+              >
+                <div className="text-xs font-bold text-slate-900 group-hover:text-amber-700 flex items-center justify-between">
+                  <span>Field Verifier</span>
+                  <span className="text-[10px] text-amber-600 font-bold">→</span>
+                </div>
+                <div className="text-[10px] text-slate-500 truncate mt-0.5">Brian Omondi · Nairobi</div>
+              </button>
+            </div>
+          </div>
+
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-slate-200"></div>
+            <span className="flex-shrink mx-3 text-[10px] font-bold uppercase text-slate-400">or sign in with password</span>
+            <div className="flex-grow border-t border-slate-200"></div>
+          </div>
 
           <form onSubmit={handleManualLogin} className="space-y-4">
             <div className="space-y-1.5">

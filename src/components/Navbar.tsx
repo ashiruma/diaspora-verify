@@ -118,6 +118,7 @@ export const Navbar: React.FC = () => {
     { path: '/requests', label: 'My Requests', icon: <FileText className="w-3.5 h-3.5 text-emerald-600" /> },
     { path: '/properties', label: 'Properties', icon: <MapPin className="w-3.5 h-3.5 text-emerald-600" /> },
     { path: '/reports', label: 'Reports', icon: <FileText className="w-3.5 h-3.5 text-blue-600" /> },
+    { path: '/profile', label: 'My Profile', icon: <User className="w-3.5 h-3.5 text-slate-500" /> },
     { path: '/', label: 'Public Site ↗', icon: <Globe className="w-3.5 h-3.5 text-slate-400" /> },
   ];
 
@@ -151,51 +152,6 @@ export const Navbar: React.FC = () => {
       {/* Admin Impersonation Preview Banner */}
       <AdminPreviewBanner />
 
-      {/* Public Trust Anchor Bar (Displayed only for unauthenticated guests) */}
-      {!isAuthenticated || !currentUser ? (
-        <div className="bg-[#061329] text-slate-300 text-xs py-1.5 px-3 sm:px-6 border-b border-slate-800/80 w-full max-w-full overflow-hidden">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 min-w-0">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide bg-emerald-400/10 text-emerald-300 border border-emerald-400/30 shrink-0">
-                KENYA GROUND VERIFICATION
-              </span>
-              <span className="hidden sm:inline text-slate-300 text-[11px] truncate">
-                Independent on-ground due diligence
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 sm:gap-4 text-[11px] shrink-0">
-              <button 
-                onClick={() => handleNav('/how-it-works')} 
-                className="text-slate-300 hover:text-white transition-colors cursor-pointer"
-              >
-                How it works
-              </button>
-              <span className="text-slate-700">|</span>
-              <button 
-                onClick={() => handleNav('/sample-report')} 
-                className="text-slate-300 hover:text-white transition-colors cursor-pointer hidden sm:inline"
-              >
-                Sample report
-              </button>
-              <span className="text-slate-700 hidden sm:inline">|</span>
-              <button 
-                onClick={() => handleNav('/legal')} 
-                className="text-slate-300 hover:text-white transition-colors cursor-pointer hidden xs:inline"
-              >
-                Legal & Compliance
-              </button>
-              <span className="text-slate-700 hidden xs:inline">|</span>
-              <button 
-                onClick={() => handleNav('/')} 
-                className="text-emerald-300 hover:text-emerald-200 font-bold transition-colors cursor-pointer"
-              >
-                Public site →
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 w-full relative">
@@ -402,6 +358,14 @@ export const Navbar: React.FC = () => {
             {!isAuthenticated || !currentUser ? (
               <div className="flex items-center gap-2">
                 <button
+                  onClick={() => handleNav('/login?redirect=/profile')}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                  title="View user profile"
+                >
+                  <User className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Profile</span>
+                </button>
+                <button
                   onClick={() => handleNav('/login')}
                   className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
@@ -513,7 +477,7 @@ export const Navbar: React.FC = () => {
                     <div className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
                       {currentUser?.name?.[0]?.toUpperCase() || 'U'}
                     </div>
-                    <div className="text-left hidden xl:block leading-tight">
+                    <div className="text-left hidden sm:block leading-tight">
                       <div className="text-xs font-bold text-slate-900 truncate max-w-[110px]">
                         {currentUser?.name?.split(' ')[0] || 'Account'}
                       </div>
@@ -538,6 +502,21 @@ export const Navbar: React.FC = () => {
                           {currentUser?.email}
                         </div>
                       </div>
+
+                      {/* Direct Profile Shortcut */}
+                      <button
+                        onClick={() => {
+                          setRoleMenuOpen(false);
+                          navigate('/profile');
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-900 bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200/80 flex items-center justify-between transition-colors cursor-pointer mb-1 shadow-2xs"
+                      >
+                        <div className="flex items-center gap-2">
+                          <User className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>View Account Profile</span>
+                        </div>
+                        <span className="text-[10px] text-emerald-700 font-bold">Profile →</span>
+                      </button>
 
                       {/* Admin-Only Controls */}
                       {currentNormalizedRole === 'admin' && (
@@ -777,14 +756,22 @@ export const Navbar: React.FC = () => {
               </div>
               <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
                 <button
-                  onClick={() => handleNav('/login')}
-                  className="flex-1 py-2 text-center rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"
+                  onClick={() => handleNav('/login?redirect=/profile')}
+                  className="flex-1 py-2 text-center rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  Sign In
+                  <User className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Profile</span>
+                </button>
+                <button
+                  onClick={() => handleNav('/login')}
+                  className="flex-1 py-2 text-center rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <LogIn className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Sign In</span>
                 </button>
                 <button
                   onClick={() => handleNav('/new-request')}
-                  className="flex-1 py-2 text-center rounded-xl bg-emerald-600 text-xs font-bold text-white cursor-pointer"
+                  className="flex-1 py-2 text-center rounded-xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-500 cursor-pointer"
                 >
                   Get Started
                 </button>

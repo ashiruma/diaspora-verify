@@ -13,13 +13,13 @@ export const AboutPage: React.FC = () => {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col justify-between text-left">
       <div>
         {/* Hero Section */}
-        <div className="bg-[#172A3A] text-white py-14 sm:py-20 border-b border-slate-800">
+        <div className="bg-slate-50 text-slate-900 py-14 sm:py-20 border-b border-slate-200">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-            <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-white max-w-3xl">
+            <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-slate-900 max-w-3xl">
               Your trusted eyes and hands on the ground in Kenya.
             </h1>
 
-            <p className="text-sm sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
+            <p className="text-sm sm:text-lg text-slate-600 max-w-2xl leading-relaxed">
               We connect people living abroad with accountable, independent local observation so you never have to make major financial or family decisions based on guesswork.
             </p>
           </div>

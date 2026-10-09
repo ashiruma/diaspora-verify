@@ -30,27 +30,27 @@ export const ServicesPage: React.FC = () => {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col justify-between text-left">
       <div>
         {/* Hero Section */}
-        <div className="bg-[#172A3A] text-white py-14 sm:py-20 border-b border-slate-800">
+        <div className="bg-slate-50 text-slate-900 py-14 sm:py-20 border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-            <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-white max-w-3xl">
+            <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-slate-900 max-w-3xl">
               Verified ground support across five defined categories.
             </h1>
 
-            <p className="text-sm sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
+            <p className="text-sm sm:text-lg text-slate-600 max-w-2xl leading-relaxed">
               Every request receives a defined scope, a vetted local verifier, dated evidence, and an objective findings report. You retain full control over decisions and spending.
             </p>
 
-            <div className="pt-2 flex flex-wrap items-center gap-3 text-xs text-slate-300">
-              <span className="flex items-center gap-1.5 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-slate-700">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="pt-2 flex flex-wrap items-center gap-3 text-xs text-slate-700">
+              <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 Itemized quotes
               </span>
-              <span className="flex items-center gap-1.5 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-slate-700">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 Anti-collusion dispatch
               </span>
-              <span className="flex items-center gap-1.5 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-slate-700">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 Zero unvalidated fixed prices
               </span>
             </div>
