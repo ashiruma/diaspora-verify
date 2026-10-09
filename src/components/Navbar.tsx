@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useVerification } from '../context/VerificationContext';
 import { 
   ShieldCheck, 
@@ -54,6 +55,23 @@ export const Navbar: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Lock background scrolling and support Escape key dismissal when View As modal is open
+  useEffect(() => {
+    if (!viewAsModalOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setViewAsModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [viewAsModalOpen]);
 
   // Portal routes have their own unified sidebar and header shell via PortalLayout
   const isPortalRoute = 
@@ -747,14 +765,17 @@ export const Navbar: React.FC = () => {
         </div>
       )}
 
-      {/* Admin "View As" Experience Modal */}
-      {viewAsModalOpen && (
+      {/* Admin "View As" Experience Modal (Portaled directly to document.body so it floats on top of all elements) */}
+      {viewAsModalOpen && typeof document !== 'undefined' && createPortal(
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm overflow-y-auto"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/75 backdrop-blur-sm overflow-y-auto"
           onClick={() => setViewAsModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="view-as-modal-title"
         >
           <div 
-            className="bg-white rounded-3xl p-5 sm:p-7 max-w-xl w-full shadow-2xl border border-slate-200 text-left space-y-5 my-auto relative"
+            className="bg-white rounded-3xl p-5 sm:p-7 max-w-xl w-full shadow-2xl border border-slate-200 text-left space-y-5 my-auto relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -764,7 +785,7 @@ export const Navbar: React.FC = () => {
                   <Eye className="w-3 h-3 text-amber-700" />
                   <span>Audited Simulation Mode</span>
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 font-display">
+                <h3 id="view-as-modal-title" className="text-base sm:text-lg font-bold text-slate-900 font-display">
                   Admin "View As" Experience
                 </h3>
                 <p className="text-xs text-slate-500 leading-relaxed max-w-md">
@@ -896,7 +917,8 @@ export const Navbar: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   );
