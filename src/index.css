@@ -237,3 +237,105 @@ html, body {
   color: #4A7A4A;
 }
 
+/* ========================================================
+   Orrera Location Platform / Developers Menu Design System
+   Kombai Reference: navbar-web-14
+   ======================================================== */
+:root {
+  --orrera-paper: #fffbfc;
+  --orrera-page: #fdf5f6;
+  --orrera-ink: #231b1c;
+  --orrera-ink-soft: #594648;
+  --orrera-muted: #6b585a;
+  --orrera-line: #e9d3d6;
+  --orrera-teal: #0e6e66;
+  --orrera-teal-deep: #0a544e;
+  --orrera-teal-soft: #7fb3a9;
+  --orrera-brass: #a9761f;
+  --orrera-slate-card: #1b1616;
+  --orrera-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.orrera-mega {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--orrera-paper);
+  border-bottom: 1px solid var(--orrera-line);
+  box-shadow: 0 18px 34px -26px rgba(35, 27, 28, 0.38);
+}
+
+.orrera-mega-inner {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  padding: 33px 60px 48px 60px;
+  position: relative;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .orrera-mega-inner {
+    grid-template-columns: 1fr;
+    padding: 24px 20px 32px 20px;
+  }
+}
+
+.orrera-icongrid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  column-gap: 24px;
+  row-gap: 36px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .orrera-icongrid {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .orrera-icongrid {
+    grid-template-columns: 1fr;
+    row-gap: 20px;
+  }
+}
+
+.orrera-deck {
+  position: relative;
+  height: 320px;
+  border-radius: 20px;
+  overflow: hidden;
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: transform 0.45s var(--orrera-ease), box-shadow 0.45s var(--orrera-ease);
+}
+
+.orrera-deck:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 26px 46px -30px rgba(35, 27, 28, 0.55);
+}
+
+.orrera-deck-a {
+  background: radial-gradient(120% 130% at 88% 8%, rgba(63, 143, 131, 0.16) 0%, rgba(63, 143, 131, 0) 58%), #1b1616;
+  color: #fff;
+}
+
+.orrera-deck-b {
+  background: #efd8db;
+  color: var(--orrera-ink);
+}
+
+.orrera-deck-c {
+  background: #1e1113;
+  color: #fff;
+}
+
+

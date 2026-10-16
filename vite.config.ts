@@ -33,6 +33,12 @@ export default defineConfig({
           if (id.includes('VerificationContext') || id.includes('mockData')) {
             return 'app-context'
           }
+          if (id.includes('AdminPreviewBanner') || id.includes('authorization')) {
+            return 'app-auth'
+          }
+          if (id.includes('components/Icons') || id.includes('/Icons.')) {
+            return 'app-icons'
+          }
         },
       },
     },

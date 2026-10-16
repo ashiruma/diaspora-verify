@@ -31,12 +31,14 @@ import { AdminPreviewBanner } from './AdminPreviewBanner';
 import { normalizeRole, isPlatformFounder } from '../auth/authorization';
 
 const ViewAsModal = lazy(() => import('./ViewAsModal'));
+const OrreraMegaMenu = lazy(() => import('./OrreraMegaMenu'));
 
 export const Navbar: React.FC = () => {
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false);
   const [notifMenuOpen, setNotifMenuOpen] = useState(false);
   const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
+  const [developersMenuOpen, setDevelopersMenuOpen] = useState(false);
   const [viewAsModalOpen, setViewAsModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -110,6 +112,7 @@ export const Navbar: React.FC = () => {
     setMobileMenuOpen(false);
     setCurrencyMenuOpen(false);
     setServicesMenuOpen(false);
+    setDevelopersMenuOpen(false);
   };
 
 
@@ -149,7 +152,7 @@ export const Navbar: React.FC = () => {
       : clientNavLinks;
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 relative">
       {/* Admin Impersonation Preview Banner */}
       <AdminPreviewBanner />
 
@@ -197,6 +200,7 @@ export const Navbar: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setServicesMenuOpen(!servicesMenuOpen);
+                  setDevelopersMenuOpen(false);
                   setCurrencyMenuOpen(false);
                   setRoleMenuOpen(false);
                   setNotifMenuOpen(false);
@@ -307,6 +311,31 @@ export const Navbar: React.FC = () => {
             >
               Contact
             </button>
+
+            {/* Kombai Orrera Developers Mega Menu Trigger (Reference: navbar-web-14) */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setDevelopersMenuOpen(!developersMenuOpen);
+                  setServicesMenuOpen(false);
+                  setCurrencyMenuOpen(false);
+                  setRoleMenuOpen(false);
+                  setNotifMenuOpen(false);
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${
+                  developersMenuOpen || location.pathname === '/developers'
+                    ? 'bg-[#0e6e66]/10 text-[#0e6e66] border border-[#0e6e66]/30 shadow-2xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+                aria-expanded={developersMenuOpen}
+                title="Orrera Developers Menu & Location Platform"
+              >
+                <span>Developers</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${developersMenuOpen ? 'rotate-180 text-[#0e6e66]' : 'text-slate-400'}`} />
+              </button>
+            </div>
+
             <button
               onClick={() => handleNav('/rare-leaves')}
               className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
@@ -328,6 +357,7 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={() => {
                   setCurrencyMenuOpen(!currencyMenuOpen);
+                  setDevelopersMenuOpen(false);
                   setRoleMenuOpen(false);
                   setNotifMenuOpen(false);
                 }}
@@ -417,6 +447,7 @@ export const Navbar: React.FC = () => {
                   <button
                     onClick={() => {
                       setNotifMenuOpen(!notifMenuOpen);
+                      setDevelopersMenuOpen(false);
                       setRoleMenuOpen(false);
                       setCurrencyMenuOpen(false);
                     }}
@@ -476,6 +507,7 @@ export const Navbar: React.FC = () => {
                       <button
                         onClick={() => {
                           setRoleMenuOpen(!roleMenuOpen);
+                          setDevelopersMenuOpen(false);
                           setCurrencyMenuOpen(false);
                           setNotifMenuOpen(false);
                         }}
@@ -753,6 +785,17 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
+      {/* Kombai Orrera Developers Mega Menu Dropdown Panel (Reference: navbar-web-14) */}
+      {developersMenuOpen && (
+        <Suspense fallback={null}>
+          <OrreraMegaMenu
+            isOpen={developersMenuOpen}
+            onClose={() => setDevelopersMenuOpen(false)}
+            onNavigate={handleNav}
+          />
+        </Suspense>
+      )}
+
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
         <div className="xl:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1 shadow-lg animate-in fade-in duration-150">
@@ -810,6 +853,18 @@ export const Navbar: React.FC = () => {
                   Contact & Inquiries
                 </button>
                 <button
+                  onClick={() => handleNav('/developers')}
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-[#0e6e66] bg-[#0e6e66]/5 hover:bg-[#0e6e66]/10 border border-[#0e6e66]/20 cursor-pointer flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-3.5 h-3.5 text-[#0e6e66]" />
+                    <span className="font-bold">Developers & API (Orrera)</span>
+                  </div>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-[#0e6e66]/30 text-[#0e6e66] font-mono font-bold">
+                    COORDINATES
+                  </span>
+                </button>
+                <button
                   onClick={() => handleNav('/legal')}
                   className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
                 >
@@ -851,6 +906,13 @@ export const Navbar: React.FC = () => {
                   <span>{link.label}</span>
                 </button>
               ))}
+              <button
+                onClick={() => handleNav('/developers')}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-[#0e6e66] hover:bg-emerald-50/60 flex items-center gap-2 cursor-pointer"
+              >
+                <Globe className="w-3.5 h-3.5 text-[#0e6e66]" />
+                <span>Developers & API Platform</span>
+              </button>
               {currentNormalizedRole === 'admin' && (
                 <button
                   onClick={() => {
