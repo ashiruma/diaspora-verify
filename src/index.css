@@ -143,3 +143,97 @@ html, body {
   background-color: #94a3b8;
 }
 
+/* Rare Leaves Botanical Glassmorphism Design Tokens */
+.font-serif-t {
+  font-family: 'Fraunces', serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "SOFT" 50;
+}
+
+.etched {
+  color: rgba(255, 255, 255, 0.94);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55), 0 -1px 0 rgba(0, 0, 0, 0.18), 0 2px 18px rgba(0, 0, 0, 0.22), 0 0 1px rgba(255, 255, 255, 0.4);
+  letter-spacing: -0.015em;
+}
+
+.iron-shelf {
+  border-bottom: 3px solid #2A3A2A;
+  box-shadow: 0 4px 0 -1px #2A3A2A, 0 14px 24px -10px rgba(42, 58, 42, 0.4);
+}
+
+.iron-shelf-gold {
+  border-bottom: 2px solid #A88A48;
+  box-shadow: 0 2px 0 0 rgba(168, 138, 72, 0.3), 0 10px 20px -8px rgba(42, 58, 42, 0.25);
+}
+
+.glass-pane {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(168, 138, 72, 0.25), 0 10px 30px -12px rgba(42, 58, 42, 0.25);
+}
+
+.glass-pane-dark {
+  background: rgba(42, 58, 42, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(168, 138, 72, 0.2), 0 14px 35px -10px rgba(0, 0, 0, 0.4);
+}
+
+.refract-edge {
+  position: relative;
+}
+
+.refract-edge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, transparent 18%, transparent 82%, rgba(168, 138, 72, 0.35) 100%);
+  mix-blend-mode: overlay;
+}
+
+.brass-rule {
+  background: linear-gradient(90deg, transparent, #A88A48, transparent);
+}
+
+.spin-ring {
+  animation: spin 32s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.breeze {
+  transform-origin: 50% 100%;
+  transition: transform 0.4s ease;
+}
+
+.group:hover .breeze {
+  animation: breeze 1.8s ease-in-out infinite;
+}
+
+@keyframes breeze {
+  0%, 100% { transform: rotate(-1.2deg) translateX(0); }
+  25% { transform: rotate(1.5deg) translateX(2px); }
+  50% { transform: rotate(-0.8deg) translateX(-1px); }
+  75% { transform: rotate(1deg) translateX(1.5px); }
+}
+
+.drop-cap::first-letter {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 4.2rem;
+  line-height: 1;
+  float: left;
+  padding: 0.4rem 0.6rem 0 0;
+  margin-top: 0.1rem;
+  color: #4A7A4A;
+}
+

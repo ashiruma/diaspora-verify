@@ -307,14 +307,16 @@ export const Navbar: React.FC = () => {
               Contact
             </button>
             <button
-              onClick={() => handleNav('/legal')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                location.pathname === '/legal'
-                  ? 'bg-slate-100 text-slate-900 border border-slate-200'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              onClick={() => handleNav('/rare-leaves')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                location.pathname === '/rare-leaves'
+                  ? 'bg-[#2A3A2A] text-[#F0EEE4]'
+                  : 'text-[#4A7A4A] hover:text-[#2A3A2A] hover:bg-emerald-50/60'
               }`}
+              title="Kombai Rare Leaves Botanical Showcase"
             >
-              Legal
+              <span className="w-1.5 h-1.5 rounded-full bg-[#A88A48] animate-pulse" />
+              <span>Rare Leaves</span>
             </button>
           </nav>
 

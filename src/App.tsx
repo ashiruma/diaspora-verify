@@ -40,6 +40,7 @@ const HowItWorksPage = lazy(() => import('./components/Public/HowItWorksPage').t
 const SampleReportPage = lazy(() => import('./components/Public/SampleReportPage').then(m => ({ default: m.SampleReportPage })));
 const AboutPage = lazy(() => import('./components/Public/AboutPage').then(m => ({ default: m.AboutPage })));
 const ContactPage = lazy(() => import('./components/Public/ContactPage').then(m => ({ default: m.ContactPage })));
+const RareLeavesPage = lazy(() => import('./pages/RareLeavesPage').then(m => ({ default: m.RareLeavesPage })));
 
 const RouteLoadingFallback = () => (
   <div className="min-h-[50vh] flex items-center justify-center p-8" aria-busy="true" aria-label="Loading page">
@@ -124,6 +125,7 @@ function AppRoutes() {
           <Route path="/sample-report" element={<SampleReportPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/rare-leaves" element={<RareLeavesPage />} />
           <Route 
             path="/landing" 
             element={

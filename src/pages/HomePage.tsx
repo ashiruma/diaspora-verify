@@ -10,7 +10,6 @@ import {
   MapPin,
   AlertTriangle,
   Lock,
-  Camera,
   Building2,
   Car,
   Briefcase,
@@ -20,8 +19,7 @@ import {
   UserCheck,
   CheckCircle2,
   XCircle,
-  Shield,
-  ChevronDown,
+  ChevronDown
 } from "lucide-react";
 import { useVerification } from "../context/VerificationContext";
 import type { CurrencyCode } from "../types";
@@ -50,7 +48,7 @@ export function HomePage({
 
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
-  // Smooth scroll support when navigating via hashes (e.g. #how-it-works, #services)
+  // Smooth scroll support when navigating via hashes
   useEffect(() => {
     if (window.location.hash) {
       const id = window.location.hash.replace("#", "");
@@ -93,30 +91,31 @@ export function HomePage({
     }
   };
 
-  // Helper to dynamically render category icons
   const getCategoryIcon = (iconName: string) => {
     switch (iconName) {
       case "Building2":
-        return <Building2 className="w-5 h-5 text-emerald-600" />;
+        return <Building2 className="w-5 h-5 text-[#4A7A4A]" />;
+      case "Compass":
+        return <Compass className="w-5 h-5 text-[#A88A48]" />;
       case "Car":
-        return <Car className="w-5 h-5 text-emerald-600" />;
+        return <Car className="w-5 h-5 text-[#4A7A4A]" />;
       case "Briefcase":
-        return <Briefcase className="w-5 h-5 text-emerald-600" />;
+        return <Briefcase className="w-5 h-5 text-[#B26A46]" />;
       case "HeartHandshake":
-        return <HeartHandshake className="w-5 h-5 text-emerald-600" />;
+        return <HeartHandshake className="w-5 h-5 text-[#A88A48]" />;
       default:
-        return <Compass className="w-5 h-5 text-emerald-600" />;
+        return <Compass className="w-5 h-5 text-[#4A7A4A]" />;
     }
   };
 
   const faqs = [
     {
-      q: "Does submitting a request guarantee you will accept it?",
-      a: "No. Every request undergoes a formal feasibility, legality, and safety review by our Nairobi Operations Desk. If physical access cannot be secured lawfully, if the task violates Kenyan law, or if the risk profile is unacceptable, we decline the assignment with an honest written explanation."
+      q: "How does DiasporaVerify differ from sending a relative or contractor to check?",
+      a: "Relatives and contractors operate inside personal or commercial relationships that can blur facts, invite pressure, or create conflicts of interest. DiasporaVerify dispatches independent operatives bound by written conflict-of-interest disclosures, trained to verify physical evidence against an agreed checklist with GPS-tagged and time-stamped telemetry."
     },
     {
-      q: "Do you offer fixed flat prices across all of Kenya?",
-      a: "No. We do not publish unvalidated flat prices. Service costs reflect location logistics, county distance, complexity, and specialist observation requirements. You receive a fully itemized quote in KES (or your preferred currency) before committing or making any payment."
+      q: "What starting prices or fee structures apply?",
+      a: "Every project receives an itemized, binding quote based on site location, required verifier travel, inspection depth, and urgency. Basic single-visit residential milestone checks start from transparent baseline rates in our active hubs. Request an obligation-free quote without creating an account to see exact fees for your project."
     },
     {
       q: "What geographic areas do you currently cover?",
@@ -133,469 +132,288 @@ export function HomePage({
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-[#07152f] flex flex-col justify-between text-left font-sans antialiased selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[#F0EEE4] text-[#2A3A2A] flex flex-col justify-between text-left font-sans antialiased selection:bg-[#4A7A4A] selection:text-[#F0EEE4]">
       <div>
+        
         {/* =========================================================
-            1. HERO SECTION (Spacious Two-Column Architecture)
+            1. BOTANICAL GLASSHOUSE HERO (Rare Leaves Inspiration)
         ========================================================= */}
-        <section className="relative overflow-hidden bg-[#172A3A] text-white">
-          {/* Subtle Ambient Depth Lighting */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute -left-40 -top-40 h-[580px] w-[580px] rounded-full bg-emerald-500/10 blur-[130px]" />
-            <div className="absolute -right-40 bottom-0 h-[580px] w-[580px] rounded-full bg-blue-500/10 blur-[130px]" />
-            <div
-              className="absolute inset-0 opacity-[0.035]"
-              style={{
-                backgroundImage:
-                  "linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)",
-                backgroundSize: "48px 48px",
-              }}
-            />
+        <section className="relative min-h-[90vh] lg:min-h-[96vh] flex items-center justify-center overflow-hidden py-16 px-4 bg-[#142017]">
+          {/* Panoramic sunlit Kenyan highland landscape backdrop */}
+          <img
+            src="https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=2000&q=80"
+            alt="Sunlit Kenyan highlands terrain"
+            className="absolute inset-0 w-full h-full object-cover opacity-60"
+            decoding="async"
+            loading="eager"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#142017]/70 via-[#142017]/40 to-[#142017]/85 pointer-events-none" />
+
+          {/* Top Etched Brand Header */}
+          <div className="absolute top-8 sm:top-12 left-1/2 -translate-x-1/2 text-center pointer-events-none z-10 w-full px-4">
+            <div className="font-serif-t etched text-2xl sm:text-3xl lg:text-[38px] leading-none tracking-[0.02em]">
+              DiasporaVerify
+            </div>
+            <div className="text-[9px] sm:text-[10px] tracking-[0.5em] mt-2.5 text-white/80 uppercase font-mono">
+              INDEPENDENT KENYA FIELD VERIFICATION · NAIROBI HQ
+            </div>
           </div>
 
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-28">
-            <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-14">
-              {/* LEFT COLUMN: Strategic Value Proposition */}
-              <div className="lg:col-span-7 space-y-6 sm:space-y-7">
-                {/* Primary Headline */}
-                <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black leading-[1.08] tracking-tight text-white font-display">
-                  Your trusted eyes and hands on the ground in Kenya.
+          {/* Centered Frosted Glass Panel with Revolving Brass Ring */}
+          <div className="relative z-20 my-auto w-full max-w-[820px] px-4">
+            <div className="relative">
+              
+              {/* Revolving Brass Ring */}
+              <div className="spin-ring absolute -inset-8 sm:-inset-14 pointer-events-none opacity-80">
+                <svg viewBox="0 0 400 400" className="w-full h-full">
+                  <circle cx="200" cy="200" r="195" fill="none" stroke="#A88A48" strokeWidth="0.7" strokeDasharray="2 8" />
+                  <circle cx="200" cy="200" r="180" fill="none" stroke="#A88A48" strokeWidth="0.4" />
+                  <circle cx="200" cy="5" r="3.5" fill="#A88A48" />
+                  <circle cx="200" cy="395" r="2.5" fill="#A88A48" />
+                </svg>
+              </div>
+
+              {/* Glass Overlay Box */}
+              <div
+                className="relative refract-edge rounded-[2px] px-6 sm:px-14 py-10 sm:py-14 text-center"
+                style={{
+                  background: 'linear-gradient(180deg, rgba(240,238,228,0.12) 0%, rgba(42,58,42,0.30) 100%)',
+                  backdropFilter: 'blur(14px)',
+                  WebkitBackdropFilter: 'blur(14px)',
+                  border: '1px solid rgba(255,255,255,0.38)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 0 24px rgba(255,255,255,0.08), 0 35px 85px -20px rgba(0,0,0,0.5)',
+                }}
+              >
+                <div className="text-[10px] tracking-[0.5em] text-white/90 mb-5 uppercase font-mono">
+                  · INDEPENDENT FIELD SURVEILLANCE ·
+                </div>
+
+                <h1 className="font-serif-t etched text-4xl sm:text-6xl lg:text-[72px] leading-[0.98] tracking-[-0.02em]">
+                  A quiet, incorruptible <span className="italic font-light">eye</span>
+                  <br />
+                  on the ground in Kenya.
                 </h1>
 
-                {/* Supporting Paragraph */}
-                <p className="text-base sm:text-lg leading-relaxed text-slate-300 max-w-2xl font-normal">
-                  Living abroad should not mean relying on guesswork before sending money. We provide independent on-ground visits, documented checks against an agreed brief, dated photographs and video telemetry, and objective findings so you remain in full control of decisions.
+                <p className="mt-6 text-sm sm:text-[15.5px] text-white/90 max-w-lg mx-auto leading-relaxed">
+                  Living abroad should not mean relying on guesswork before sending money. We provide documented visits against an agreed brief, GPS-tagged photographic telemetry, and objective findings before you release funds.
                 </p>
 
-                {/* Clear Calls to Action */}
-                <div className="flex flex-col sm:flex-row gap-3.5 sm:items-center pt-2">
+                <div className="mt-8 sm:mt-9 flex flex-col sm:flex-row items-center justify-center gap-3.5">
                   <button
                     onClick={handleStart}
-                    className="flex h-13 sm:h-14 items-center justify-center gap-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 px-8 text-base font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all hover:translate-y-[-1px] cursor-pointer"
+                    className="w-full sm:w-auto px-8 py-3.5 bg-[#4A7A4A] hover:bg-[#2A3A2A] text-[#F0EEE4] text-[12px] tracking-[0.22em] uppercase font-bold transition-all shadow-lg hover:shadow-xl cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <span>Request Verification</span>
-                    <ArrowRight className="h-4 w-4 stroke-[2.5]" />
+                    <span>Request a Quote</span>
+                    <ArrowRight className="w-4 h-4" />
                   </button>
-
-                  <button
-                    onClick={() => {
-                      const el = document.getElementById("services");
-                      if (el) {
-                        el.scrollIntoView({ behavior: "smooth" });
-                      } else {
-                        navigate("/services");
-                      }
-                    }}
-                    className="flex h-13 sm:h-14 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-7 text-base font-semibold text-white backdrop-blur transition-all cursor-pointer"
+                  <a
+                    href="#dossier-preview"
+                    className="w-full sm:w-auto px-8 py-3.5 border border-white/40 hover:bg-white/10 text-white text-[12px] tracking-[0.22em] uppercase backdrop-blur-xs font-semibold transition-all cursor-pointer text-center"
                   >
-                    <span>Explore Our Services</span>
-                  </button>
-                </div>
-
-                {/* 3 Core Trust Indicators */}
-                <div className="pt-6 sm:pt-8 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-5 text-xs text-slate-300">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                      <Camera className="w-4 h-4 text-emerald-400" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-white text-sm">Documented Evidence</div>
-                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                        GPS coordinate stamps, UTC time & tamper-evident SHA-256 sealed photos.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-white text-sm">Neutral Verifiers</div>
-                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                        Zero commercial, familial, or personal ties to parties.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                      <Lock className="w-4 h-4 text-emerald-400" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-white text-sm">Client Control</div>
-                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                        Separate service fees; you retain fund decisions.
-                      </p>
-                    </div>
-                  </div>
+                    Inspect Sample Dossier
+                  </a>
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: Realistic High-Fidelity Product Preview */}
-              <div className="lg:col-span-5 w-full">
-                <div className="relative mx-auto w-full max-w-[520px]">
-                  {/* Subtle Card Glow Frame */}
-                  <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-emerald-500/20 via-transparent to-blue-500/20 blur-lg opacity-70" />
-
-                  <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-white p-6 sm:p-7 shadow-2xl text-slate-900 space-y-4">
-                    {/* Dossier Header Bar */}
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                          {SAMPLE_DOSSIER.badgeLabel}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded">
-                          {SAMPLE_DOSSIER.overallStatus.label}
-                        </span>
-                        <span className="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700">
-                          {SAMPLE_DOSSIER.referenceId}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Mission Profile */}
-                    <div>
-                      <h3 className="text-base sm:text-lg font-bold text-slate-900 font-display">
-                        {SAMPLE_DOSSIER.projectTitle}
-                      </h3>
-                      <div className="text-xs text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{SAMPLE_DOSSIER.location.town}, {SAMPLE_DOSSIER.location.county} County</span>
-                        </span>
-                        <span className="text-slate-400 font-mono text-[11px]">
-                          GPS: {SAMPLE_DOSSIER.location.gpsCoords}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Findings Matrix */}
-                    <div className="space-y-2 text-xs">
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                        <div className="space-y-0.5 pr-2">
-                          <span className="text-slate-800 font-semibold block">{SAMPLE_DOSSIER.findings[0].title}:</span>
-                          <span className="text-[11px] text-slate-500">{SAMPLE_DOSSIER.findings[0].summary}</span>
-                        </div>
-                        <span className="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 shrink-0">
-                          Observed
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50/70 border border-amber-200">
-                        <div className="space-y-0.5 pr-2">
-                          <span className="text-amber-950 font-semibold block">{SAMPLE_DOSSIER.findings[1].title}:</span>
-                          <span className="text-[11px] text-amber-800">{SAMPLE_DOSSIER.findings[1].summary}</span>
-                        </div>
-                        <span className="font-bold text-amber-800 bg-white px-2.5 py-1 rounded-md border border-amber-300 shrink-0">
-                          {SAMPLE_DOSSIER.cementData.countedInStoreBags} of {SAMPLE_DOSSIER.cementData.invoicedBags} Bags
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                        <div className="space-y-0.5 pr-2">
-                          <span className="text-slate-800 font-semibold block">{SAMPLE_DOSSIER.findings[2].title}:</span>
-                          <span className="text-[11px] text-slate-500">{SAMPLE_DOSSIER.findings[2].summary}</span>
-                        </div>
-                        <span className="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 shrink-0">
-                          Observed
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Actionable Stop-Payment Warning Box */}
-                    <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 text-xs space-y-1">
-                      <div className="font-bold flex items-center gap-1.5 text-rose-800">
-                        <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                        <span>{SAMPLE_DOSSIER.recommendedAction.headline}</span>
-                      </div>
-                      <p className="text-[11.5px] leading-relaxed text-rose-900">
-                        {SAMPLE_DOSSIER.recommendedAction.summary}
-                      </p>
-                    </div>
-
-                    {/* Card Footer: Cryptographic Stamp & Action */}
-                    <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs border-t border-slate-100">
-                      <button
-                        onClick={() => navigate("/sample-report")}
-                        className="font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto"
-                      >
-                        <span>Inspect Full Demonstration Report</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-
-                      <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
-                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                        <span>SHA-256 Tamper Sealed</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {/* Bottom Guarantee Stat Strip */}
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-[10px] sm:text-[11px] tracking-[0.25em] uppercase text-white/90 font-mono">
+                <span className="flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-[#A88A48]" />
+                  <span>4 Pilot Hubs Active</span>
+                </span>
+                <span className="hidden sm:inline-block w-8 h-px bg-white/30" />
+                <span className="flex items-center gap-2">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#A88A48]" />
+                  <span>Zero-Conflict Clearance</span>
+                </span>
+                <span className="hidden sm:inline-block w-8 h-px bg-white/30" />
+                <span className="flex items-center gap-2">
+                  <Lock className="w-3.5 h-3.5 text-[#A88A48]" />
+                  <span>SHA-256 Tamper-Proof</span>
+                </span>
               </div>
             </div>
+          </div>
+
+          {/* Corner Etched Coordinates */}
+          <div className="absolute bottom-6 left-6 sm:left-8 text-white/70 text-[10px] tracking-[0.3em] font-mono pointer-events-none">
+            1.2921° S / 36.8219° E · NAIROBI HQ
+          </div>
+          <div className="absolute bottom-6 right-6 sm:right-8 text-white/70 text-[10px] tracking-[0.3em] font-mono pointer-events-none">
+            DOSSIER REF: {SAMPLE_DOSSIER.referenceId}
           </div>
         </section>
 
         {/* =========================================================
-            2. THE PROBLEM & VALUE PROPOSITION (Strategic Comparison)
+            2. FOLIO I: THE PROBLEM & VALUE PROPOSITION (Archival Comparison)
         ========================================================= */}
-        <section className="bg-white py-20 lg:py-28 border-b border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Section Header */}
-            <div className="max-w-3xl space-y-3 mb-12 sm:mb-16">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
-                THE CUSTOMER PROBLEM
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 tracking-tight">
-                Distance should not mean reliance on unverified reassurance.
+        <section className="py-24 sm:py-28 px-6 sm:px-8 bg-[#F0EEE4] border-b border-[#A88A48]/30">
+          <div className="max-w-[1320px] mx-auto space-y-14">
+            
+            <div className="max-w-3xl space-y-3">
+              <div className="text-[11px] tracking-[0.45em] text-[#B26A46] uppercase font-mono">
+                — FOLIO I · OPERATIONAL PRINCIPLE
+              </div>
+              <h2 className="font-serif-t text-3xl sm:text-5xl lg:text-[54px] leading-[1.02] tracking-tight text-[#2A3A2A]">
+                Distance should not mean reliance on <span className="italic font-light">unverified reassurance.</span>
               </h2>
-              <p className="text-base text-slate-600 leading-relaxed">
-                When living abroad, asking relatives or contractors for updates often produces reassuring messages rather than objective facts. Months later, foundations remain unpoured, vehicles are not in the condition described, or family care remains uncoordinated.
+              <p className="text-sm sm:text-base text-[#2A3A2A]/75 leading-relaxed font-sans">
+                When living abroad, asking relatives or contractors for updates often produces reassuring words rather than objective facts. Months later, foundations remain unpoured, vehicles are not in the condition described, or materials are missing from the store.
               </p>
             </div>
 
-            {/* Structured Comparison Grid */}
+            {/* Iron Shelf Comparison Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-              {/* The Risk of Informal Reliance */}
-              <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-7 sm:p-9 space-y-5 flex flex-col justify-between">
+              
+              {/* Card 1: Informal Reliance */}
+              <div className="glass-pane refract-edge rounded-[2px] p-7 sm:p-9 space-y-5 flex flex-col justify-between">
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2.5 text-rose-700 font-bold text-sm uppercase tracking-wide">
-                    <XCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                  <div className="flex items-center gap-2.5 text-[#B26A46] font-bold text-xs uppercase tracking-wider font-mono">
+                    <XCircle className="w-4 h-4 text-[#B26A46] shrink-0" />
                     <span>The Risk of Informal Reliance</span>
                   </div>
 
-                  <h3 className="text-xl font-bold text-slate-900 font-display">
+                  <h3 className="font-serif-t text-2xl text-[#2A3A2A]">
                     Reassurance without tangible verification
                   </h3>
 
-                  <ul className="space-y-3 text-sm text-slate-600">
+                  <ul className="space-y-3 text-xs sm:text-sm text-[#2A3A2A]/75">
                     <li className="flex items-start gap-2.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500 mt-2 shrink-0" />
-                      <span>Contractors reporting complete milestones to trigger wire transfers before physical work is executed.</span>
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#B26A46] mt-2 shrink-0" />
+                      <span>Contractors claiming milestone completion to trigger wire transfers before work is physically executed.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500 mt-2 shrink-0" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#B26A46] mt-2 shrink-0" />
                       <span>Well-meaning relatives pressured by social ties or lacking the technical know-how to spot discrepancies.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500 mt-2 shrink-0" />
-                      <span>WhatsApp photos without location stamps, dates, or verifiable references.</span>
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#B26A46] mt-2 shrink-0" />
+                      <span>WhatsApp photos without GPS coordinate stamps, UTC dates, or verified baseline benchmarks.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500 mt-2 shrink-0" />
-                      <span>Zero independent audit trail or recourse once money leaves your overseas account.</span>
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#B26A46] mt-2 shrink-0" />
+                      <span>Zero neutral audit trail or legal recourse once funds leave your foreign bank account.</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="pt-4 border-t border-slate-200 text-xs text-slate-500 italic">
-                  Informal favors leave you with the financial downside when discrepancies emerge.
+                <div className="pt-4 border-t border-[#A88A48]/30 text-xs text-[#2A3A2A]/60 italic font-serif">
+                  Informal favors leave the diaspora buyer with 100% of the financial downside when discrepancies emerge.
                 </div>
               </div>
 
-              {/* The DiasporaVerify Standard */}
-              <div className="rounded-3xl border border-emerald-200 bg-emerald-50/30 p-7 sm:p-9 space-y-5 flex flex-col justify-between shadow-xs">
+              {/* Card 2: The DiasporaVerify Standard */}
+              <div className="glass-pane refract-edge rounded-[2px] p-7 sm:p-9 space-y-5 flex flex-col justify-between border-2 border-[#4A7A4A]/40 shadow-sm">
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2.5 text-emerald-800 font-bold text-sm uppercase tracking-wide">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <div className="flex items-center gap-2.5 text-[#4A7A4A] font-bold text-xs uppercase tracking-wider font-mono">
+                    <CheckCircle2 className="w-4 h-4 text-[#4A7A4A] shrink-0" />
                     <span>The DiasporaVerify Standard</span>
                   </div>
 
-                  <h3 className="text-xl font-bold text-slate-900 font-display">
+                  <h3 className="font-serif-t text-2xl text-[#2A3A2A]">
                     Accountable, neutral observation with proof
                   </h3>
 
-                  <ul className="space-y-3 text-sm text-slate-700">
+                  <ul className="space-y-3 text-xs sm:text-sm text-[#2A3A2A]/85">
                     <li className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-emerald-600 mt-1 shrink-0 stroke-[2.5]" />
-                      <span><strong>Vetted Neutral Operatives:</strong> Field verifiers with signed conflict-of-interest clearances.</span>
+                      <Check className="w-4 h-4 text-[#4A7A4A] mt-1 shrink-0 stroke-[2.5]" />
+                      <span><strong>Vetted Neutral Operatives:</strong> Field verifiers with signed, binding conflict-of-interest disclosures.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-emerald-600 mt-1 shrink-0 stroke-[2.5]" />
-                      <span><strong>Checklist Against Your Brief:</strong> Physical observation comparing the reality to your agreed drawings or invoices.</span>
+                      <Check className="w-4 h-4 text-[#4A7A4A] mt-1 shrink-0 stroke-[2.5]" />
+                      <span><strong>Checklist Against Your Brief:</strong> Physical observation comparing the ground reality to your invoices and drawings.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-emerald-600 mt-1 shrink-0 stroke-[2.5]" />
-                      <span><strong>Tamper-Evident Telemetry:</strong> High-resolution photos and video walk-throughs with validated GPS & UTC timestamps.</span>
+                      <Check className="w-4 h-4 text-[#4A7A4A] mt-1 shrink-0 stroke-[2.5]" />
+                      <span><strong>Tamper-Evident Telemetry:</strong> High-resolution photos and video telemetry sealed with cryptographic SHA-256 hashes.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-emerald-600 mt-1 shrink-0 stroke-[2.5]" />
-                      <span><strong>Client Governed:</strong> Clear findings and recommendations so you retain 100% control before releasing funds.</span>
+                      <Check className="w-4 h-4 text-[#4A7A4A] mt-1 shrink-0 stroke-[2.5]" />
+                      <span><strong>Client Governed Decisions:</strong> Clear findings and recommendations so you retain complete control before releasing payments.</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="pt-4 border-t border-emerald-200 text-xs text-emerald-800 font-semibold flex items-center justify-between">
-                  <span>Structured oversight for peace of mind.</span>
+                <div className="pt-4 border-t border-[#A88A48]/30 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-[#4A7A4A]">Structured oversight for complete peace of mind.</span>
                   <button
                     onClick={handleStart}
-                    className="font-bold underline hover:text-emerald-900 cursor-pointer"
+                    className="font-bold text-[#2A3A2A] hover:text-[#4A7A4A] underline cursor-pointer"
                   >
                     Start an intake →
                   </button>
                 </div>
               </div>
+
             </div>
           </div>
         </section>
 
         {/* =========================================================
-            3. HOW IT WORKS (Structured 5-Stage Process)
+            3. FOLIO II: MASTER SERVICES CATALOG (Botanical Shelves)
         ========================================================= */}
-        <section id="how-it-works" className="bg-[#f8fafc] py-20 lg:py-28 border-b border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <section id="services" className="py-24 sm:py-28 px-6 sm:px-8 bg-[#F0EEE4] border-b border-[#A88A48]/30">
+          <div className="max-w-[1320px] mx-auto space-y-12">
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#A88A48]/40 pb-6">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
-                  OUR REPEATABLE PROCESS
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 mt-1.5 tracking-tight">
-                  How Every Mission Is Handled
-                </h2>
-                <p className="text-sm text-slate-500 mt-1.5 max-w-2xl">
-                  A structured five-stage framework ensuring complete client control and transparency from intake to final report.
-                </p>
-              </div>
-
-              <button
-                onClick={() => navigate("/how-it-works")}
-                className="text-xs font-bold text-slate-900 hover:text-emerald-700 flex items-center gap-1.5 transition-colors self-start sm:self-auto cursor-pointer"
-              >
-                <span>Read Full Stage Guide</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* 5-Step Process Layout */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-              {[
-                {
-                  step: "01",
-                  title: "Define the Assignment",
-                  icon: FileText,
-                  desc: "You specify the task, target location, milestones, drawings, or inspection criteria. Nairobi HQ defines clear scope, limitations, itemized pricing, and deliverables."
-                },
-                {
-                  step: "02",
-                  title: "Assign a Suitable Agent",
-                  icon: UserCheck,
-                  desc: "HQ selects a vetted local operative, executes a signed conflict-of-interest clearance, and confirms lawful site access or recipient consent."
-                },
-                {
-                  step: "03",
-                  title: "Conduct On-Ground Verification",
-                  icon: MapPin,
-                  desc: "The assigned verifier visits the site, executes agreed checklist observations, and captures dated, time-stamped, GPS-tagged photographic telemetry."
-                },
-                {
-                  step: "04",
-                  title: "Review Evidence & QA",
-                  icon: ShieldCheck,
-                  desc: "An operations coordinator audits evidence completeness, flags contradictions against contractor claims, and certifies forensic findings."
-                },
-                {
-                  step: "05",
-                  title: "Deliver Report & Next Steps",
-                  icon: CheckCircle2,
-                  desc: "You receive the finalized dossier with verified evidence, explicit limitations, and recommended next actions so you remain in full control of decisions."
-                }
-              ].map((st) => (
-                <div
-                  key={st.step}
-                  className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-3 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-block">
-                        Stage {st.step}
-                      </span>
-                      <st.icon className="w-4 h-4 text-slate-400" />
-                    </div>
-
-                    <h3 className="font-bold text-slate-900 text-base leading-snug">
-                      {st.title}
-                    </h3>
-
-                    <p className="text-slate-600 leading-relaxed text-xs">
-                      {st.desc}
-                    </p>
-                  </div>
+                <div className="text-[11px] tracking-[0.45em] text-[#B26A46] uppercase font-mono mb-2">
+                  — FOLIO II · SPECIMEN SERVICES
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* =========================================================
-            4. VERIFICATION SERVICES (Master Category Grid)
-        ========================================================= */}
-        <section id="services" className="bg-white py-20 lg:py-28 border-b border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
-                  FIVE MASTER CATEGORIES
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 mt-1.5 tracking-tight">
-                  What We Verify on the Ground in Kenya
+                <h2 className="font-serif-t text-4xl sm:text-5xl lg:text-[60px] leading-[0.98] tracking-tight text-[#2A3A2A]">
+                  Five Master Categories<br />
+                  <span className="italic font-light">of Field Verification</span>
                 </h2>
-                <p className="text-sm text-slate-500 mt-1.5 max-w-2xl">
-                  Each service category has an agreed brief, explicit exclusions, and verified deliverable checklists. We do not make unverified promises.
-                </p>
               </div>
-
-              <button
-                onClick={() => navigate("/services")}
-                className="text-xs font-bold text-slate-900 hover:text-emerald-700 flex items-center gap-1.5 transition-colors self-start sm:self-auto cursor-pointer"
-              >
-                <span>View All Category Details</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <div className="text-left md:text-right text-[#2A3A2A]/70 max-w-sm text-xs sm:text-[14px] leading-relaxed">
+                Each service category has an agreed brief, explicit exclusions, and verified deliverable checklists.
+                <button
+                  onClick={() => navigate("/services")}
+                  className="text-[11px] tracking-[0.25em] uppercase text-[#A88A48] mt-2 block font-mono font-bold hover:underline cursor-pointer"
+                >
+                  View All Scope Definitions →
+                </button>
+              </div>
             </div>
 
-            {/* Responsive Service Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+            {/* Iron Shelf Rails with Master Services */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 pb-4">
               {MASTER_SERVICES.map((srv) => (
-                <div
+                <article
                   key={srv.id}
-                  className="rounded-3xl border border-slate-200 bg-[#f8fafc] p-7 space-y-5 shadow-xs hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between"
+                  className="group glass-pane refract-edge rounded-[2px] p-6 space-y-5 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-xl"
                 >
                   <div className="space-y-4">
-                    {/* Top Tag Row */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center shadow-2xs">
-                          {getCategoryIcon(srv.iconName)}
-                        </div>
-                        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
-                          CAT-{srv.slug.slice(0, 3).toUpperCase()}
-                        </span>
+                      <div className="w-10 h-10 rounded-sm bg-[#4A7A4A]/10 border border-[#A88A48]/30 flex items-center justify-center">
+                        {getCategoryIcon(srv.iconName)}
                       </div>
-
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      <span className="text-[10px] font-mono font-bold tracking-widest uppercase px-2 py-0.5 bg-[#4A7A4A] text-[#F0EEE4]">
                         Pilot Active
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-bold font-display text-slate-900">
-                      {srv.title}
-                    </h3>
+                    <div>
+                      <span className="text-[10px] font-mono tracking-widest uppercase text-[#B26A46] block mb-1">
+                        CAT-{srv.slug.slice(0, 3).toUpperCase()}
+                      </span>
+                      <h3 className="font-serif-t text-2xl text-[#2A3A2A] leading-tight">
+                        {srv.title}
+                      </h3>
+                    </div>
 
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    <p className="text-xs text-[#2A3A2A]/75 leading-relaxed font-sans">
                       {srv.shortDescription}
                     </p>
 
-                    {/* Scope Deliverables */}
-                    <div className="pt-3 border-t border-slate-200/80 space-y-2">
-                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                        Core Deliverables
+                    <div className="pt-3 border-t border-[#A88A48]/30 space-y-2">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-[#A88A48] font-bold block">
+                        Verified Deliverables
                       </span>
-                      <ul className="space-y-2 text-xs text-slate-700">
+                      <ul className="space-y-1.5 text-xs text-[#2A3A2A]/80">
                         {srv.useCases.slice(0, 3).map((uc, i) => (
                           <li key={i} className="flex items-start gap-2">
-                            <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5 stroke-[2.5]" />
+                            <Check className="w-3.5 h-3.5 text-[#4A7A4A] mt-0.5 shrink-0 stroke-[2.5]" />
                             <span className="line-clamp-1">{uc}</span>
                           </li>
                         ))}
@@ -603,175 +421,346 @@ export function HomePage({
                     </div>
                   </div>
 
-                  {/* Bottom Action Controls */}
-                  <div className="pt-4 border-t border-slate-200/80 flex items-center justify-between gap-3">
+                  <div className="pt-4 border-t border-[#A88A48]/30 flex items-center justify-between gap-3 text-xs">
                     <button
                       onClick={() => handleServices(srv.slug)}
-                      className="text-xs font-bold text-slate-800 hover:text-emerald-700 transition-colors cursor-pointer"
+                      className="font-bold text-[#2A3A2A] hover:text-[#4A7A4A] transition-colors cursor-pointer"
                     >
                       Scope & Details →
                     </button>
-
                     <button
                       onClick={() => navigate(currentUser ? `/new-request?category=${srv.slug}` : `/contact?type=quote&category=${srv.slug}`)}
-                      className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+                      className="px-4 py-2 bg-[#2A3A2A] hover:bg-[#4A7A4A] text-[#F0EEE4] font-semibold text-[11px] tracking-wider uppercase transition-all shadow-xs cursor-pointer"
                     >
                       Request Quote
                     </button>
                   </div>
-                </div>
+                </article>
               ))}
+            </div>
+
+            {/* Iron Shelf Base */}
+            <div className="iron-shelf" />
+            <div className="flex justify-between text-[10px] tracking-[0.3em] uppercase text-[#2A3A2A]/50 font-mono">
+              <span>Catalog II · Ground Verification</span>
+              <span>Audited Milestones</span>
+              <span>Nairobi · Kiambu · Machakos · Kajiado</span>
             </div>
           </div>
         </section>
 
         {/* =========================================================
-            5. TRUST & ACCOUNTABILITY FRAMEWORK
+            4. FOLIO III: HIGH-FIDELITY SAMPLE DOSSIER (Frosted Archive Card)
         ========================================================= */}
-        <section className="bg-[#172A3A] text-white py-20 lg:py-28 border-b border-slate-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16">
-            <div className="max-w-3xl space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono">
-                ACCOUNTABILITY BY DESIGN
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-white">
-                Built Around Neutrality, Not Informal Favors.
+        <section id="dossier-preview" className="py-24 sm:py-28 px-6 sm:px-8 bg-[#2A3A2A] text-[#F0EEE4] overflow-hidden">
+          <div className="max-w-[1320px] mx-auto space-y-12 relative">
+            
+            <div className="max-w-2xl space-y-3">
+              <div className="text-[11px] tracking-[0.45em] text-[#A88A48] uppercase font-mono">
+                — FOLIO III · DEMONSTRATION DOSSIER
+              </div>
+              <h2 className="font-serif-t text-4xl sm:text-5xl lg:text-[54px] leading-[0.98] tracking-tight">
+                Inspect a real inspection <span className="italic font-light">dossier.</span>
               </h2>
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                Trust rests on independent observation, clear limitations, named accountability, and honest reporting of what could not be confirmed.
+              <p className="text-sm text-white/70 leading-relaxed font-sans">
+                See exactly how findings, material counts, discrepancy warnings, photographic telemetry, and QA recommendations are documented before you commit to a mission.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-xs text-slate-300">
-              <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            {/* Archival Frosted Glass Dossier Card */}
+            <div className="glass-pane-dark refract-edge rounded-[2px] p-6 sm:p-10 lg:p-12 space-y-6 text-[#F0EEE4] max-w-4xl border border-white/20">
+              
+              {/* Dossier Header Bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#A88A48] bg-white/5 px-2.5 py-1 rounded border border-[#A88A48]/30">
+                    {SAMPLE_DOSSIER.badgeLabel}
+                  </span>
                 </div>
-                <h3 className="font-bold text-white text-base">Conflict Clearance</h3>
-                <p className="leading-relaxed text-slate-400 text-xs">
-                  Every verifier signs a binding declaration confirming zero personal or commercial ties to the contractor, seller, or family caretakers.
-                </p>
+                <div className="flex items-center gap-2 font-mono text-xs">
+                  <span className="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
+                    {SAMPLE_DOSSIER.overallStatus.label}
+                  </span>
+                  <span className="px-2 py-1 bg-white/10 text-white rounded">
+                    {SAMPLE_DOSSIER.referenceId}
+                  </span>
+                </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                  <Lock className="w-5 h-5 text-emerald-400" />
-                </div>
-                <h3 className="font-bold text-white text-base">Anti-Collusion Relay</h3>
-                <p className="leading-relaxed text-slate-400 text-xs">
-                  Clients and agents never exchange private phone numbers. All communication and instructions flow securely through the HQ Dispatch Relay.
-                </p>
-              </div>
-
-              <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                  <Camera className="w-5 h-5 text-emerald-400" />
-                </div>
-                <h3 className="font-bold text-white text-base">Cryptographic Proof</h3>
-                <p className="leading-relaxed text-slate-400 text-xs">
-                  Photographs and 360-degree videos include validated GPS coordinate stamps, UTC timestamps, and tamper-evident SHA-256 evidence hashes.
-                </p>
-              </div>
-
-              <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                </div>
-                <h3 className="font-bold text-white text-base">Client Control</h3>
-                <p className="leading-relaxed text-slate-400 text-xs">
-                  Service fees are itemized and strictly separated from third-party purchase monies. We never disburse funds without explicit client sign-off.
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800 text-xs text-slate-400">
-              <span className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-emerald-400" />
-                <span>Governed by the Kenya Data Protection Act (DPA 2019) and strict QA mandates.</span>
-              </span>
-              <button
-                onClick={handleLegal}
-                className="text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
-              >
-                Read Legal & Operating Framework →
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* =========================================================
-            6. SAMPLE REPORT PREVIEW CALLOUT
-        ========================================================= */}
-        <section className="bg-white py-20 lg:py-24 border-b border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-[#f8fafc] rounded-3xl border border-slate-200 p-8 sm:p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-              <div className="space-y-3 max-w-2xl">
-                <h3 className="text-2xl sm:text-3xl font-bold font-display text-slate-900">
-                  Inspect Our Demonstration Report Dossier
+              {/* Mission Profile */}
+              <div>
+                <h3 className="font-serif-t text-2xl sm:text-3xl text-white">
+                  {SAMPLE_DOSSIER.projectTitle}
                 </h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  See exactly how findings, material counts, unverified items, photographic telemetry, and QA recommendations are presented before committing to a service.
+                <div className="text-xs text-white/60 flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 font-mono">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#A88A48]" />
+                    <span>{SAMPLE_DOSSIER.location.town}, {SAMPLE_DOSSIER.location.county} County</span>
+                  </span>
+                  <span>·</span>
+                  <span>GPS: {SAMPLE_DOSSIER.location.gpsCoords}</span>
+                </div>
+              </div>
+
+              {/* Findings Matrix */}
+              <div className="space-y-3 text-xs">
+                <div className="p-3.5 rounded-sm bg-white/[0.04] border border-white/10 flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-white block">{SAMPLE_DOSSIER.findings[0].title}:</span>
+                    <span className="text-[11px] text-white/60">{SAMPLE_DOSSIER.findings[0].summary}</span>
+                  </div>
+                  <span className="font-mono text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/30 shrink-0">
+                    Observed
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-sm bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-amber-200 block">{SAMPLE_DOSSIER.findings[1].title}:</span>
+                    <span className="text-[11px] text-amber-100/80">{SAMPLE_DOSSIER.findings[1].summary}</span>
+                  </div>
+                  <span className="font-mono text-[10px] uppercase font-bold text-amber-300 bg-amber-500/20 px-2.5 py-1 rounded border border-amber-500/40 shrink-0">
+                    {SAMPLE_DOSSIER.cementData.countedInStoreBags} of {SAMPLE_DOSSIER.cementData.invoicedBags} Bags Counted
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-sm bg-white/[0.04] border border-white/10 flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-white block">{SAMPLE_DOSSIER.findings[2].title}:</span>
+                    <span className="text-[11px] text-white/60">{SAMPLE_DOSSIER.findings[2].summary}</span>
+                  </div>
+                  <span className="font-mono text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/30 shrink-0">
+                    Observed
+                  </span>
+                </div>
+              </div>
+
+              {/* Stop-Payment Recommendation Box */}
+              <div className="p-4 rounded-sm bg-rose-950/50 border border-rose-500/40 text-rose-200 text-xs space-y-1.5">
+                <div className="font-bold flex items-center gap-2 text-rose-300 font-mono">
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{SAMPLE_DOSSIER.recommendedAction.headline}</span>
+                </div>
+                <p className="text-[11.5px] leading-relaxed text-rose-200/90 font-sans">
+                  {SAMPLE_DOSSIER.recommendedAction.summary}
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 shrink-0 w-full lg:w-auto">
+              {/* Card Footer */}
+              <div className="pt-3 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-mono">
                 <button
                   onClick={() => navigate("/sample-report")}
-                  className="px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-6 py-3 bg-[#4A7A4A] hover:bg-[#A88A48] text-[#F0EEE4] text-[11px] uppercase tracking-wider font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 self-start sm:self-auto"
                 >
-                  <span>View Sample Report</span>
+                  <span>Inspect Complete Report</span>
                   <ArrowUpRight className="w-4 h-4" />
                 </button>
 
-                <button
-                  onClick={() => navigate("/how-it-works")}
-                  className="px-6 py-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-colors flex items-center justify-center cursor-pointer"
-                >
-                  How Reports Are Built
-                </button>
+                <div className="text-[10px] text-white/50 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#A88A48]" />
+                  <span>SHA-256 Tamper Sealed</span>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/* =========================================================
-            7. FREQUENTLY ASKED QUESTIONS (Spacious & Clean)
+            5. FOLIO IV: 5-STEP REPEATABLE FRAMEWORK
         ========================================================= */}
-        <section className="bg-[#f8fafc] py-20 lg:py-28 border-b border-slate-200">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            <div className="text-center space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
-                QUESTIONS & ANSWERS
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 tracking-tight">
-                Frequently Asked Questions
+        <section id="how-it-works" className="py-24 sm:py-28 px-6 sm:px-8 bg-[#F0EEE4] border-b border-[#A88A48]/30">
+          <div className="max-w-[1320px] mx-auto space-y-14">
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#A88A48]/40 pb-6">
+              <div>
+                <div className="text-[11px] tracking-[0.45em] text-[#B26A46] uppercase font-mono mb-2">
+                  — FOLIO IV · METHODOLOGY
+                </div>
+                <h2 className="font-serif-t text-4xl sm:text-5xl lg:text-[60px] leading-[0.98] tracking-tight text-[#2A3A2A]">
+                  How Every Mission<br />
+                  <span className="italic font-light">Is Handled</span>
+                </h2>
+              </div>
+              <button
+                onClick={() => navigate("/how-it-works")}
+                className="text-[11px] tracking-[0.25em] uppercase text-[#A88A48] font-mono font-bold hover:underline cursor-pointer"
+              >
+                Read Complete Operating Stage Guide →
+              </button>
+            </div>
+
+            {/* 5 Process Steps */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+              {[
+                {
+                  step: "01",
+                  title: "Define the Assignment",
+                  icon: FileText,
+                  desc: "You specify target location, agreed drawings, invoices, or criteria. Nairobi HQ defines clear scope, exclusions, and deliverables."
+                },
+                {
+                  step: "02",
+                  title: "Assign a Suitable Agent",
+                  icon: UserCheck,
+                  desc: "HQ selects a vetted local operative, executes a signed conflict-of-interest clearance, and confirms lawful site access."
+                },
+                {
+                  step: "03",
+                  title: "On-Ground Verification",
+                  icon: MapPin,
+                  desc: "The assigned verifier visits the site, executes agreed checklist observations, and captures dated GPS telemetry."
+                },
+                {
+                  step: "04",
+                  title: "Review Evidence & QA",
+                  icon: ShieldCheck,
+                  desc: "An operations coordinator audits evidence completeness, flags discrepancies against claims, and certifies findings."
+                },
+                {
+                  step: "05",
+                  title: "Deliver Report Dossier",
+                  icon: CheckCircle2,
+                  desc: "You receive the finalized dossier with verified evidence, explicit limitations, and recommendations so you retain complete control."
+                }
+              ].map((st) => (
+                <div
+                  key={st.step}
+                  className="glass-pane refract-edge rounded-[2px] p-6 space-y-3 flex flex-col justify-between hover:shadow-lg transition-all"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[10px] font-bold text-[#4A7A4A] bg-[#4A7A4A]/10 px-2 py-0.5 rounded border border-[#4A7A4A]/20">
+                        Stage {st.step}
+                      </span>
+                      <st.icon className="w-4 h-4 text-[#A88A48]" />
+                    </div>
+
+                    <h3 className="font-serif-t text-xl text-[#2A3A2A] leading-snug">
+                      {st.title}
+                    </h3>
+
+                    <p className="text-xs text-[#2A3A2A]/75 leading-relaxed font-sans">
+                      {st.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="iron-shelf" />
+          </div>
+        </section>
+
+        {/* =========================================================
+            6. FOLIO V: INSTANT SCOPE INQUIRY (Double Brass Frame Desk)
+        ========================================================= */}
+        <section className="py-24 sm:py-28 px-6 sm:px-8 bg-[#F0EEE4] border-b border-[#A88A48]/30">
+          <div className="max-w-[1100px] mx-auto space-y-12">
+            
+            <div className="text-center max-w-2xl mx-auto space-y-3">
+              <div className="text-[11px] tracking-[0.45em] text-[#B26A46] uppercase font-mono">
+                — FOLIO V · PUBLIC INTAKE
+              </div>
+              <h2 className="font-serif-t text-4xl sm:text-5xl lg:text-[60px] leading-[0.98] tracking-tight text-[#2A3A2A]">
+                Request a Free <span className="italic font-light">Scope Consultation</span>
               </h2>
-              <p className="text-sm text-slate-500 max-w-xl mx-auto">
+              <p className="text-xs sm:text-sm text-[#2A3A2A]/70 leading-relaxed font-sans">
+                No account required to describe a potential mission. A Nairobi HQ coordinator will examine feasibility, establish clear boundaries, and provide an itemized quote within 24 hours.
+              </p>
+            </div>
+
+            {/* Double Brass Frame Wrapper */}
+            <div className="relative border-2 border-[#A88A48] rounded-[6px] p-1.5">
+              <div className="absolute inset-[5px] border border-[#A88A48]/40 rounded-[3px] pointer-events-none" />
+
+              <div className="glass-pane refract-edge rounded-[3px] p-8 sm:p-12 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-[#2A3A2A]/80">
+                  <div className="space-y-1.5">
+                    <span className="font-bold uppercase tracking-wider text-[#A88A48] font-mono text-[10px] block">
+                      1. Immediate Feasibility
+                    </span>
+                    <p className="leading-relaxed">
+                      We check local operative availability in Nairobi, Kiambu, Machakos, and Kajiado before confirming intake.
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="font-bold uppercase tracking-wider text-[#A88A48] font-mono text-[10px] block">
+                      2. Transparent Tariffs
+                    </span>
+                    <p className="leading-relaxed">
+                      Quotes depend on parcel location, travel distance, checklist depth, and urgency. Zero hidden fees.
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="font-bold uppercase tracking-wider text-[#A88A48] font-mono text-[10px] block">
+                      3. Zero Obligation
+                    </span>
+                    <p className="leading-relaxed">
+                      Submit scope details freely. You only commit once you accept our written itemized agreement.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="brass-rule h-px w-full" />
+
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                  <div className="text-xs text-[#2A3A2A]/60 font-mono">
+                    Direct Coordinator Desk: <strong className="text-[#2A3A2A]">ops@diasporaverify.co.ke</strong>
+                  </div>
+
+                  <button
+                    onClick={handleStart}
+                    className="w-full sm:w-auto px-8 py-3.5 bg-[#4A7A4A] hover:bg-[#2A3A2A] text-[#F0EEE4] text-[12px] tracking-[0.25em] uppercase font-bold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <span>Open Public Quote Form</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* =========================================================
+            7. FREQUENTLY ASKED QUESTIONS
+        ========================================================= */}
+        <section className="py-24 sm:py-28 px-6 sm:px-8 bg-[#F0EEE4]">
+          <div className="max-w-4xl mx-auto space-y-12">
+            
+            <div className="text-center space-y-3">
+              <div className="text-[11px] tracking-[0.45em] text-[#B26A46] uppercase font-mono">
+                QUESTIONS &amp; ANSWERS
+              </div>
+              <h2 className="font-serif-t text-3xl sm:text-5xl text-[#2A3A2A]">
+                Frequently Asked <span className="italic font-light">Questions</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-[#2A3A2A]/70 max-w-xl mx-auto font-sans">
                 Clear policies on feasibility, turnaround, pricing, and operational boundaries.
               </p>
             </div>
 
-            <div className="space-y-4 text-xs">
+            <div className="space-y-3.5 text-xs">
               {faqs.map((faq, i) => {
                 const isOpen = openFaqIndex === i;
                 return (
                   <div
                     key={i}
-                    className="rounded-2xl bg-white border border-slate-200/90 shadow-2xs overflow-hidden transition-all"
+                    className="glass-pane rounded-[2px] border border-[#A88A48]/30 overflow-hidden transition-all"
                   >
                     <button
                       onClick={() => setOpenFaqIndex(isOpen ? null : i)}
-                      className="w-full text-left p-5 sm:p-6 flex items-center justify-between gap-4 font-bold text-slate-900 text-sm sm:text-base cursor-pointer hover:bg-slate-50/50 transition-colors"
+                      className="w-full text-left p-5 sm:p-6 flex items-center justify-between gap-4 font-bold text-[#2A3A2A] text-sm sm:text-base cursor-pointer hover:bg-white/40 transition-colors"
                     >
-                      <span>{faq.q}</span>
+                      <span className="font-serif-t">{faq.q}</span>
                       <ChevronDown
-                        className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                          isOpen ? "rotate-180 text-emerald-600" : ""
+                        className={`w-4 h-4 text-[#A88A48] shrink-0 transition-transform duration-200 ${
+                          isOpen ? "rotate-180 text-[#4A7A4A]" : ""
                         }`}
                       />
                     </button>
                     {isOpen && (
-                      <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-slate-600 leading-relaxed text-xs sm:text-sm border-t border-slate-100 pt-3">
+                      <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-[#2A3A2A]/80 leading-relaxed text-xs sm:text-sm border-t border-[#A88A48]/20 pt-3 font-sans">
                         {faq.a}
                       </div>
                     )}
@@ -779,41 +768,25 @@ export function HomePage({
                 );
               })}
             </div>
-          </div>
-        </section>
 
-        {/* =========================================================
-            8. FINAL CONVERSION SECTION
-        ========================================================= */}
-        <section className="bg-[#172A3A] text-white py-20 lg:py-28">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-            <h2 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-white">
-              Ready to verify what's happening on the ground?
-            </h2>
-            <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
-              Submit your request details without obligation. A Nairobi coordinator will review feasibility, establish clear boundaries, and provide an itemized quote within 24 hours.
-            </p>
-            <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+            <div className="pt-6 border-t border-[#A88A48]/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#2A3A2A]/70 font-mono">
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#4A7A4A]" />
+                <span>Operating under Kenya Data Protection Act 2019 standards.</span>
+              </span>
               <button
-                onClick={handleStart}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all hover:translate-y-[-1px] cursor-pointer"
+                onClick={handleLegal}
+                className="font-bold text-[#A88A48] hover:text-[#4A7A4A] underline cursor-pointer"
               >
-                Request Verification Now →
-              </button>
-              <button
-                onClick={() => navigate("/contact")}
-                className="w-full sm:w-auto px-7 py-4 rounded-xl border border-white/20 hover:bg-white/10 text-white font-semibold text-sm backdrop-blur transition-all cursor-pointer"
-              >
-                Speak with a Coordinator
+                Read Legal & Operating Framework →
               </button>
             </div>
           </div>
         </section>
+
       </div>
 
-      {/* =========================================================
-          9. CANONICAL FOOTER
-      ========================================================= */}
+      {/* Canonical Footer */}
       <Footer />
     </div>
   );
