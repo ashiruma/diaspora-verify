@@ -123,8 +123,13 @@ export const Login: React.FC = () => {
         console.error('Error reading registered users', err);
       }
 
-      // Founder & Executive Authentication
+      // Founder & Executive Authentication fallback (Specific to Chrispine Abala Ashiruma)
       if (trimmedEmail === 'ashirumaabala@gmail.com') {
+        if (trimmedPassword !== 'Founder2026!' && trimmedPassword !== 'Admin2026!') {
+          setErrorMessage('Incorrect password for founder account. Please check your credentials and try again.');
+          setLoading(false);
+          return;
+        }
         handleSuccessfulAuth({
           ...FOUNDER_USER,
           name: 'Chrispine Abala Ashiruma',
@@ -279,34 +284,6 @@ export const Login: React.FC = () => {
             <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-200/70 px-1.5 py-0.5 rounded">
               Verified Auth
             </span>
-          </div>
-
-          {/* Founder Executive Fast Access Helper */}
-          <div className="rounded-2xl border border-amber-300/80 bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-emerald-500/10 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-base shadow-xs shrink-0">
-                👑
-              </div>
-              <div>
-                <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <span>Founder & Executive Access</span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 font-bold uppercase">Clearance</span>
-                </div>
-                <div className="text-[11px] text-slate-600 font-mono">
-                  ashirumaabala@gmail.com
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail('ashirumaabala@gmail.com');
-                setPassword('Founder2026!');
-              }}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold text-xs shadow-xs transition-colors cursor-pointer shrink-0"
-            >
-              Fill Founder ID
-            </button>
           </div>
 
           <form onSubmit={handleManualLogin} className="space-y-4">
