@@ -8,12 +8,14 @@ import {
   Lock,
   Layers,
   LogOut,
-  Eye
+  Eye,
+  Users
 } from '../Icons';
 import { Button } from '../ui/Button';
 import { PortalLayout } from '../layout/PortalLayout';
 import { CheckCircle2 } from 'lucide-react';
-import { DEMO_USERS } from '../../auth/demoUsers';
+import { DEMO_USERS, FOUNDER_USER } from '../../auth/demoUsers';
+import { isPlatformFounder } from '../../auth/authorization';
 
 export const ClientProfileView: React.FC = () => {
   const navigate = useNavigate();
@@ -29,13 +31,14 @@ export const ClientProfileView: React.FC = () => {
     setName(targetUser.name);
     setPhone(targetUser.phone || '');
     setLocationAbroad(targetUser.locationAbroad || (targetUser.role === 'admin' ? 'Nairobi HQ · Operations Desk' : ''));
-    setToastMessage(`Switched active profile to ${targetUser.name} (${targetUser.role.toUpperCase()}).`);
+    setToastMessage(`Switched active profile to ${targetUser.name} (${(targetUser.subRole || targetUser.role).toUpperCase()}).`);
   };
 
   if (!currentUser) {
     return null;
   }
 
+  const isFounder = isPlatformFounder(currentUser);
   const isAdmin = currentUser.role === 'admin';
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -59,8 +62,8 @@ export const ClientProfileView: React.FC = () => {
 
   return (
     <PortalLayout
-      title={isAdmin ? "Operations Admin Profile" : "Account & Security"}
-      subtitle={isAdmin ? "Thursday, 8 October 2026 · Operations Administrator Profile" : "Thursday, 8 October 2026 · Diaspora Client Profile"}
+      title={isFounder ? "Founder & Executive Profile" : isAdmin ? "Operations Admin Profile" : "Account & Security"}
+      subtitle={isFounder ? "Founder & Chief Executive Officer · Unrestricted Platform Oversight" : isAdmin ? "Operations Administrator Profile" : "Diaspora Client Profile"}
       role={isAdmin ? 'admin' : 'client'}
       activeTab="profile"
     >
@@ -68,17 +71,35 @@ export const ClientProfileView: React.FC = () => {
         {/* Intro */}
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              {isAdmin ? 'Level 4 HQ Clearance Active' : 'Identity & Consent Verified'}
+            <div className={`mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${
+              isFounder 
+                ? 'bg-amber-100 text-amber-950 border-amber-300' 
+                : isAdmin 
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            }`}>
+              {isFounder ? (
+                <>
+                  <span>👑</span>
+                  <span>Founder Executive Clearance Active</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span>{isAdmin ? 'Level 4 HQ Clearance Active' : 'Identity & Consent Verified'}</span>
+                </>
+              )}
             </div>
 
-            <h2 className="text-2xl font-bold tracking-tight md:text-3xl text-slate-900">
-              {isAdmin ? 'Admin Profile & Security Credentials' : 'Account & Security Settings'}
+            <h2 className="text-2xl font-bold tracking-tight md:text-3xl text-slate-900 flex items-center gap-2">
+              <span>{isFounder ? 'Founder Executive Profile & Oversight' : isAdmin ? 'Admin Profile & Security Credentials' : 'Account & Security Settings'}</span>
+              {isFounder && <span className="text-2xl">👑</span>}
             </h2>
 
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              {isAdmin
+              {isFounder
+                ? 'Chrispine Abala Ashiruma · Platform Founder & CEO. Unrestricted access to inspect all platform registrations, tamper-proof audit trails, treasury balances, and verifier operations.'
+                : isAdmin
                 ? 'DiasporaVerify Nairobi HQ administrative credentials, high-privilege operations clearance, and security audit history.'
                 : 'Diaspora verification credentials, multi-factor authentication (MFA), and audit log history.'}
             </p>
@@ -86,6 +107,28 @@ export const ClientProfileView: React.FC = () => {
             {/* Quick Profile View Switcher */}
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold text-slate-500">Switch Profile:</span>
+              <button
+                type="button"
+                onClick={() => handleSwitchUser(FOUNDER_USER)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                  isFounder
+                    ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-2xs font-black'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                👑 Founder (Chrispine Abala Ashiruma)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSwitchUser(DEMO_USERS.admin)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                  !isFounder && currentUser.role === 'admin'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                Operations Admin (Sarah Kamau)
+              </button>
               <button
                 type="button"
                 onClick={() => handleSwitchUser(DEMO_USERS.client)}
@@ -97,18 +140,36 @@ export const ClientProfileView: React.FC = () => {
               >
                 Diaspora Client (Jane Doe)
               </button>
-              <button
-                type="button"
-                onClick={() => handleSwitchUser(DEMO_USERS.admin)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
-                  currentUser.role === 'admin'
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
-                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                Operations Admin (Sarah Kamau)
-              </button>
             </div>
+
+            {/* Founder Quick Actions */}
+            {isFounder && (
+              <div className="mt-4 flex flex-wrap items-center gap-2.5 pt-3 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin?tab=clients')}
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Users className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Inspect Who Joined</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin?tab=activity')}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Live Platform Activity Stream</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin')}
+                  className="px-3.5 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>Operations Command Desk →</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

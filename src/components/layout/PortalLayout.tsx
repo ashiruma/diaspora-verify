@@ -170,8 +170,8 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
           />
           <NavItem
             icon={Users}
-            label="Clients"
-            badge="5"
+            label={isFounder ? "Who Joined (Members)" : "Clients"}
+            badge={isFounder ? "Directory" : "5"}
             active={activeTab === 'clients'}
             onClick={() => handleNav('clients', true)}
           />
@@ -203,8 +203,8 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
           />
           <NavItem
             icon={Activity}
-            label="Platform Activity"
-            badge={auditLogs?.length || 8}
+            label={isFounder ? "Platform Activity (Full)" : "Platform Activity"}
+            badge={auditLogs?.length ? `${auditLogs.length} live` : 'Live'}
             active={activeTab === 'activity'}
             onClick={() => handleNav('activity', true)}
           />
@@ -362,9 +362,11 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
     );
   };
 
-  const userInitial = currentUser?.name?.[0]?.toUpperCase() || (isAdmin ? 'A' : isAgent ? 'F' : 'C');
+  const userInitial = isFounder ? '👑' : (currentUser?.name?.[0]?.toUpperCase() || (isAdmin ? 'A' : isAgent ? 'F' : 'C'));
   const userDisplayName = currentUser?.name || (isAdmin ? 'Administrator' : isAgent ? 'Field Verifier' : 'Client');
-  const userSubtitle = isAdmin
+  const userSubtitle = isFounder
+    ? '👑 Founder & CEO'
+    : isAdmin
     ? 'Admin HQ'
     : isAgent
     ? 'Verifier · Nairobi'
@@ -428,9 +430,11 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
                 }`}
                 title={isAgent ? userDisplayName : 'View Account & Profile'}
               >
-                <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white shrink-0 ${
-                  !isAgent ? 'group-hover:bg-emerald-600 transition-colors' : ''
-                }`}>
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold shrink-0 ${
+                  isFounder
+                    ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 font-black shadow-xs ring-2 ring-amber-300'
+                    : 'bg-slate-900 text-white'
+                } ${!isAgent && !isFounder ? 'group-hover:bg-emerald-600 transition-colors' : ''}`}>
                   {userInitial}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -539,9 +543,11 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
                   }`}
                   title={isAgent ? userDisplayName : 'View Account & Profile'}
                 >
-                  <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white shrink-0 ${
-                    !isAgent ? 'group-hover:bg-emerald-600 transition-colors' : ''
-                  }`}>
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold shrink-0 ${
+                    isFounder
+                      ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 font-black shadow-xs ring-2 ring-amber-300'
+                      : 'bg-slate-900 text-white'
+                  } ${!isAgent && !isFounder ? 'group-hover:bg-emerald-600 transition-colors' : ''}`}>
                     {userInitial}
                   </div>
                   <div className="min-w-0 flex-1">

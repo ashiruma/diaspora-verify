@@ -101,6 +101,76 @@ export const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [
       stopPaymentAlert: true,
       varianceKES: 300000
     }
+  },
+  {
+    id: 'aud-007',
+    action: 'USER_REGISTERED',
+    performedBy: {
+      id: 'usr-client-01',
+      name: 'Jane Doe',
+      role: 'client'
+    },
+    timestamp: '2026-10-06 10:15:30 EAT',
+    targetResource: 'user_directory',
+    targetId: 'usr-client-01',
+    metadata: {
+      email: 'jane.doe@diasporaverify.demo',
+      phone: '+44 7700 900142',
+      location: 'London, United Kingdom',
+      authMethod: 'Email & Password'
+    }
+  },
+  {
+    id: 'aud-008',
+    action: 'USER_REGISTERED',
+    performedBy: {
+      id: 'usr-client-02',
+      name: 'Dr. Wanjiku Chege',
+      role: 'client'
+    },
+    timestamp: '2026-10-07 14:22:18 EAT',
+    targetResource: 'user_directory',
+    targetId: 'usr-client-02',
+    metadata: {
+      email: 'wanjiku.c@gmail.com',
+      phone: '+1 214 555 0192',
+      location: 'Dallas, TX (USA)',
+      authMethod: 'Email & Password'
+    }
+  },
+  {
+    id: 'aud-009',
+    action: 'ESCROW_FUNDS_LOCKED',
+    performedBy: {
+      id: 'sys-treasury',
+      name: 'DiasporaVerify Escrow Custody Desk',
+      role: 'system'
+    },
+    timestamp: '2026-10-08 11:05:44 EAT',
+    targetResource: 'treasury_escrow',
+    targetId: 'escrow-kjd-0104',
+    metadata: {
+      amountKES: 14500,
+      bank: 'Standard Chartered Bank Kenya',
+      gatingRule: 'Milestone QA Approval Required'
+    }
+  },
+  {
+    id: 'aud-010',
+    action: 'FOUNDER_GOVERNANCE_ACTIVE',
+    performedBy: {
+      id: 'usr-founder-01',
+      name: 'Chrispine Abala Ashiruma',
+      role: 'founder' as any
+    },
+    timestamp: '2026-10-08 12:00:00 EAT',
+    targetResource: 'executive_cockpit',
+    targetId: 'gov-oversight-01',
+    metadata: {
+      email: 'ashirumaabala@gmail.com',
+      title: 'Founder & Chief Executive Officer',
+      scope: 'Unrestricted Full Platform Oversight'
+    }
   }
 ];
 

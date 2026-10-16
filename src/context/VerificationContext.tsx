@@ -193,7 +193,27 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const [commandMenuOpen, setCommandMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
+  const AUDIT_STORAGE_KEY = 'diaspora_verify_audit_logs_v2';
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(() => {
+    try {
+      const saved = localStorage.getItem('diaspora_verify_audit_logs_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to parse cached audit logs', e);
+    }
+    return INITIAL_AUDIT_LOGS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(auditLogs));
+    } catch (e) {
+      console.error('Failed to save audit logs to localStorage', e);
+    }
+  }, [auditLogs]);
 
   const login = useCallback((user: AuthenticatedUser, remember: boolean = true) => {
     let effectiveUser = user;

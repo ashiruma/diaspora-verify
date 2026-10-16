@@ -361,6 +361,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
 
     // 2. Default principals and team members
     const defaultMembers = [
+      { name: 'Chrispine Abala Ashiruma', email: 'ashirumaabala@gmail.com', location: 'Diaspora & Nairobi Global Operations', phone: '+254 722 000 001', role: 'admin', joinedAt: '01 Oct 2026', isFounder: true },
       { name: 'Jane Doe', email: 'jane.doe@diasporaverify.demo', location: 'London, United Kingdom', phone: '+44 7700 900142', role: 'client', joinedAt: '01 Oct 2026' },
       { name: 'David Mwangi', email: 'david.mwangi.uk@gmail.com', location: 'London, United Kingdom', phone: '+44 7700 900142', role: 'client', joinedAt: '03 Oct 2026' },
       { name: 'Dr. Wanjiku Chege', email: 'wanjiku.c@gmail.com', location: 'Dallas, TX (USA)', phone: '+1 214 555 0192', role: 'client', joinedAt: '05 Oct 2026' },
@@ -378,6 +379,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
           location: m.location,
           phone: m.phone,
           role: m.role,
+          isFounder: (m as any).isFounder,
           preferredCurrency: 'KES',
           joinedAt: m.joinedAt,
           isRegisteredUser: true,
@@ -1530,6 +1532,45 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
       {/* TAB: CLIENT BASE INSIGHTS & REGISTRY */}
       {activeTab === 'clients' && (
         <div className="space-y-6">
+          {/* Founder Member Registry Banner */}
+          {isPlatformFounder(currentUser) && (
+            <div className="rounded-3xl border border-amber-300 bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-emerald-500/10 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-2xl shadow-xs shrink-0">
+                  👑
+                </div>
+                <div>
+                  <div className="text-xs font-black uppercase tracking-wider text-amber-950 font-mono flex items-center gap-2">
+                    <span>Founder Member Registration Ledger · Who Joined</span>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-200 text-amber-950 text-[10px] font-bold">Live Registry</span>
+                  </div>
+                  <div className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                    Unrestricted executive roster of all {clientsList.length} verified principals, diaspora home builders, and platform members.
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  const csvContent = "data:text/csv;charset=utf-8," 
+                    + ["Name,Email,Phone,Location,Role,JoinedAt,Missions,TotalPaidKES"].join(",") + "\n"
+                    + clientsList.map(c => `"${c.name}","${c.email}","${c.phone}","${c.location}","${c.role}","${c.joinedAt || 'Oct 2026'}","${c.requestCount}","${c.totalPaidKES}"`).join("\n");
+                  const encodedUri = encodeURI(csvContent);
+                  const link = document.createElement("a");
+                  link.setAttribute("href", encodedUri);
+                  link.setAttribute("download", `diaspora-verify-members-${Date.now()}.csv`);
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  setToastMessage('Exported platform member roster as CSV.');
+                }}
+                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition flex items-center gap-2 cursor-pointer shrink-0"
+              >
+                <FileText className="w-4 h-4 text-amber-400" />
+                <span>Export Member Roster (CSV)</span>
+              </button>
+            </div>
+          )}
+
           {/* Header */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
@@ -1662,6 +1703,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
                   <tr>
                     <th className="p-3">Diaspora Principal</th>
+                    <th className="p-3">Joined Platform</th>
                     <th className="p-3">Residency Abroad</th>
                     <th className="p-3">HQ Contact Line (Admin View)</th>
                     <th className="p-3">Currency</th>
@@ -1683,18 +1725,38 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                       return matchesSearch && matchesCountry;
                     })
                     .map((client) => {
+                      const isFounderAccount = client.email.toLowerCase() === 'ashirumaabala@gmail.com' || client.isFounder;
                       const geoMeta = geoCountryMap[getCountryCategory(client.location) as keyof typeof geoCountryMap] || geoCountryMap['Other Diaspora'];
 
                       return (
-                        <tr key={client.id} className="hover:bg-slate-50/70 transition-colors">
+                        <tr key={client.id} className={`hover:bg-slate-50/70 transition-colors ${isFounderAccount ? 'bg-amber-50/50 border-l-4 border-l-amber-500' : ''}`}>
                           <td className="p-3 font-bold text-slate-900">
                             <div className="flex items-center gap-2">
-                              <span className="text-base">{geoMeta.flag}</span>
+                              <span className="text-base">{isFounderAccount ? '👑' : geoMeta.flag}</span>
                               <div>
-                                <span>{client.name}</span>
-                                <div className="text-[10px] text-slate-400 font-normal">Individual Buyer</div>
+                                <div className="flex items-center gap-1.5">
+                                  <span>{client.name}</span>
+                                  {isFounderAccount && (
+                                    <span className="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 text-[9px] font-black uppercase font-mono">
+                                      Founder
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[10px] text-slate-400 font-normal">
+                                  {isFounderAccount ? 'Platform Founder & CEO' : client.role === 'agent' ? 'Field Verifier' : 'Individual Buyer'}
+                                </div>
                               </div>
                             </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="font-mono text-xs font-semibold text-slate-700">
+                              {client.joinedAt || 'Oct 2026'}
+                            </div>
+                            {client.isRegisteredUser && !isFounderAccount && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-900 border border-amber-200 uppercase font-mono mt-0.5">
+                                ✨ New Member
+                              </span>
+                            )}
                           </td>
                           <td className="p-3">
                             <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium text-[11px]">
@@ -1708,7 +1770,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                                 <span>{client.email}</span>
                                 <button
                                   onClick={() => handleCopyContact(client.email, client.email)}
-                                  className="text-[10px] text-blue-600 hover:text-blue-800 ml-1 font-semibold"
+                                  className="text-[10px] text-blue-600 hover:text-blue-800 ml-1 font-semibold cursor-pointer"
                                 >
                                   {copiedContact === client.email ? '✓' : 'Copy'}
                                 </button>
@@ -1731,22 +1793,30 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                             {FORMAT_CURRENCY(client.totalPaidKES, currency)}
                           </td>
                           <td className="p-3">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">
-                              Active Principal
-                            </span>
+                            {isFounderAccount ? (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-950 border border-amber-300 uppercase">
+                                👑 Founder Clearance
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">
+                                Active Principal
+                              </span>
+                            )}
                           </td>
                           <td className="p-3 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => {
-                                  startViewAs('client', client.id, client.name, client.email);
-                                  navigate('/dashboard');
-                                }}
-                                className="px-2.5 py-1 text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg transition-colors cursor-pointer"
-                                title="Experience dashboard as this client"
-                              >
-                                View Portal
-                              </button>
+                              {!isFounderAccount && (
+                                <button
+                                  onClick={() => {
+                                    startViewAs('client', client.id, client.name, client.email);
+                                    navigate('/dashboard');
+                                  }}
+                                  className="px-2.5 py-1 text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg transition-colors cursor-pointer"
+                                  title="Experience dashboard as this client"
+                                >
+                                  View Portal
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>

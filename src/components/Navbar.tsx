@@ -22,12 +22,13 @@ import {
   Phone, 
   Globe, 
   Building2, 
-  Compass 
+  Compass,
+  Clock 
 } from './Icons';
 import type { CurrencyCode } from '../types';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AdminPreviewBanner } from './AdminPreviewBanner';
-import { normalizeRole } from '../auth/authorization';
+import { normalizeRole, isPlatformFounder } from '../auth/authorization';
 
 const ViewAsModal = lazy(() => import('./ViewAsModal'));
 
@@ -467,62 +468,119 @@ export const Navbar: React.FC = () => {
                 </div>
 
                 {/* Role Switcher & User Profile Menu */}
-                <div className="relative">
-                  <button
-                    onClick={() => {
-                      setRoleMenuOpen(!roleMenuOpen);
-                      setCurrencyMenuOpen(false);
-                      setNotifMenuOpen(false);
-                    }}
-                    className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
-                  >
-                    <div className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
-                      {currentUser?.name?.[0]?.toUpperCase() || 'U'}
-                    </div>
-                    <div className="text-left hidden sm:block leading-tight">
-                      <div className="text-xs font-bold text-slate-900 truncate max-w-[110px]">
-                        {currentUser?.name?.split(' ')[0] || 'Account'}
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-medium capitalize">
-                        {currentNormalizedRole}
-                      </div>
-                    </div>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                  </button>
-
-                  {roleMenuOpen && (
-                    <div className="absolute right-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 text-left space-y-1">
-                      <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          {currentNormalizedRole === 'admin' 
-                            ? 'HQ Operations Administrator' 
-                            : currentNormalizedRole === 'agent' 
-                            ? 'Field Agent Workspace' 
-                            : 'Diaspora Client Workspace'}
-                        </div>
-                        <div className="text-xs font-semibold text-slate-800 mt-0.5 truncate">
-                          {currentUser?.email}
-                        </div>
-                      </div>
-
-                      {/* Direct Profile Shortcut */}
+                {/* Role Switcher & User Profile Menu */}
+                {(() => {
+                  const isFounder = isPlatformFounder(currentUser);
+                  return (
+                    <div className="relative">
                       <button
                         onClick={() => {
-                          setRoleMenuOpen(false);
-                          navigate('/profile');
+                          setRoleMenuOpen(!roleMenuOpen);
+                          setCurrencyMenuOpen(false);
+                          setNotifMenuOpen(false);
                         }}
-                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-900 bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200/80 flex items-center justify-between transition-colors cursor-pointer mb-1 shadow-2xs"
+                        className={`flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border transition-colors shadow-2xs cursor-pointer ${
+                          isFounder
+                            ? 'bg-amber-50/70 border-amber-300 hover:bg-amber-100/60'
+                            : 'border-slate-200 bg-white hover:bg-slate-50'
+                        }`}
                       >
-                        <div className="flex items-center gap-2">
-                          <User className="w-3.5 h-3.5 text-emerald-700" />
-                          <span>View Account Profile</span>
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs ${
+                          isFounder
+                            ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-xs ring-1 ring-amber-300 font-black'
+                            : 'bg-slate-900 text-white'
+                        }`}>
+                          {isFounder ? '👑' : (currentUser?.name?.[0]?.toUpperCase() || 'U')}
                         </div>
-                        <span className="text-[10px] text-emerald-700 font-bold">Profile →</span>
+                        <div className="text-left hidden sm:block leading-tight">
+                          <div className="text-xs font-bold text-slate-900 truncate max-w-[110px]">
+                            {currentUser?.name?.split(' ')[0] || 'Account'}
+                          </div>
+                          <div className={`text-[10px] font-medium capitalize ${isFounder ? 'text-amber-800 font-bold flex items-center gap-1' : 'text-slate-400'}`}>
+                            {isFounder ? '👑 Founder' : currentNormalizedRole}
+                          </div>
+                        </div>
+                        <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                       </button>
 
-                      {/* Admin-Only Controls */}
-                      {currentNormalizedRole === 'admin' && (
-                        <div className="space-y-1">
+                      {roleMenuOpen && (
+                        <div className="absolute right-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 text-left space-y-1">
+                          <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                            <div className="text-[10px] font-bold uppercase tracking-wider">
+                              {isFounder ? (
+                                <span className="text-amber-700 flex items-center gap-1">
+                                  <span>👑 Founder & Chief Executive</span>
+                                </span>
+                              ) : currentNormalizedRole === 'admin' ? (
+                                <span className="text-slate-400">HQ Operations Administrator</span>
+                              ) : currentNormalizedRole === 'agent' ? (
+                                <span className="text-slate-400">Field Agent Workspace</span>
+                              ) : (
+                                <span className="text-slate-400">Diaspora Client Workspace</span>
+                              )}
+                            </div>
+                            <div className="text-xs font-semibold text-slate-800 mt-0.5 truncate font-mono">
+                              {currentUser?.email}
+                            </div>
+                          </div>
+
+                          {/* Founder Executive Oversight Controls */}
+                          {isFounder && (
+                            <div className="p-1 mb-1 rounded-xl bg-amber-500/10 border border-amber-300/80 space-y-1">
+                              <div className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-800">
+                                Founder Oversight Desk
+                              </div>
+                              <button
+                                onClick={() => {
+                                  setRoleMenuOpen(false);
+                                  navigate('/admin?tab=clients');
+                                }}
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-900 hover:bg-amber-100 flex items-center justify-between cursor-pointer"
+                              >
+                                <span className="flex items-center gap-1.5">
+                                  <Users className="w-3.5 h-3.5 text-amber-600" />
+                                  <span>Who Joined Platform</span>
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 font-mono font-bold">
+                                  MEMBERS
+                                </span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setRoleMenuOpen(false);
+                                  navigate('/admin?tab=activity');
+                                }}
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-900 hover:bg-amber-100 flex items-center justify-between cursor-pointer"
+                              >
+                                <span className="flex items-center gap-1.5">
+                                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                  <span>Live Platform Activity</span>
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-mono font-bold">
+                                  STREAM
+                                </span>
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Direct Profile Shortcut */}
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              navigate('/profile');
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-slate-900 bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200/80 flex items-center justify-between transition-colors cursor-pointer mb-1 shadow-2xs"
+                          >
+                            <div className="flex items-center gap-2">
+                              <User className="w-3.5 h-3.5 text-emerald-700" />
+                              <span>View Account Profile</span>
+                            </div>
+                            <span className="text-[10px] text-emerald-700 font-bold">Profile →</span>
+                          </button>
+
+                          {/* Admin-Only Controls */}
+                          {currentNormalizedRole === 'admin' && (
+                            <div className="space-y-1">
                           <button
                             onClick={() => {
                               setRoleMenuOpen(false);
@@ -677,6 +735,8 @@ export const Navbar: React.FC = () => {
                     </div>
                   )}
                 </div>
+              );
+            })()}
 
                 {/* Mobile Menu Toggle Button */}
                 <button
