@@ -19,10 +19,12 @@ import {
 } from '../Icons';
 import { getServiceBySlug } from '../../data/servicesData';
 import { Footer } from './Footer';
+import { useVerification } from '../../context/VerificationContext';
 
 export const ServiceDetailPage: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
+  const { currentUser } = useVerification();
 
   const service = getServiceBySlug(categoryId || '');
 
@@ -84,7 +86,7 @@ export const ServiceDetailPage: React.FC = () => {
 
             <div className="pt-2 flex flex-wrap items-center gap-4">
               <button
-                onClick={() => navigate(`/new-request?category=${service.slug}`)}
+                onClick={() => navigate(currentUser ? `/new-request?category=${service.slug}` : `/contact?type=quote&category=${service.slug}`)}
                 className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <span>Request a Quote for {service.title}</span>
@@ -272,7 +274,7 @@ export const ServiceDetailPage: React.FC = () => {
                 <p className="text-xs text-slate-400">Submit your brief without obligation. A coordinator will review feasibility within 24 hours.</p>
               </div>
               <button
-                onClick={() => navigate(`/new-request?category=${service.slug}`)}
+                onClick={() => navigate(currentUser ? `/new-request?category=${service.slug}` : `/contact?type=quote&category=${service.slug}`)}
                 className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg transition-colors cursor-pointer shrink-0"
               >
                 Request a Service Quote →

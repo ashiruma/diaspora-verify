@@ -435,4 +435,68 @@ describe('DiasporaVerify Core Business Rules & System Invariants', () => {
     assert.ok(contextSource.includes('PAYMENT_RECEIVED'));
   });
 
+  test('Rule 18: Sample Dossier Internal Consistency & Demonstration Integrity Invariant', () => {
+    const sampleDossierSource = fs.readFileSync(path.resolve('src/data/sampleDossierData.ts'), 'utf-8');
+    const homePageSource = fs.readFileSync(path.resolve('src/pages/HomePage.tsx'), 'utf-8');
+    const sampleReportPageSource = fs.readFileSync(path.resolve('src/components/Public/SampleReportPage.tsx'), 'utf-8');
+
+    // Canonical reference ID must be DV-DEMO-2026-KJD across all representations
+    assert.ok(sampleDossierSource.includes("referenceId: 'DV-DEMO-2026-KJD'"), 'Sample dossier source must define canonical ID DV-DEMO-2026-KJD');
+    assert.ok(homePageSource.includes('SAMPLE_DOSSIER.referenceId'), 'HomePage preview must bind to canonical referenceId');
+    assert.ok(sampleReportPageSource.includes('SAMPLE_DOSSIER.referenceId'), 'SampleReportPage must bind to canonical referenceId');
+
+    // GPS coordinates must match canonical coordinates -1.4892, 36.9583
+    assert.ok(sampleDossierSource.includes("gpsCoords: '-1.4892, 36.9583'"), 'Canonical coordinates must be -1.4892, 36.9583');
+    assert.ok(homePageSource.includes('SAMPLE_DOSSIER.location.gpsCoords'), 'HomePage must use canonical GPS coordinates');
+
+    // Airtight cement discrepancy mathematics
+    assert.ok(sampleDossierSource.includes('invoicedBags: 100'), 'Cement invoice must state 100 bags');
+    assert.ok(sampleDossierSource.includes('countedInStoreBags: 42'), 'Shed physical count must state 42 bags');
+    assert.ok(sampleDossierSource.includes('structurallyEstimatedInLintelBags: 25'), 'Structural volume estimate must state 25 bags');
+    assert.ok(sampleDossierSource.includes('unexplainedVarianceBags: 33'), 'Unexplained variance must be 33 bags');
+    assert.ok(sampleDossierSource.includes('recommendedWithheldKES: 140000'), 'Withheld sum must be KES 140,000');
+    assert.ok(sampleDossierSource.includes('authorizedLaborPortionKES: 45000'), 'Authorized labor portion must be KES 45,000');
+
+    // Unambiguous demonstration labelling: NO deceptive "LIVE FIELD DOSSIER" or conflicting legacy IDs
+    assert.strictEqual(homePageSource.includes('LIVE FIELD DOSSIER'), false, 'HomePage must not claim "LIVE FIELD DOSSIER"');
+    assert.strictEqual(homePageSource.includes('DV-2026-NBI-0205'), false, 'HomePage must not use legacy ID DV-2026-NBI-0205');
+    assert.strictEqual(sampleReportPageSource.includes('DV-DEMO-2026-NBI'), false, 'SampleReportPage must not use legacy ID DV-DEMO-2026-NBI');
+    assert.ok(sampleDossierSource.includes("badgeLabel: 'DEMO REPORT · ILLUSTRATIVE CASE STUDY'"), 'Sample dossier must bear explicit demo label');
+  });
+
+  test('Rule 19: Geographic Coverage Policy & Honest Representation Invariant', () => {
+    const coverageSource = fs.readFileSync(path.resolve('src/data/coverageData.ts'), 'utf-8');
+    const homePageSource = fs.readFileSync(path.resolve('src/pages/HomePage.tsx'), 'utf-8');
+    const loginSource = fs.readFileSync(path.resolve('src/components/Auth/Login.tsx'), 'utf-8');
+    const landingSource = fs.readFileSync(path.resolve('src/components/Marketing/LandingPage.tsx'), 'utf-8');
+
+    // Defined hubs in coverage policy
+    assert.ok(coverageSource.includes("'Nairobi', 'Kiambu', 'Machakos', 'Kajiado'"), 'Coverage policy must list the 4 pilot counties');
+    assert.ok(coverageSource.includes("'Nakuru', 'Uasin Gishu', 'Mombasa', 'Kisumu'"), 'Coverage policy must list the 4 Phase 2 counties');
+
+    // Prohibition on unsupported "across all 47 counties" marketing claims
+    const forbiddenClaim = 'across all 47 Kenyan counties';
+    assert.strictEqual(homePageSource.includes(forbiddenClaim), false, 'HomePage must not claim coverage across all 47 Kenyan counties');
+    assert.strictEqual(loginSource.includes(forbiddenClaim), false, 'Login must not claim coverage across all 47 Kenyan counties');
+    assert.strictEqual(landingSource.includes(forbiddenClaim), false, 'LandingPage must not claim coverage across all 47 Kenyan counties');
+  });
+
+  test('Rule 20: Zero-Account Public Quote & Consultation Path', () => {
+    const contactSource = fs.readFileSync(path.resolve('src/components/Public/ContactPage.tsx'), 'utf-8');
+    const appSource = fs.readFileSync(path.resolve('src/App.tsx'), 'utf-8');
+    const homePageSource = fs.readFileSync(path.resolve('src/pages/HomePage.tsx'), 'utf-8');
+
+    // Public contact page supports quote mode without login requirement
+    assert.ok(contactSource.includes("searchParams.get('type') === 'quote'"), 'ContactPage must support quote inquiry mode');
+    assert.ok(contactSource.includes('Zero-Account Initial Inquiry') || contactSource.includes('No account or documents required to start'), 'ContactPage must inform visitor that no account is required');
+    
+    // Form collects only basic contact and project scope information (data minimization)
+    assert.ok(contactSource.includes('category:'), 'Quote flow must collect service category');
+    assert.ok(contactSource.includes('county:'), 'Quote flow must collect county');
+
+    // Unauthenticated CTAs route to quote flow
+    assert.ok(appSource.includes("navigate('/contact?type=quote')"), 'App.tsx handleGetStarted must route to quote flow when unauthenticated');
+    assert.ok(homePageSource.includes('/contact?type=quote'), 'HomePage CTAs must direct to /contact?type=quote');
+  });
+
 });

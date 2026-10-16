@@ -113,8 +113,8 @@ export const Login: React.FC = () => {
         console.error('Error reading registered users', err);
       }
 
-      // 2. Official HQ Operations Admin & Demo accounts instant authentication
-      if (trimmedPassword === 'demo123' || trimmedPassword === 'Admin2026!') {
+      // 2. Official HQ Operations Admin & Demo accounts instant authentication (Local development sandbox only)
+      if (import.meta.env.DEV && (trimmedPassword === 'demo123' || trimmedPassword === 'Admin2026!')) {
         if (
           trimmedEmail === 'admin@diasporaverify.com' || 
           trimmedEmail === 'sarah.kamau@diasporaverify.co.ke' ||
@@ -222,7 +222,7 @@ export const Login: React.FC = () => {
             Sign In to Your Workspace
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-            Physical on-ground due diligence, cadastral audits, and construction milestone gating across all 47 Kenyan counties.
+            Physical on-ground due diligence, cadastral audits, and construction milestone gating in Kenya (Nairobi Metropolitan Pilot Hub).
           </p>
 
           {redirectParam && (
@@ -251,60 +251,15 @@ export const Login: React.FC = () => {
             </div>
           )}
 
-          {/* Quick 1-Click Demo Profiles */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
-                1-CLICK PROFILE ACCESS
-              </span>
-              <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                Instant Sign-In
-              </span>
+          {/* Security & 2FA Safeguarding Indicator */}
+          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Encrypted Credentials & MFA / 2FA Protected Sessions</span>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => handleSuccessfulAuth(DEMO_USERS.client)}
-                className="p-2.5 rounded-xl bg-white hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 text-left transition-colors cursor-pointer group shadow-2xs"
-              >
-                <div className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 flex items-center justify-between">
-                  <span>Client Profile</span>
-                  <span className="text-[10px] text-emerald-600 font-bold">→</span>
-                </div>
-                <div className="text-[10px] text-slate-500 truncate mt-0.5">Jane Doe · London</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSuccessfulAuth(DEMO_USERS.admin)}
-                className="p-2.5 rounded-xl bg-white hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 text-left transition-colors cursor-pointer group shadow-2xs"
-              >
-                <div className="text-xs font-bold text-slate-900 group-hover:text-blue-700 flex items-center justify-between">
-                  <span>HQ Admin Profile</span>
-                  <span className="text-[10px] text-blue-600 font-bold">→</span>
-                </div>
-                <div className="text-[10px] text-slate-500 truncate mt-0.5">Sarah Kamau · Nairobi HQ</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSuccessfulAuth(DEMO_USERS.agent)}
-                className="p-2.5 rounded-xl bg-white hover:bg-amber-50/70 border border-slate-200 hover:border-amber-300 text-left transition-colors cursor-pointer group shadow-2xs"
-              >
-                <div className="text-xs font-bold text-slate-900 group-hover:text-amber-700 flex items-center justify-between">
-                  <span>Field Verifier</span>
-                  <span className="text-[10px] text-amber-600 font-bold">→</span>
-                </div>
-                <div className="text-[10px] text-slate-500 truncate mt-0.5">Brian Omondi · Nairobi</div>
-              </button>
-            </div>
-          </div>
-
-          <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-slate-200"></div>
-            <span className="flex-shrink mx-3 text-[10px] font-bold uppercase text-slate-400">or sign in with password</span>
-            <div className="flex-grow border-t border-slate-200"></div>
+            <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-200/70 px-1.5 py-0.5 rounded">
+              Verified Auth
+            </span>
           </div>
 
           <form onSubmit={handleManualLogin} className="space-y-4">
@@ -412,9 +367,9 @@ export const Login: React.FC = () => {
           </Link>
 
           <div className="flex flex-wrap items-center justify-center gap-4 text-[10px] text-slate-400">
-            <span>Kenya DPA 2019 Compliant</span>
+            <span>Kenya DPA 2019 Safeguarded</span>
             <span>·</span>
-            <span>ODPC Registered</span>
+            <span>Field Integrity Protocol</span>
             <span>·</span>
             <span>SHA-256 Hashed Evidence Audit</span>
           </div>

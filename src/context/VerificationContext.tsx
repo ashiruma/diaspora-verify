@@ -237,7 +237,20 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     password?: string;
     role?: UserRole;
   }): AuthenticatedUser => {
-    const role: UserRole = data.role ? normalizeRole(data.role) : 'client';
+    // Priority 1 Security Invariant: Public users cannot self-assign staff privileges.
+    // Staff roles (admin, agent) can only be created when provisioned by an authenticated admin session.
+    let role: UserRole = 'client';
+    if (data.role && (data.role === 'admin' || data.role === 'agent')) {
+      if (currentUser?.role === 'admin') {
+        role = normalizeRole(data.role);
+      } else {
+        console.warn('Unauthorized attempt to self-assign staff role rejected; defaulted to client.');
+        role = 'client';
+      }
+    } else if (data.role) {
+      role = normalizeRole(data.role);
+    }
+
     const newUser: AuthenticatedUser = {
       id: `usr-${Date.now()}`,
       name: data.name.trim(),

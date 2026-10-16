@@ -83,6 +83,16 @@ function AppRoutes() {
     }
   };
 
+  const handleGetStarted = () => {
+    if (currentUser) {
+      if (currentUser.role === 'admin') navigate('/admin');
+      else if (currentUser.role === 'agent') navigate('/agent');
+      else navigate('/dashboard');
+    } else {
+      navigate('/contact?type=quote');
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -101,7 +111,7 @@ function AppRoutes() {
             path="/" 
             element={
               <HomePage 
-                onGetStarted={() => navigate('/new-request')} 
+                onGetStarted={handleGetStarted} 
                 onViewServices={() => navigate('/services')} 
                 onViewLegal={() => navigate('/legal')} 
                 currency={currency} 
@@ -118,7 +128,7 @@ function AppRoutes() {
             path="/landing" 
             element={
               <HomePage 
-                onGetStarted={() => navigate('/new-request')} 
+                onGetStarted={handleGetStarted} 
                 onViewServices={() => navigate('/services')} 
                 onViewLegal={() => navigate('/legal')} 
                 currency={currency} 
@@ -129,7 +139,7 @@ function AppRoutes() {
             path="/landing-classic" 
             element={
               <LandingPage 
-                onGetStarted={() => navigate('/new-request')} 
+                onGetStarted={handleGetStarted} 
                 onViewServices={() => navigate('/services')} 
                 onViewLegal={() => navigate('/legal')} 
                 currency={currency} 

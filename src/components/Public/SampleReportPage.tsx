@@ -10,57 +10,17 @@ import {
   Download
 } from '../Icons';
 import { Footer } from './Footer';
+import { SAMPLE_DOSSIER } from '../../data/sampleDossierData';
+import { useVerification } from '../../context/VerificationContext';
 
 export const SampleReportPage: React.FC = () => {
   const navigate = useNavigate();
+  const { currentUser } = useVerification();
   const [activeMediaFilter, setActiveMediaFilter] = useState<'all' | 'milestone' | 'materials' | 'telemetry'>('all');
 
-  const demoMedia = [
-    {
-      id: 'm1',
-      category: 'milestone',
-      title: 'First-Floor Lintel Ring Beam Concrete Cast',
-      timestamp: '2026-10-04 11:24:18 EAT',
-      gps: '-1.2921, 36.8219 (Accuracy: ±2.8m)',
-      status: 'observed',
-      desc: 'Formwork struck; reinforced concrete cured and solid. Rebar ties visible and aligned to drawing section C-2.',
-      url: 'https://images.unsplash.com/photo-1541888946425-d0fbb1861593?auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: 'm2',
-      category: 'materials',
-      title: 'Unused Bamburi Portland Cement Bags in Storage Shed',
-      timestamp: '2026-10-04 11:42:05 EAT',
-      gps: '-1.2923, 36.8221 (Accuracy: ±3.1m)',
-      status: 'partly_observed',
-      desc: 'Counted 42 intact bags stacked on dry wooden pallets. Invoiced tally was 100 bags. Remaining 58 bags unaccounted for.',
-      url: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: 'm3',
-      category: 'milestone',
-      title: 'External Perimeter Boundary Wall Demarcation',
-      timestamp: '2026-10-04 12:05:40 EAT',
-      gps: '-1.2919, 36.8215 (Accuracy: ±2.5m)',
-      status: 'observed',
-      desc: 'North boundary wall standing at 2.4m height with razor-wire bracket preparations in place. Mortar pointing complete.',
-      url: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: 'm4',
-      category: 'telemetry',
-      title: 'Survey Beacon Demarcation Marker B-4',
-      timestamp: '2026-10-04 12:22:15 EAT',
-      gps: '-1.2918, 36.8214 (Accuracy: ±1.9m)',
-      status: 'cannot_confirm',
-      desc: 'Concrete marker obscured by excavated soil mound. Physical boundary peg could not be visually confirmed without excavation.',
-      url: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80'
-    }
-  ];
-
   const filteredMedia = activeMediaFilter === 'all' 
-    ? demoMedia 
-    : demoMedia.filter(m => m.category === activeMediaFilter);
+    ? SAMPLE_DOSSIER.media 
+    : SAMPLE_DOSSIER.media.filter(m => m.category === activeMediaFilter);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col justify-between text-left">
@@ -88,7 +48,7 @@ export const SampleReportPage: React.FC = () => {
                   Field Verification & Findings Dossier
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-600">
-                  Standard QA Review Report · Reference: <strong className="text-slate-900 font-mono">DV-DEMO-2026-NBI</strong>
+                  Standard QA Review Report · Reference: <strong className="text-slate-900 font-mono">{SAMPLE_DOSSIER.referenceId}</strong>
                 </p>
               </div>
 
@@ -101,7 +61,7 @@ export const SampleReportPage: React.FC = () => {
                   <span>Print Dossier</span>
                 </button>
                 <button
-                  onClick={() => navigate('/new-request')}
+                  onClick={() => navigate(currentUser ? '/new-request' : '/contact?type=quote')}
                   className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                 >
                   Request Similar Audit
@@ -122,13 +82,13 @@ export const SampleReportPage: React.FC = () => {
                   Project Title
                 </span>
                 <h2 className="text-lg sm:text-xl font-bold font-display text-slate-900">
-                  Kitengela Residential Villa — Milestone 3 (Lintel Beam & Cement Stock)
+                  {SAMPLE_DOSSIER.projectTitle}
                 </h2>
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
                   <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  PARTLY VERIFIED / CAUTION
+                  {SAMPLE_DOSSIER.overallStatus.label}
                 </span>
               </div>
             </div>
@@ -139,7 +99,7 @@ export const SampleReportPage: React.FC = () => {
                 <span className="text-slate-400 text-[10px] uppercase font-bold">Location</span>
                 <div className="font-bold text-slate-800 flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-slate-500" />
-                  <span>Kitengela, Kajiado</span>
+                  <span>{SAMPLE_DOSSIER.location.town}, {SAMPLE_DOSSIER.location.county}</span>
                 </div>
               </div>
 
@@ -147,7 +107,7 @@ export const SampleReportPage: React.FC = () => {
                 <span className="text-slate-400 text-[10px] uppercase font-bold">Visit Date & Time</span>
                 <div className="font-bold text-slate-800 flex items-center gap-1">
                   <Calendar className="w-3 h-3 text-slate-500" />
-                  <span>04 Oct 2026, 11:15 EAT</span>
+                  <span>{SAMPLE_DOSSIER.auditDate}</span>
                 </div>
               </div>
 
@@ -155,7 +115,7 @@ export const SampleReportPage: React.FC = () => {
                 <span className="text-slate-400 text-[10px] uppercase font-bold">Assigned Verifier</span>
                 <div className="font-bold text-slate-800 flex items-center gap-1">
                   <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                  <span>Evans K. (ID #AGT-0104)</span>
+                  <span>{SAMPLE_DOSSIER.verifier.name} (ID #{SAMPLE_DOSSIER.verifier.badgeId})</span>
                 </div>
               </div>
 
@@ -163,7 +123,7 @@ export const SampleReportPage: React.FC = () => {
                 <span className="text-slate-400 text-[10px] uppercase font-bold">QA Coordinator</span>
                 <div className="font-bold text-slate-800 flex items-center gap-1">
                   <FileCheck2 className="w-3 h-3 text-blue-600" />
-                  <span>Nairobi HQ Lead Reviewer</span>
+                  <span>{SAMPLE_DOSSIER.qaReviewer.title}</span>
                 </div>
               </div>
             </div>
@@ -173,14 +133,14 @@ export const SampleReportPage: React.FC = () => {
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
                 <h4 className="font-bold text-slate-900">Agreed Scope of Work:</h4>
                 <p className="text-slate-600 leading-relaxed">
-                  Verify completion of first-floor lintel ring beam casting. Confirm physical delivery of 100 bags of Portland cement billed under invoice INV-482. Inspect north boundary wall construction.
+                  {SAMPLE_DOSSIER.agreedScope}
                 </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-rose-50/50 border border-rose-100 space-y-2">
                 <h4 className="font-bold text-rose-950">Explicit Exclusions:</h4>
                 <p className="text-rose-900 leading-relaxed">
-                  Laboratory core testing of concrete compressive strength (requires licensed materials lab). Mediation of contractor wage dispute. Structural engineering certification.
+                  {SAMPLE_DOSSIER.explicitExclusions}
                 </p>
               </div>
             </div>
@@ -203,59 +163,37 @@ export const SampleReportPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
-              {/* Item 1: Observed */}
-              <div className="bg-white rounded-2xl border border-emerald-200 p-5 shadow-xs space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900 text-xs">Lintel Ring Beam Casting</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    Observed
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Ring beam is physically in place across all external walls. Concrete cured with no visible honeycomb voids. Rebar tie-ins observed according to milestone plan.
-                </p>
-              </div>
+              {SAMPLE_DOSSIER.findings.map((f) => {
+                const borderClass = f.statusBadge === 'observed'
+                  ? 'border-emerald-200'
+                  : f.statusBadge === 'partly_observed'
+                  ? 'border-amber-200'
+                  : f.statusBadge === 'cannot_confirm'
+                  ? 'border-purple-200'
+                  : 'border-rose-200';
+                
+                const badgeClass = f.statusBadge === 'observed'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : f.statusBadge === 'partly_observed'
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : f.statusBadge === 'cannot_confirm'
+                  ? 'bg-purple-50 text-purple-700 border-purple-200'
+                  : 'bg-rose-50 text-rose-700 border-rose-200';
 
-              {/* Item 2: Partly Observed */}
-              <div className="bg-white rounded-2xl border border-amber-200 p-5 shadow-xs space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900 text-xs">Cement Delivery (100 Bags Billed)</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
-                    Partly Observed
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Only 42 bags found in storage. Contractor claimed 58 bags were already mixed; however, volume calculations for the lintel beam indicate only ~25 bags utilized. 33 bags discrepancy.
-                </p>
-              </div>
-
-              {/* Item 3: Observed */}
-              <div className="bg-white rounded-2xl border border-emerald-200 p-5 shadow-xs space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900 text-xs">North Boundary Demarcation Wall</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    Observed
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Perimeter masonry standing at 2.4 meters as agreed. Mortar pointing complete and foundation beam backfilled.
-                </p>
-              </div>
-
-              {/* Item 4: Cannot Confirm */}
-              <div className="bg-white rounded-2xl border border-purple-200 p-5 shadow-xs space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900 text-xs">Survey Beacon B-4 Alignment</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
-                    Cannot Confirm
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Beacon peg buried under 1.5m excavated trench mound. Verifier did not have authorization or equipment to excavate without disturbing neighboring foundation.
-                </p>
-              </div>
-
+                return (
+                  <div key={f.id} className={`bg-white rounded-2xl border ${borderClass} p-5 shadow-xs space-y-2.5`}>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900 text-xs">{f.title}</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${badgeClass}`}>
+                        {f.category}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      {f.detailedFinding}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -324,21 +262,36 @@ export const SampleReportPage: React.FC = () => {
           <div className="p-6 sm:p-8 rounded-3xl bg-rose-50 border-2 border-rose-300 text-xs text-slate-900 space-y-4">
             <div className="flex items-center gap-2 text-rose-950 font-bold text-sm">
               <AlertTriangle className="w-5 h-5 text-rose-600" />
-              <span>Contradictions & Recommended Financial Action</span>
+              <span>{SAMPLE_DOSSIER.recommendedAction.headline}</span>
             </div>
 
             <div className="space-y-2 text-slate-800 leading-relaxed">
               <p>
-                <strong>Critical Material Discrepancy:</strong> Contractor requested approval of <strong>KES 185,000</strong> for Milestone 3 completion and cement restocking. However, our physical on-ground count identified only 42 bags of the 100 bags billed under invoice INV-482.
+                {SAMPLE_DOSSIER.recommendedAction.fullRecommendation}
               </p>
-              <p>
-                <strong>Coordinator Recommendation:</strong> We advise <strong>pausing the KES 185,000 disbursement</strong>. Authorize payment only for the verified lintel labor portion (KES 45,000), withholding cement funds until the contractor produces physical supplier delivery receipts signed by the site foreman.
-              </p>
+              <div className="p-3 bg-white/80 rounded-xl border border-rose-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px] font-mono">
+                <div>
+                  <span className="text-slate-400 block text-[9px] uppercase">Invoiced Bags</span>
+                  <span className="font-bold text-slate-800">{SAMPLE_DOSSIER.cementData.invoicedBags} ({SAMPLE_DOSSIER.cementData.invoiceRef})</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[9px] uppercase">Counted In Store</span>
+                  <span className="font-bold text-slate-800">{SAMPLE_DOSSIER.cementData.countedInStoreBags} Bags</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[9px] uppercase">Estimated In Lintel</span>
+                  <span className="font-bold text-slate-800">~{SAMPLE_DOSSIER.cementData.structurallyEstimatedInLintelBags} Bags</span>
+                </div>
+                <div>
+                  <span className="text-rose-600 block text-[9px] uppercase font-bold">Unexplained Variance</span>
+                  <span className="font-bold text-rose-700">{SAMPLE_DOSSIER.cementData.unexplainedVarianceBags} Bags</span>
+                </div>
+              </div>
             </div>
 
             <div className="pt-3 border-t border-rose-200/80 flex flex-wrap items-center justify-between gap-3">
               <span className="font-mono text-[11px] text-rose-900 font-bold">
-                STOP-PAYMENT ALERT ACTIVE ON MILESTONE 3
+                STOP-PAYMENT ALERT ACTIVE ON MILESTONE 3 (WITHHOLD KES {SAMPLE_DOSSIER.financials.recommendedWithheldKES.toLocaleString()})
               </span>
               <span className="text-[11px] text-slate-500">
                 Logged in Audit Trail by HQ Coordinator
@@ -354,23 +307,29 @@ export const SampleReportPage: React.FC = () => {
                 <span>Nairobi HQ Quality Assurance Sign-Off</span>
               </div>
               <span className="font-mono text-[10px] text-slate-400">
-                HASH: sha256:7f83b165...a90b
+                HASH: {SAMPLE_DOSSIER.cryptographicSeal.dossierDigest.slice(0, 24)}...
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <span className="text-slate-400 text-[10px] uppercase font-bold">Review Status</span>
-                <div className="font-bold text-emerald-800 mt-0.5">Approved & Published to Client</div>
+                <div className="font-bold text-emerald-800 mt-0.5">{SAMPLE_DOSSIER.qaReviewer.status}</div>
               </div>
               <div>
                 <span className="text-slate-400 text-[10px] uppercase font-bold">Audit Completed</span>
-                <div className="font-bold text-slate-800 mt-0.5">04 Oct 2026, 16:30 EAT</div>
+                <div className="font-bold text-slate-800 mt-0.5">{SAMPLE_DOSSIER.auditCompletedDate}</div>
               </div>
               <div>
                 <span className="text-slate-400 text-[10px] uppercase font-bold">Client Action Required</span>
                 <div className="font-bold text-slate-800 mt-0.5">Disbursement Decision Pending</div>
               </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-500 leading-relaxed">
+              <p>
+                <strong>Cryptographic Integrity Note:</strong> {SAMPLE_DOSSIER.cryptographicSeal.meaning}
+              </p>
             </div>
           </div>
 

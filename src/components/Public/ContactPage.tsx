@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   ShieldCheck, 
   Mail, 
@@ -11,20 +11,34 @@ import {
   ArrowLeft
 } from '../Icons';
 import { Footer } from './Footer';
+import { COVERAGE_POLICY } from '../../data/coverageData';
 
 export const ContactPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isQuote = searchParams.get('type') === 'quote' || searchParams.get('type') === 'consultation';
+  const paramCategory = searchParams.get('category') || '';
+  const paramCounty = searchParams.get('county') || '';
 
   const [form, setForm] = useState({
     name: '',
     email: '',
     phone: '',
     countryAbroad: '',
-    category: 'projects_assets',
-    county: 'Nairobi',
+    category: paramCategory || 'projects_assets',
+    county: paramCounty || 'Nairobi',
     message: '',
     honeypot: '' // Spam protection bot trap
   });
+
+  useEffect(() => {
+    if (paramCategory) {
+      setForm(prev => ({ ...prev, category: paramCategory }));
+    }
+    if (paramCounty) {
+      setForm(prev => ({ ...prev, county: paramCounty }));
+    }
+  }, [paramCategory, paramCounty]);
 
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,11 +92,13 @@ export const ContactPage: React.FC = () => {
             </button>
 
             <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight text-slate-900 max-w-3xl">
-              Speak with our coordination desk.
+              {isQuote ? 'Request an itemized verification quote.' : 'Speak with our coordination desk.'}
             </h1>
 
             <p className="text-sm sm:text-lg text-slate-600 max-w-2xl leading-relaxed">
-              Have a question about pilot coverage, pricing principles, or a custom verification task? Send an inquiry or submit a formal brief without obligation.
+              {isQuote
+                ? 'No account or documents required to start. Describe your project and location in Kenya. Our Nairobi Operations Desk will review feasibility, establish clear boundaries, and provide an itemized quote within 24 hours.'
+                : 'Have a question about pilot coverage, pricing principles, or a custom verification task? Send an inquiry or submit a formal brief without obligation.'}
             </p>
           </div>
         </div>
@@ -96,22 +112,40 @@ export const ContactPage: React.FC = () => {
               <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
                 <div>
                   <h2 className="text-xl font-bold font-display text-slate-900">
-                    Send an Inquiry
+                    {isQuote ? 'Get an Itemized Verification Quote' : 'Send an Inquiry'}
                   </h2>
                   <p className="text-xs text-slate-500 mt-1">
-                    All inquiries are reviewed directly by our Senior Operations Coordinator within 24 hours.
+                    All requests are reviewed directly by our Senior Operations Coordinator within 24 hours.
                   </p>
                 </div>
+
+                {isQuote && (
+                  <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-xs text-slate-700 flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                    <div>
+                      <span className="font-bold text-slate-900 block">Zero-Account Initial Inquiry</span>
+                      <span className="text-[11px] text-slate-600 leading-snug">
+                        You do not need to sign up or upload identity documents to receive a feasibility review and quote. Simply outline the project scope below.
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {submitted ? (
                   <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs space-y-3">
                     <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
                       <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                      <span>Inquiry Received Successfully</span>
+                      <span>{isQuote ? 'Quote Request Received Successfully' : 'Inquiry Received Successfully'}</span>
                     </div>
                     <p className="text-slate-700 leading-relaxed">
-                      Thank you, <strong>{form.name}</strong>. Your message has been logged with our Nairobi Operations Desk. A coordinator will review your inquiry and follow up at <strong>{form.email}</strong> within 24 business hours.
+                      Thank you, <strong>{form.name}</strong>. Your request has been logged with our Nairobi Operations Desk. A coordinator will evaluate physical access feasibility and follow up at <strong>{form.email}</strong> with a detailed, itemized quote within 24 business hours.
                     </p>
+                    <div className="p-3 bg-white rounded-xl border border-emerald-200 text-[11px] text-slate-600 space-y-1">
+                      <span className="font-bold text-slate-800 block">Next Step:</span>
+                      <p>
+                        Once you review and approve the quote, your secure Client Workspace will be provisioned so you can track field operative dispatch and view your evidence dossier.
+                      </p>
+                    </div>
                     <div className="pt-2">
                       <button
                         onClick={() => {
@@ -121,15 +155,15 @@ export const ContactPage: React.FC = () => {
                             email: '',
                             phone: '',
                             countryAbroad: '',
-                            category: 'projects_assets',
-                            county: 'Nairobi',
+                            category: paramCategory || 'projects_assets',
+                            county: paramCounty || 'Nairobi',
                             message: '',
                             honeypot: ''
                           });
                         }}
                         className="text-xs font-bold text-emerald-700 hover:underline cursor-pointer"
                       >
-                        Send another inquiry →
+                        Send another request →
                       </button>
                     </div>
                   </div>
@@ -236,6 +270,9 @@ export const ContactPage: React.FC = () => {
                           <option value="Mombasa">Mombasa (Regional Phase 2)</option>
                           <option value="Other">Other County (Feasibility Dependent)</option>
                         </select>
+                        <p className="text-[10px] text-slate-500 mt-1">
+                          {COVERAGE_POLICY.summaryText}
+                        </p>
                       </div>
                     </div>
 
@@ -258,7 +295,7 @@ export const ContactPage: React.FC = () => {
                         className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                       >
                         <Send className="w-4 h-4" />
-                        <span>{submitting ? 'Sending to Dispatch Desk...' : 'Send Inquiry to Coordinator'}</span>
+                        <span>{submitting ? 'Sending to Dispatch Desk...' : (isQuote ? 'Request Free Itemized Quote →' : 'Send Inquiry to Coordinator')}</span>
                       </button>
                     </div>
 

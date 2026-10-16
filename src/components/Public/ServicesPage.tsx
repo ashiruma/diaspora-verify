@@ -12,9 +12,11 @@ import {
 } from '../Icons';
 import { MASTER_SERVICES } from '../../data/servicesData';
 import { Footer } from './Footer';
+import { useVerification } from '../../context/VerificationContext';
 
 export const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
+  const { currentUser } = useVerification();
 
   const getIcon = (name: string) => {
     switch (name) {
@@ -122,7 +124,7 @@ export const ServicesPage: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => navigate(`/new-request?category=${srv.slug}`)}
+                    onClick={() => navigate(currentUser ? `/new-request?category=${srv.slug}` : `/contact?type=quote&category=${srv.slug}`)}
                     className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
                   >
                     Request Quote

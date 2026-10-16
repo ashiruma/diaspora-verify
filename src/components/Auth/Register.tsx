@@ -14,7 +14,6 @@ import {
   Globe,
   ArrowRight,
   AlertCircle,
-  Smartphone,
   UserPlus
 } from '../Icons';
 
@@ -25,7 +24,7 @@ export const Register: React.FC = () => {
 
   const { registerUser, supabaseClient } = useVerification();
 
-  const [role, setRole] = useState<UserRole>('client');
+  const role: UserRole = 'client';
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [dialCode, setDialCode] = useState('+44');
@@ -35,7 +34,6 @@ export const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(true);
-  const [adminKey, setAdminKey] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -93,18 +91,6 @@ export const Register: React.FC = () => {
     if (!agreeTerms) {
       setErrorMessage('You must accept the Terms of Service and Privacy Policy to proceed.');
       return;
-    }
-
-    if (role === 'admin') {
-      const trimmedKey = adminKey.trim();
-      if (!trimmedKey) {
-        setErrorMessage('Please enter the HQ Admin Access Code to register an Operations Admin account.');
-        return;
-      }
-      if (trimmedKey !== 'DV-ADMIN-2026' && trimmedKey !== 'admin' && trimmedKey !== 'DV-HQ') {
-        setErrorMessage('Invalid Admin Access Code. Enter valid authorization code (Default for setup: DV-ADMIN-2026).');
-        return;
-      }
     }
 
     // Rate limiter invariant check (Security Rule 10)
@@ -197,101 +183,33 @@ export const Register: React.FC = () => {
         {/* Registration Card */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
           
-          {/* Role Selection Segment */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Account Type / Purpose
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              <button
-                type="button"
-                onClick={() => setRole('client')}
-                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                  role === 'client'
-                    ? 'border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500/20'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${role === 'client' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                  <User className="w-4 h-4" />
+          {/* Account Type Indicator (Client-Only Public Registration) */}
+          <div className="space-y-3">
+            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                  <User className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
-                    <span>Diaspora Client</span>
-                    {role === 'client' && <span className="text-[9px] text-emerald-700 font-black">● ACTIVE</span>}
+                  <div className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                    <span>Diaspora Client Account</span>
+                    <span className="text-[9px] font-mono font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">
+                      Standard Client
+                    </span>
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
-                    Order site audits, construction milestone checks & beacon surveys.
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                    Order site audits, construction milestone checks, and cadastral beacon surveys.
                   </p>
                 </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setRole('agent')}
-                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                  role === 'agent'
-                    ? 'border-amber-500 bg-amber-50/60 ring-2 ring-amber-500/20'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${role === 'agent' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                  <Smartphone className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
-                    <span>Field Agent</span>
-                    {role === 'agent' && <span className="text-[9px] text-amber-700 font-black">● ACTIVE</span>}
-                  </div>
-                  <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
-                    Licensed local verifiers conducting in-person inspections with GPS.
-                  </p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setRole('admin')}
-                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                  role === 'admin'
-                    ? 'border-blue-500 bg-blue-50/60 ring-2 ring-blue-500/20'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${role === 'admin' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
-                    <span>HQ Admin</span>
-                    {role === 'admin' && <span className="text-[9px] text-blue-700 font-black">● ACTIVE</span>}
-                  </div>
-                  <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
-                    Operations command desk, verifier dispatch, finance & QA audits.
-                  </p>
-                </div>
-              </button>
+              </div>
             </div>
 
-            {/* Admin Security Passcode Field */}
-            {role === 'admin' && (
-              <div className="p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 space-y-2 mt-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-blue-700" />
-                    <span>Nairobi HQ Admin Authorization Code *</span>
-                  </label>
-                  <span className="text-[10px] font-mono text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">Default: DV-ADMIN-2026</span>
-                </div>
-                <input
-                  type="password"
-                  value={adminKey}
-                  onChange={(e) => setAdminKey(e.target.value)}
-                  placeholder="Enter admin authorization code"
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-blue-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            )}
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 flex items-start gap-2">
+              <ShieldCheck className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+              <span>
+                <strong>Staff & Verifier Onboarding:</strong> Field Agent and HQ Operations accounts are invite-only and provisioned directly by the Nairobi Operations Desk.
+              </span>
+            </div>
           </div>
 
           {errorMessage && (
@@ -476,7 +394,7 @@ export const Register: React.FC = () => {
                 <>
                   <UserPlus className="w-4 h-4" />
                   <span>
-                    Create Account & Proceed to {role === 'client' ? 'Client Dashboard' : 'Agent Workspace'}
+                    Create Client Account & Proceed
                   </span>
                 </>
               )}

@@ -158,7 +158,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </h1>
 
           <p className="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
-            Stop sending money back home on blind trust. We deploy vetted, independent local inspectors to physically verify construction progress, cadastral beacons, inventory, and family wellbeing across all 47 Kenyan counties.
+            Stop sending money back home on blind trust. We deploy vetted, independent local inspectors to physically verify construction progress, cadastral beacons, inventory, and family wellbeing in Kenya (Nairobi Metro Pilot Hub & Regional Expansion).
           </p>
 
           {/* Action CTAs */}
@@ -190,7 +190,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-center gap-1.5">
               <MapPin className="w-4 h-4 text-emerald-400" />
-              <span>47 Counties Covered</span>
+              <span>Metro Pilot & Phased Hubs</span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-center gap-1.5">
               <UserCheck className="w-4 h-4 text-emerald-400" />

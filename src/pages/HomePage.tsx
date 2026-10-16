@@ -27,6 +27,8 @@ import { useVerification } from "../context/VerificationContext";
 import type { CurrencyCode } from "../types";
 import { MASTER_SERVICES } from "../data/servicesData";
 import { Footer } from "../components/Public/Footer";
+import { SAMPLE_DOSSIER } from "../data/sampleDossierData";
+import { COVERAGE_POLICY } from "../data/coverageData";
 
 export interface HomePageProps {
   onGetStarted?: () => void;
@@ -77,7 +79,7 @@ export function HomePage({
     } else if (isAgent) {
       navigate("/agent");
     } else {
-      navigate("/new-request");
+      navigate("/contact?type=quote");
     }
   };
 
@@ -118,7 +120,7 @@ export function HomePage({
     },
     {
       q: "What geographic areas do you currently cover?",
-      a: "Our pilot foundation operates within the Nairobi Metropolitan Hub (Nairobi, Kiambu, Machakos, and Kajiado counties), with disciplined phased expansion into secondary regional hubs based on validated demand and verified operative availability."
+      a: COVERAGE_POLICY.summaryText
     },
     {
       q: "Can DiasporaVerify hold purchase funds or wire money to sellers?",
@@ -199,7 +201,7 @@ export function HomePage({
                     <div>
                       <div className="font-bold text-white text-sm">Documented Evidence</div>
                       <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                        GPS coordinate stamps, UTC time & raw tamper-proof photos.
+                        GPS coordinate stamps, UTC time & tamper-evident SHA-256 sealed photos.
                       </p>
                     </div>
                   </div>
@@ -240,17 +242,16 @@ export function HomePage({
                     {/* Dossier Header Bar */}
                     <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                       <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
-                          LIVE FIELD DOSSIER
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          {SAMPLE_DOSSIER.badgeLabel}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded">
-                          PARTIALLY VERIFIED
+                          {SAMPLE_DOSSIER.overallStatus.label}
                         </span>
                         <span className="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700">
-                          DV-2026-NBI-0205
+                          {SAMPLE_DOSSIER.referenceId}
                         </span>
                       </div>
                     </div>
@@ -258,15 +259,15 @@ export function HomePage({
                     {/* Mission Profile */}
                     <div>
                       <h3 className="text-base sm:text-lg font-bold text-slate-900 font-display">
-                        Kitengela Milestone 3 · Structural Lintel & Stock Audit
+                        {SAMPLE_DOSSIER.projectTitle}
                       </h3>
                       <div className="text-xs text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
                         <span className="flex items-center gap-1">
                           <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Kitengela, Kajiado County</span>
+                          <span>{SAMPLE_DOSSIER.location.town}, {SAMPLE_DOSSIER.location.county} County</span>
                         </span>
                         <span className="text-slate-400 font-mono text-[11px]">
-                          GPS: -1.4872, 36.9602
+                          GPS: {SAMPLE_DOSSIER.location.gpsCoords}
                         </span>
                       </div>
                     </div>
@@ -275,8 +276,8 @@ export function HomePage({
                     <div className="space-y-2 text-xs">
                       <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                         <div className="space-y-0.5 pr-2">
-                          <span className="text-slate-800 font-semibold block">Ring Beam Concrete Lintel:</span>
-                          <span className="text-[11px] text-slate-500">Poured and vibrated per structural drawing</span>
+                          <span className="text-slate-800 font-semibold block">{SAMPLE_DOSSIER.findings[0].title}:</span>
+                          <span className="text-[11px] text-slate-500">{SAMPLE_DOSSIER.findings[0].summary}</span>
                         </div>
                         <span className="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 shrink-0">
                           Observed
@@ -285,18 +286,18 @@ export function HomePage({
 
                       <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50/70 border border-amber-200">
                         <div className="space-y-0.5 pr-2">
-                          <span className="text-amber-950 font-semibold block">100 Cement Bags Invoiced:</span>
-                          <span className="text-[11px] text-amber-800">Only 42 bags physically counted on site</span>
+                          <span className="text-amber-950 font-semibold block">{SAMPLE_DOSSIER.findings[1].title}:</span>
+                          <span className="text-[11px] text-amber-800">{SAMPLE_DOSSIER.findings[1].summary}</span>
                         </div>
                         <span className="font-bold text-amber-800 bg-white px-2.5 py-1 rounded-md border border-amber-300 shrink-0">
-                          42 of 100 Bags
+                          {SAMPLE_DOSSIER.cementData.countedInStoreBags} of {SAMPLE_DOSSIER.cementData.invoicedBags} Bags
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                         <div className="space-y-0.5 pr-2">
-                          <span className="text-slate-800 font-semibold block">Boundary Beacons & Demarcation:</span>
-                          <span className="text-[11px] text-slate-500">Corner beacons aligned with survey map</span>
+                          <span className="text-slate-800 font-semibold block">{SAMPLE_DOSSIER.findings[2].title}:</span>
+                          <span className="text-[11px] text-slate-500">{SAMPLE_DOSSIER.findings[2].summary}</span>
                         </div>
                         <span className="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 shrink-0">
                           Observed
@@ -308,10 +309,10 @@ export function HomePage({
                     <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 text-xs space-y-1">
                       <div className="font-bold flex items-center gap-1.5 text-rose-800">
                         <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                        <span>Recommended Client Action:</span>
+                        <span>{SAMPLE_DOSSIER.recommendedAction.headline}</span>
                       </div>
                       <p className="text-[11.5px] leading-relaxed text-rose-900">
-                        Pause KES 185,000 contractor milestone release until contractor accounts for the 58 unaccounted cement bags.
+                        {SAMPLE_DOSSIER.recommendedAction.summary}
                       </p>
                     </div>
 
@@ -612,7 +613,7 @@ export function HomePage({
                     </button>
 
                     <button
-                      onClick={() => navigate(`/new-request?category=${srv.slug}`)}
+                      onClick={() => navigate(currentUser ? `/new-request?category=${srv.slug}` : `/contact?type=quote&category=${srv.slug}`)}
                       className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
                     >
                       Request Quote

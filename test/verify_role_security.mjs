@@ -202,13 +202,25 @@ describe('DiasporaVerify Strict Role Security & IDOR Isolation Invariants', () =
     assert.ok(clientDetailSource.includes('Safeguarding & Anti-Collusion Standard'), 'Client request detail must display Anti-Collusion standard');
   });
 
-  test('Security Rule 10: Mandatory Admin Account Creation & Authentication Guard', () => {
-    // Verify admin registration requires authorization code
+  test('Security Rule 10: Role Security, Staff Account Provisioning & Dev-Gated Demo Access', () => {
     const registerSource = fs.readFileSync(path.resolve('src/components/Auth/Register.tsx'), 'utf-8');
-    assert.ok(registerSource.includes('DV-ADMIN-2026'), 'Admin registration must require DV-ADMIN-2026 passcode');
-    assert.ok(registerSource.includes('HQ Admin'), 'Register component must support HQ Admin role');
+    assert.strictEqual(registerSource.includes('DV-ADMIN-2026'), false, 'Public registration must never expose hardcoded admin access codes');
+    assert.ok(registerSource.includes('Diaspora Client Account') || registerSource.includes('role: UserRole = \'client\''), 'Public registration must be strictly client role');
+    assert.ok(registerSource.includes('Staff & Verifier Onboarding') && registerSource.includes('Field Agent and HQ Operations accounts are invite-only'), 'Must explicitly notify users that staff accounts are invite-only');
 
-    // Verify unauthenticated backend route guard in ProtectedRoute
+    // Context-level authorization enforcement: reject forged staff role assignment
+    const contextSource = fs.readFileSync(path.resolve('src/context/VerificationContext.tsx'), 'utf-8');
+    assert.ok(contextSource.includes('Unauthorized attempt to self-assign staff role rejected; defaulted to client.'), 'VerificationContext must reject staff role self-assignment attempts');
+
+    // Demo access isolation & complete eradication of 1-click bypass buttons
+    const loginSource = fs.readFileSync(path.resolve('src/components/Auth/Login.tsx'), 'utf-8');
+    assert.strictEqual(loginSource.includes('1-CLICK PROFILE ACCESS'), false, '1-click profile access must not exist in login');
+    assert.strictEqual(loginSource.includes('DEV ENVIRONMENT SANDBOX PROFILES'), false, 'Dev sandbox profile buttons must not exist in login');
+    assert.ok(loginSource.includes('handleManualLogin'), 'Login must require explicit email and password submission');
+    assert.strictEqual(loginSource.includes('across all 47 Kenyan counties'), false, 'Unsupported 47 counties claim must be removed from login');
+    assert.strictEqual(loginSource.includes('ODPC Registered'), false, 'Unverified ODPC registration claim must be removed from login');
+
+    // Route-level protection in ProtectedRoute
     const protectedRouteSource = fs.readFileSync(path.resolve('src/components/ProtectedRoute.tsx'), 'utf-8');
     assert.ok(protectedRouteSource.includes('if (!isAuthenticated || !currentUser)'), 'ProtectedRoute must reject unauthenticated visitors');
     assert.ok(protectedRouteSource.includes('redirect='), 'Unauthenticated users must be redirected to /login with redirect parameter');
