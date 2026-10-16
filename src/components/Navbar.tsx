@@ -312,55 +312,15 @@ export const Navbar: React.FC = () => {
               Contact
             </button>
 
-            {/* Kombai Orrera Developers Mega Menu Trigger (Reference: navbar-web-14) */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => {
-                  setDevelopersMenuOpen(!developersMenuOpen);
-                  setServicesMenuOpen(false);
-                  setCurrencyMenuOpen(false);
-                  setRoleMenuOpen(false);
-                  setNotifMenuOpen(false);
-                }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${
-                  developersMenuOpen || location.pathname === '/developers'
-                    ? 'bg-[#0e6e66]/10 text-[#0e6e66] border border-[#0e6e66]/30 shadow-2xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-                aria-expanded={developersMenuOpen}
-                title="Orrera Developers Menu & Location Platform"
-              >
-                <span>Developers</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${developersMenuOpen ? 'rotate-180 text-[#0e6e66]' : 'text-slate-400'}`} />
-              </button>
-            </div>
-
             <button
-              onClick={() => handleNav('/rare-leaves')}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                location.pathname === '/rare-leaves'
-                  ? 'bg-[#2A3A2A] text-[#F0EEE4]'
-                  : 'text-[#4A7A4A] hover:text-[#2A3A2A] hover:bg-emerald-50/60'
+              onClick={() => handleNav('/sample-report')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                location.pathname === '/sample-report'
+                  ? 'bg-slate-100 text-slate-900 border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
-              title="Kombai Rare Leaves Botanical Showcase"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#A88A48] animate-pulse" />
-              <span>Rare Leaves</span>
-            </button>
-
-            {/* Kombai Cedarline Property Portal Link (Reference: home-web-11) */}
-            <button
-              onClick={() => handleNav('/cedarline')}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                location.pathname === '/cedarline'
-                  ? 'bg-[#155c48] text-[#fdfefe]'
-                  : 'text-[#155c48] hover:text-[#0f4838] hover:bg-[#e8f0ec]/70'
-              }`}
-              title="Cedarline Property & Real Estate Portal"
-            >
-              <Building2 className="w-3.5 h-3.5 text-[#155c48]" />
-              <span>Cedarline</span>
+              Sample Report
             </button>
           </nav>
 
@@ -866,30 +826,7 @@ export const Navbar: React.FC = () => {
                 >
                   Contact & Inquiries
                 </button>
-                <button
-                  onClick={() => handleNav('/developers')}
-                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-[#0e6e66] bg-[#0e6e66]/5 hover:bg-[#0e6e66]/10 border border-[#0e6e66]/20 cursor-pointer flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-3.5 h-3.5 text-[#0e6e66]" />
-                    <span className="font-bold">Developers & API (Orrera)</span>
-                  </div>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-[#0e6e66]/30 text-[#0e6e66] font-mono font-bold">
-                    COORDINATES
-                  </span>
-                </button>
-                <button
-                  onClick={() => handleNav('/cedarline')}
-                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-[#155c48] bg-[#e8f0ec]/60 hover:bg-[#e8f0ec] border border-[#155c48]/20 cursor-pointer flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-3.5 h-3.5 text-[#155c48]" />
-                    <span className="font-bold">Cedarline (Real Estate & Land)</span>
-                  </div>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-[#155c48]/30 text-[#155c48] font-mono font-bold">
-                    VERIFIED
-                  </span>
-                </button>
+
                 <button
                   onClick={() => handleNav('/legal')}
                   className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
