@@ -348,6 +348,20 @@ export const Navbar: React.FC = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#A88A48] animate-pulse" />
               <span>Rare Leaves</span>
             </button>
+
+            {/* Kombai Cedarline Property Portal Link (Reference: home-web-11) */}
+            <button
+              onClick={() => handleNav('/cedarline')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                location.pathname === '/cedarline'
+                  ? 'bg-[#155c48] text-[#fdfefe]'
+                  : 'text-[#155c48] hover:text-[#0f4838] hover:bg-[#e8f0ec]/70'
+              }`}
+              title="Cedarline Property & Real Estate Portal"
+            >
+              <Building2 className="w-3.5 h-3.5 text-[#155c48]" />
+              <span>Cedarline</span>
+            </button>
           </nav>
 
           {/* Right Action Controls */}
@@ -862,6 +876,18 @@ export const Navbar: React.FC = () => {
                   </div>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-[#0e6e66]/30 text-[#0e6e66] font-mono font-bold">
                     COORDINATES
+                  </span>
+                </button>
+                <button
+                  onClick={() => handleNav('/cedarline')}
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-[#155c48] bg-[#e8f0ec]/60 hover:bg-[#e8f0ec] border border-[#155c48]/20 cursor-pointer flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-3.5 h-3.5 text-[#155c48]" />
+                    <span className="font-bold">Cedarline (Real Estate & Land)</span>
+                  </div>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-[#155c48]/30 text-[#155c48] font-mono font-bold">
+                    VERIFIED
                   </span>
                 </button>
                 <button

@@ -338,4 +338,25 @@ html, body {
   color: #fff;
 }
 
+/* ========================================================
+   Cedarline Property & Real Estate Portal Design System
+   Kombai Reference: home-web-11
+   ======================================================== */
+:root {
+  --cedarline-bg: #f6f7f7;
+  --cedarline-surface: #fdfefe;
+  --cedarline-ink: #141a1d;
+  --cedarline-ink-2: #48545c;
+  --cedarline-ink-3: #6d7981;
+  --cedarline-line: #e3e7e8;
+  --cedarline-line-2: #d3d9db;
+  --cedarline-accent: #155c48;
+  --cedarline-accent-strong: #0f4838;
+  --cedarline-accent-tint: #e8f0ec;
+  --cedarline-rail-w: 76px;
+  --cedarline-shadow-sm: 0 1px 2px rgba(20, 26, 29, 0.06);
+  --cedarline-shadow-md: 0 6px 20px -8px rgba(20, 26, 29, 0.18), 0 1px 2px rgba(20, 26, 29, 0.05);
+  --cedarline-shadow-lg: 0 24px 50px -22px rgba(20, 26, 29, 0.32);
+}
+
 
