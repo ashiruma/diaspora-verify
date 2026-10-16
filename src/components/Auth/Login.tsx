@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useVerification } from '../../context/VerificationContext';
-import { DEMO_USERS, REGISTERED_USERS_KEY } from '../../auth/demoUsers';
+import { DEMO_USERS, FOUNDER_USER, REGISTERED_USERS_KEY } from '../../auth/demoUsers';
 import { getRoleDashboardPath, canAccessRoute, normalizeRole, type AuthenticatedUser } from '../../auth/authorization';
 import { rateLimiter } from '../../lib/supabase';
 import {
@@ -43,12 +43,22 @@ export const Login: React.FC = () => {
   }, [isAuthenticated, currentUser, redirectParam, navigate]);
 
   const handleSuccessfulAuth = (user: AuthenticatedUser) => {
-    login(user, rememberMe);
+    let effectiveUser = user;
+    if (user.email.toLowerCase() === 'ashirumaabala@gmail.com') {
+      effectiveUser = {
+        ...user,
+        role: 'admin',
+        subRole: 'founder',
+        isFounder: true,
+        title: 'Founder & Chief Executive Officer',
+      };
+    }
+    login(effectiveUser, rememberMe);
 
     // Evaluate target redirection
-    const defaultRoute = getRoleDashboardPath(user.role);
+    const defaultRoute = getRoleDashboardPath(effectiveUser.role);
     if (redirectParam) {
-      const accessCheck = canAccessRoute(user, redirectParam);
+      const accessCheck = canAccessRoute(effectiveUser, redirectParam);
       if (accessCheck.allowed) {
         navigate(redirectParam, { replace: true });
         return;
@@ -111,6 +121,15 @@ export const Login: React.FC = () => {
         }
       } catch (err) {
         console.error('Error reading registered users', err);
+      }
+
+      // Founder & Executive Authentication
+      if (trimmedEmail === 'ashirumaabala@gmail.com') {
+        handleSuccessfulAuth({
+          ...FOUNDER_USER,
+          name: 'Chrispine Abala Ashiruma',
+        });
+        return;
       }
 
       // 2. Official HQ Operations Admin & Demo accounts instant authentication (Local development sandbox only)

@@ -31,7 +31,21 @@ export const DEMO_USERS: Record<'client' | 'agent' | 'admin', AuthenticatedUser>
   },
 };
 
+export const FOUNDER_USER: AuthenticatedUser = {
+  id: 'usr-founder-01',
+  email: 'ashirumaabala@gmail.com',
+  name: 'Chrispine Abala Ashiruma',
+  role: 'admin',
+  subRole: 'founder',
+  title: 'Founder & Chief Executive Officer',
+  isFounder: true,
+  phone: '+254 722 000 001',
+  locationAbroad: 'Diaspora & Nairobi Global Operations',
+  mfaEnabled: true,
+};
+
 export const ADDITIONAL_DEMO_USERS: Record<string, AuthenticatedUser> = {
+  'ashirumaabala@gmail.com': FOUNDER_USER,
   'david.mwangi.uk@gmail.com': {
     id: 'usr-client-david',
     email: 'david.mwangi.uk@gmail.com',

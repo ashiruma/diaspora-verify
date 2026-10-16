@@ -25,9 +25,11 @@ import {
   Users,
   Wallet,
   X,
+  Activity,
 } from 'lucide-react';
 import type { CurrencyCode } from '../../types';
 import { AdminPreviewBanner } from '../AdminPreviewBanner';
+import { isPlatformFounder } from '../../auth/authorization';
 
 export interface PortalLayoutProps {
   children: React.ReactNode;
@@ -106,12 +108,14 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
     agents,
     disputes,
     notifications,
+    auditLogs,
     setCommandMenuOpen,
   } = useVerification();
 
   const effectiveRole = role || contextActiveRole || currentUser?.role || 'client';
   const isAdmin = effectiveRole === 'admin' || effectiveRole === 'operations';
   const isAgent = effectiveRole === 'agent' || effectiveRole === 'field_agent';
+  const isFounder = isPlatformFounder(currentUser);
 
   const currencies: CurrencyCode[] = ['KES', 'USD', 'GBP', 'EUR', 'AED', 'CAD', 'AUD'];
 
@@ -134,9 +138,9 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
     }
   };
 
-  const roleLabel = isAdmin ? 'Operations' : isAgent ? 'Field Agent' : 'Client Portal';
+  const roleLabel = isFounder ? 'Founder & Executive' : isAdmin ? 'Operations' : isAgent ? 'Field Agent' : 'Client Portal';
   const subLinkTarget = isAdmin ? '/admin' : isAgent ? '/agent' : '/dashboard';
-  const subLinkLabel = isAdmin ? '← Operations Desk' : isAgent ? '← Field Missions' : '← Dashboard';
+  const subLinkLabel = isFounder ? '👑 Founder Cockpit' : isAdmin ? '← Operations Desk' : isAgent ? '← Field Missions' : '← Dashboard';
 
   // Navigation Items Renderer
   const renderSidebarNav = () => {
@@ -196,6 +200,13 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             label="Intelligence"
             active={activeTab === 'analytics'}
             onClick={() => handleNav('analytics', true)}
+          />
+          <NavItem
+            icon={Activity}
+            label="Platform Activity"
+            badge={auditLogs?.length || 8}
+            active={activeTab === 'activity'}
+            onClick={() => handleNav('activity', true)}
           />
 
           <p className="mb-3 mt-8 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">

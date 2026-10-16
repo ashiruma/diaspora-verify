@@ -4,7 +4,7 @@ import type {
 
 export type UserRole = 'client' | 'agent' | 'admin';
 
-export type AdminSubRole = 'super_admin' | 'operations' | 'reviewer' | 'finance' | 'support';
+export type AdminSubRole = 'super_admin' | 'operations' | 'reviewer' | 'finance' | 'support' | 'founder';
 
 export type Permission =
   | 'requests.read'
@@ -20,6 +20,19 @@ export type Permission =
   | 'disputes.manage';
 
 export const ROLE_PERMISSIONS: Record<AdminSubRole, Permission[]> = {
+  founder: [
+    'requests.read',
+    'requests.create',
+    'requests.assign',
+    'requests.update',
+    'reports.read',
+    'reports.approve',
+    'agents.manage',
+    'clients.manage',
+    'payments.manage',
+    'analytics.view',
+    'disputes.manage',
+  ],
   super_admin: [
     'requests.read',
     'requests.create',
@@ -58,6 +71,17 @@ export const ROLE_PERMISSIONS: Record<AdminSubRole, Permission[]> = {
   ],
 };
 
+export const FOUNDER_EMAIL = 'ashirumaabala@gmail.com';
+
+export function isPlatformFounder(user?: AuthenticatedUser | null): boolean {
+  if (!user) return false;
+  return (
+    user.email?.toLowerCase() === FOUNDER_EMAIL.toLowerCase() ||
+    user.isFounder === true ||
+    user.subRole === 'founder'
+  );
+}
+
 export interface AuthenticatedUser {
   id: string;
   email: string;
@@ -69,6 +93,8 @@ export interface AuthenticatedUser {
   phone?: string;
   locationAbroad?: string;
   mfaEnabled: boolean;
+  isFounder?: boolean;
+  title?: string;
 }
 
 export interface ViewAsSession {

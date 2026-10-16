@@ -156,7 +156,17 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const savedAuth = localStorage.getItem(AUTH_USER_KEY);
     if (savedAuth) {
       try {
-        return JSON.parse(savedAuth);
+        const u = JSON.parse(savedAuth);
+        if (u?.email?.toLowerCase() === 'ashirumaabala@gmail.com') {
+          return {
+            ...u,
+            role: 'admin',
+            subRole: 'founder',
+            isFounder: true,
+            title: 'Founder & Chief Executive Officer',
+          };
+        }
+        return u;
       } catch (e) {
         console.error('Failed to parse cached auth user', e);
       }
@@ -186,19 +196,29 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
 
   const login = useCallback((user: AuthenticatedUser, remember: boolean = true) => {
-    setCurrentUser(user);
-    setActiveRoleState(user.role);
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-    localStorage.setItem(ROLE_KEY, user.role);
+    let effectiveUser = user;
+    if (user.email.toLowerCase() === 'ashirumaabala@gmail.com') {
+      effectiveUser = {
+        ...user,
+        role: 'admin',
+        subRole: 'founder',
+        isFounder: true,
+        title: 'Founder & Chief Executive Officer',
+      };
+    }
+    setCurrentUser(effectiveUser);
+    setActiveRoleState(effectiveUser.role);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(effectiveUser));
+    localStorage.setItem(ROLE_KEY, effectiveUser.role);
     if (remember) {
       localStorage.setItem('diaspora_verify_remember_v2', 'true');
     }
     const log = createAuditLog(
       'USER_LOGGED_IN',
-      { id: user.id, name: user.name, role: user.role },
+      { id: effectiveUser.id, name: effectiveUser.name, role: effectiveUser.role },
       'auth_session',
-      user.id,
-      { email: user.email, role: user.role, timestamp: new Date().toISOString() }
+      effectiveUser.id,
+      { email: effectiveUser.email, role: effectiveUser.role, isFounder: effectiveUser.isFounder, timestamp: new Date().toISOString() }
     );
     setAuditLogs(prev => [log, ...prev]);
   }, []);
@@ -239,8 +259,11 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }): AuthenticatedUser => {
     // Priority 1 Security Invariant: Public users cannot self-assign staff privileges.
     // Staff roles (admin, agent) can only be created when provisioned by an authenticated admin session.
+    const isFounder = data.email.trim().toLowerCase() === 'ashirumaabala@gmail.com';
     let role: UserRole = 'client';
-    if (data.role && (data.role === 'admin' || data.role === 'agent')) {
+    if (isFounder) {
+      role = 'admin';
+    } else if (data.role && (data.role === 'admin' || data.role === 'agent')) {
       if (currentUser?.role === 'admin') {
         role = normalizeRole(data.role);
       } else {
@@ -251,25 +274,39 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       role = normalizeRole(data.role);
     }
 
+    const joinedAt = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
     const newUser: AuthenticatedUser = {
-      id: `usr-${Date.now()}`,
-      name: data.name.trim(),
+      id: isFounder ? 'usr-founder-01' : `usr-${Date.now()}`,
+      name: isFounder ? 'Chrispine Abala Ashiruma' : data.name.trim(),
       email: data.email.trim().toLowerCase(),
       phone: data.phone.trim(),
-      locationAbroad: data.locationAbroad.trim(),
+      locationAbroad: data.locationAbroad.trim() || 'Diaspora & Nairobi Global Operations',
       role,
+      subRole: isFounder ? 'founder' : undefined,
+      isFounder: isFounder ? true : undefined,
+      title: isFounder ? 'Founder & Chief Executive Officer' : undefined,
       clientId: role === 'client' ? `client-${Date.now()}` : undefined,
       agentId: role === 'agent' ? `agt-${Date.now()}` : undefined,
-      mfaEnabled: false,
+      mfaEnabled: isFounder ? true : false,
     };
 
     try {
       const existing = JSON.parse(localStorage.getItem(REGISTERED_USERS_KEY) || '[]');
-      const updated = [...existing.filter((u: any) => u.email !== newUser.email), { ...newUser, password: data.password }];
+      const updated = [...existing.filter((u: any) => u.email !== newUser.email), { ...newUser, password: data.password, joinedAt }];
       localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(updated));
     } catch (e) {
       console.error(e);
     }
+
+    const joinLog = createAuditLog(
+      'USER_REGISTERED',
+      { id: newUser.id, name: newUser.name, role: newUser.role },
+      'user_directory',
+      newUser.id,
+      { email: newUser.email, phone: newUser.phone, location: newUser.locationAbroad, isFounder }
+    );
+    setAuditLogs(prev => [joinLog, ...prev]);
 
     login(newUser);
     return newUser;

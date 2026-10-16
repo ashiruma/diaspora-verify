@@ -127,7 +127,7 @@ export const Register: React.FC = () => {
         }
       }
 
-      // Complete registration in context
+      // Complete registration in context (elevates founder automatically if ashirumaabala@gmail.com)
       const createdUser = registerUser({
         name: trimmedName,
         email: trimmedEmail,
@@ -147,74 +147,163 @@ export const Register: React.FC = () => {
     }
   };
 
+  const handleSocialSimulate = (provider: string) => {
+    setErrorMessage(`Social sign-in with ${provider} is disabled in security sandbox. Please use verified email and password.`);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-xl w-full mx-auto space-y-8">
-        
-        {/* Top Return Link */}
-        <div className="flex items-center justify-between text-xs">
-          <Link to="/" className="font-semibold text-slate-500 hover:text-slate-900 transition-colors inline-flex items-center gap-1.5">
-            <span>← Back to DiasporaVerify Home</span>
-          </Link>
-          <Link to="/login" className="font-semibold text-emerald-700 hover:text-emerald-800 transition-colors">
-            Already registered? Sign in →
-          </Link>
-        </div>
+    <div className="min-h-screen bg-[#0e1311] text-[#f7f1e8] font-sans flex flex-col lg:grid lg:grid-cols-12 selection:bg-[#e0a24e] selection:text-[#141816]">
+      
+      {/* LEFT COLUMN: Cinematic Dusk Clouds Imagery (Nova Style) */}
+      <div 
+        className="relative hidden lg:flex lg:col-span-7 flex-col justify-between p-10 xl:p-14 bg-cover bg-center overflow-hidden border-r border-white/5"
+        style={{
+          backgroundImage: "url('https://kombai-assets.b-cdn.net/examples/thumbnails/assets/site-designs/signup/assets/bg.png')",
+          backgroundColor: '#121816'
+        }}
+      >
+        {/* Soft atmospheric gradient overlays blending photograph smoothly */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-[#121715]/90 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0e1311] via-transparent to-black/50 pointer-events-none" />
 
-        {/* Brand Header */}
-        <div className="text-center space-y-3">
-          <Link to="/" className="inline-flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-md group-hover:bg-emerald-700 transition-colors">
-              <ShieldCheck className="w-6 h-6 text-emerald-400" />
+        {/* Top Brand & Wordmark */}
+        <div className="relative z-10 flex items-center justify-between">
+          <Link to="/" className="inline-flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-lg group-hover:border-[#e0a24e]/50 transition-all">
+              <ShieldCheck className="w-5 h-5 text-[#e0a24e]" />
             </div>
-            <span className="text-2xl font-black font-display tracking-tight text-slate-900">
-              Diaspora<span className="text-emerald-700">Verify</span>
-            </span>
+            <div>
+              <div className="text-xl font-bold tracking-tight text-[#f7f1e8] flex items-center gap-1.5 font-display">
+                <span>Diaspora<span className="text-[#e0a24e]">Verify</span></span>
+                <span className="w-2 h-2 rounded-full bg-[#e0a24e] inline-block shadow-[0_0_8px_#e0a24e]" />
+              </div>
+              <span className="text-[10px] tracking-wider uppercase font-mono text-white/50 block">
+                Independent Kenya Field Audits
+              </span>
+            </div>
           </Link>
-          
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Create Your Account
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-            Secure, evidence-based field verification infrastructure in Kenya.
-          </p>
+
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#e0a24e] px-3 py-1 rounded-full bg-white/5 backdrop-blur-md border border-white/10">
+            Nova Studio Ref
+          </span>
         </div>
 
-        {/* Registration Card */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
-          
-          {/* Account Type Indicator (Client-Only Public Registration) */}
+        {/* Bottom Hero Quote & Evidence Credentials */}
+        <div className="relative z-10 max-w-xl space-y-5">
           <div className="space-y-3">
-            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between">
+            <p className="font-serif italic text-2xl xl:text-3xl text-[#f7f1e8] font-normal leading-snug tracking-tight">
+              &ldquo;Verifiable reality on the ground in Kenya, audited directly for the diaspora.&rdquo;
+            </p>
+            <p className="text-xs xl:text-sm text-white/70 font-sans leading-relaxed">
+              Every milestone inspection, beacon boundary verification, and material inventory is photographed with GPS coordinates and cryptographically hashed with SHA-256 before escrow release.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 pt-2 text-[11px] font-mono text-white/80">
+            <span className="px-3 py-1 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span>47 Counties Capability</span>
+            </span>
+            <span className="px-3 py-1 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e0a24e]" />
+              <span>SHA-256 Tamper-Proof</span>
+            </span>
+            <span className="px-3 py-1 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+              <span>Kenya DPA 2019 Compliant</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN: Deep Forest Form Panel (Nova Style) */}
+      <div className="lg:col-span-5 flex flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-14 bg-[#121715]/95 backdrop-blur-2xl border-l border-white/10 overflow-y-auto">
+        
+        {/* Top Navigation Row */}
+        <div className="flex items-center justify-between text-xs pb-6">
+          <Link 
+            to="/" 
+            className="text-white/60 hover:text-white transition-colors inline-flex items-center gap-1.5 font-medium"
+          >
+            <span>← Back to Home</span>
+          </Link>
+          <Link 
+            to={redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login'}
+            className="font-bold text-[#e0a24e] hover:text-[#f0bc7d] transition-colors flex items-center gap-1"
+          >
+            <span>Log in →</span>
+          </Link>
+        </div>
+
+        {/* Main Sign Up Card */}
+        <div className="w-full max-w-md mx-auto my-auto space-y-6 py-4">
+          
+          {/* Header */}
+          <div className="space-y-2">
+            <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-[#e0a24e] bg-[#e0a24e]/10 px-2.5 py-1 rounded-full border border-[#e0a24e]/20 inline-block">
+              DIASPORA PRINCIPAL ONBOARDING
+            </span>
+            <h1 className="font-serif text-3xl sm:text-4xl text-[#f7f1e8] font-normal tracking-tight">
+              Create your account
+            </h1>
+            <p className="text-xs sm:text-sm text-white/60 leading-relaxed font-sans">
+              Commission independent ground audits, verify construction progress, and inspect land boundaries with zero conflict of interest.
+            </p>
+          </div>
+
+          {/* Social Auth Option (Nova Style) */}
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => handleSocialSimulate('Google')}
+              className="w-full py-2.5 px-4 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.14] text-xs font-semibold text-[#f7f1e8] flex items-center justify-center gap-2.5 transition-all shadow-xs cursor-pointer"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z" />
+                <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z" />
+                <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9z" />
+                <path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 16.9C3.7 20.6 7.5 23.5 12 23.5z" />
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+
+            <div className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-wider text-white/35 before:h-px before:flex-1 before:bg-white/10 after:h-px after:flex-1 after:bg-white/10">
+              <span>or sign up with email</span>
+            </div>
+          </div>
+
+          {/* Account Type Indicator (Client-Only Public Registration) */}
+          <div className="space-y-2.5">
+            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/[0.1] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                  <User className="w-5 h-5" />
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500/20 to-emerald-500/20 border border-white/15 text-[#e0a24e] flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                  <div className="text-xs font-bold text-[#f7f1e8] flex items-center gap-2">
                     <span>Diaspora Client Account</span>
-                    <span className="text-[9px] font-mono font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">
+                    <span className="text-[9px] font-mono font-bold text-[#e0a24e] bg-[#e0a24e]/15 px-1.5 py-0.5 rounded border border-[#e0a24e]/30">
                       Standard Client
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                  <p className="text-[11px] text-white/60 leading-snug">
                     Order site audits, construction milestone checks, and cadastral beacon surveys.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 flex items-start gap-2">
-              <ShieldCheck className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
-              <span>
-                <strong>Staff & Verifier Onboarding:</strong> Field Agent and HQ Operations accounts are invite-only and provisioned directly by the Nairobi Operations Desk.
+            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.08] text-[11px] text-white/60 flex items-start gap-2">
+              <ShieldCheck className="w-4 h-4 text-[#e0a24e] mt-0.5 shrink-0" />
+              <span className="leading-relaxed">
+                <strong className="text-white/80">Staff & Verifier Onboarding:</strong> Field Agent and HQ Operations accounts are invite-only and provisioned directly by the Nairobi Operations Desk.
               </span>
             </div>
           </div>
 
           {errorMessage && (
-            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 flex-shrink-0" />
+            <div className="p-3.5 rounded-2xl bg-rose-950/60 border border-rose-500/40 text-rose-200 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-400 mt-0.5 flex-shrink-0" />
               <div className="leading-relaxed">{errorMessage}</div>
             </div>
           )}
@@ -223,11 +312,11 @@ export const Register: React.FC = () => {
             
             {/* Full Legal Name */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-white/70">
                 Full Legal Name
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/40">
                   <User className="w-4 h-4" />
                 </div>
                 <input
@@ -235,7 +324,7 @@ export const Register: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. David Mwangi or Jane Doe"
-                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-slate-50/50 focus:bg-white"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.14] text-xs font-medium text-[#f7f1e8] placeholder-white/30 focus:outline-none focus:border-[#e0a24e] focus:ring-1 focus:ring-[#e0a24e] transition-all"
                   required
                 />
               </div>
@@ -243,11 +332,11 @@ export const Register: React.FC = () => {
 
             {/* Email Address */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-white/70">
                 Email Address
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/40">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
@@ -255,7 +344,7 @@ export const Register: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="e.g. david.mwangi@domain.com"
-                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-slate-50/50 focus:bg-white"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.14] text-xs font-medium text-[#f7f1e8] placeholder-white/30 focus:outline-none focus:border-[#e0a24e] focus:ring-1 focus:ring-[#e0a24e] transition-all"
                   required
                 />
               </div>
@@ -263,25 +352,25 @@ export const Register: React.FC = () => {
 
             {/* Phone with Dial Code */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
-                Primary Mobile Phone (With Dial Code)
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-white/70">
+                Primary Mobile Phone
               </label>
               <div className="grid grid-cols-12 gap-2">
                 <div className="col-span-5 sm:col-span-4">
                   <select
                     value={dialCode}
                     onChange={(e) => setDialCode(e.target.value)}
-                    className="w-full px-2.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-2.5 py-2.5 rounded-xl bg-[#1c221f] border border-white/[0.14] text-xs font-medium text-[#f7f1e8] focus:outline-none focus:border-[#e0a24e] focus:ring-1 focus:ring-[#e0a24e]"
                   >
                     {dialCodes.map((d) => (
-                      <option key={d.code + d.country} value={d.code}>
-                        {d.flag} {d.code} ({d.country})
+                      <option key={d.code + d.country} value={d.code} className="bg-[#1c221f] text-white">
+                        {d.flag} {d.code}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div className="col-span-7 sm:col-span-8 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/40">
                     <Phone className="w-4 h-4" />
                   </div>
                   <input
@@ -289,7 +378,7 @@ export const Register: React.FC = () => {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="7700 900142"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-slate-50/50 focus:bg-white"
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.14] text-xs font-medium text-[#f7f1e8] placeholder-white/30 focus:outline-none focus:border-[#e0a24e] focus:ring-1 focus:ring-[#e0a24e] transition-all"
                     required
                   />
                 </div>
@@ -298,20 +387,20 @@ export const Register: React.FC = () => {
 
             {/* Country of Residence */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
-                Country / Current Residence
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-white/70">
+                Country / Current Residence Abroad
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/40">
                   <Globe className="w-4 h-4" />
                 </div>
                 <select
                   value={countryOfResidence}
                   onChange={(e) => setCountryOfResidence(e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-[#1c221f] border border-white/[0.14] text-xs font-medium text-[#f7f1e8] focus:outline-none focus:border-[#e0a24e] focus:ring-1 focus:ring-[#e0a24e]"
                 >
                   {countries.map((c) => (
-                    <option key={c} value={c}>
+                    <option key={c} value={c} className="bg-[#1c221f] text-white">
                       {c}
                     </option>
                   ))}
@@ -322,11 +411,11 @@ export const Register: React.FC = () => {
             {/* Password & Confirm Password */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-white/70">
                   Password
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/40">
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
@@ -334,13 +423,13 @@ export const Register: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Min 6 characters"
-                    className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-slate-50/50 focus:bg-white"
+                    className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.14] text-xs font-medium text-[#f7f1e8] placeholder-white/30 focus:outline-none focus:border-[#e0a24e] focus:ring-1 focus:ring-[#e0a24e] transition-all"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-white/40 hover:text-white"
                   >
                     {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
@@ -348,11 +437,11 @@ export const Register: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-white/70">
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/40">
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
@@ -360,7 +449,7 @@ export const Register: React.FC = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repeat password"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-slate-50/50 focus:bg-white"
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.14] text-xs font-medium text-[#f7f1e8] placeholder-white/30 focus:outline-none focus:border-[#e0a24e] focus:ring-1 focus:ring-[#e0a24e] transition-all"
                     required
                   />
                 </div>
@@ -369,44 +458,42 @@ export const Register: React.FC = () => {
 
             {/* Terms and Privacy Checkbox */}
             <div className="pt-2">
-              <label className="flex items-start gap-2.5 text-xs text-slate-600 cursor-pointer select-none">
+              <label className="flex items-start gap-2.5 text-xs text-white/70 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={agreeTerms}
                   onChange={(e) => setAgreeTerms(e.target.checked)}
-                  className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 mt-0.5 w-4 h-4"
+                  className="rounded border-white/20 text-[#e0a24e] focus:ring-[#e0a24e] mt-0.5 w-4 h-4 bg-white/10"
                 />
-                <span className="leading-snug">
-                  I agree to the <Link to="/legal" className="text-emerald-700 font-semibold hover:underline">Terms of Service</Link>, Kenya Data Protection Act 2019 compliance standards, and the Field Verification Anti-Bribery Code of Conduct.
+                <span className="leading-snug text-[11px]">
+                  I agree to the <Link to="/legal" className="text-[#e0a24e] font-semibold hover:underline">Terms of Service</Link>, Kenya Data Protection Act 2019 compliance standards, and the Field Verification Anti-Bribery Code of Conduct.
                 </span>
               </label>
             </div>
 
-            {/* Submit Button */}
+            {/* Amber CTA Button (Nova Style) */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-50 mt-4"
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-b from-[#eab167] to-[#e0a24e] hover:from-[#f0bc7d] hover:to-[#e8ab57] text-[#2b1c08] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-950/30 transition-all cursor-pointer transform active:scale-[0.99] disabled:opacity-50 mt-4"
             >
               {loading ? (
                 <span>Provisioning Account...</span>
               ) : (
                 <>
                   <UserPlus className="w-4 h-4" />
-                  <span>
-                    Create Client Account & Proceed
-                  </span>
+                  <span>Create Client Account & Proceed</span>
                 </>
               )}
             </button>
           </form>
 
           {/* Login Referral */}
-          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <span className="text-slate-500">Already registered on DiasporaVerify?</span>
+          <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <span className="text-white/60">Already registered on DiasporaVerify?</span>
             <Link
               to={redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login'}
-              className="font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 transition-colors"
+              className="font-bold text-[#e0a24e] hover:text-[#f0bc7d] flex items-center gap-1 transition-colors"
             >
               <span>Sign in to existing account</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -414,19 +501,12 @@ export const Register: React.FC = () => {
           </div>
         </div>
 
-        {/* Public Navigation & Security Notice */}
-        <div className="text-center space-y-3">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            <span>← Back to Public Website</span>
-          </Link>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 text-[10px] text-slate-400">
+        {/* Bottom Footer Notice */}
+        <div className="pt-6 border-t border-white/5 text-center space-y-2">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-[10px] font-mono text-white/40">
             <span>Independent Ground Verifiers</span>
             <span>·</span>
-            <span>Strict Zero-Conflict Clearance</span>
+            <span>Zero-Conflict Clearance</span>
             <span>·</span>
             <span>Kenya DPA Compliant</span>
           </div>
