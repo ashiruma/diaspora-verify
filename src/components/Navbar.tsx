@@ -166,20 +166,20 @@ export const Navbar: React.FC = () => {
               onClick={() => handleNav(!isAuthenticated || !currentUser ? '/' : currentNormalizedRole === 'admin' ? '/admin' : currentNormalizedRole === 'agent' ? '/agent' : '/dashboard')}
               className="flex items-center gap-2.5 sm:gap-3 text-left group cursor-pointer"
             >
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#171310] border border-[#b89a62]/35 flex items-center justify-center text-white shadow-xs group-hover:bg-[#0D5C3A] group-hover:border-[#0D5C3A] transition-all duration-200 shrink-0">
-                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[#c9b08a]" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-900 border border-emerald-600/40 flex items-center justify-center text-white shadow-xs group-hover:bg-[#0D5C3A] group-hover:border-[#0D5C3A] transition-all duration-200 shrink-0">
+                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-base sm:text-xl font-bold font-display tracking-tight text-[#171310]">
-                    Diaspora<span className="text-[#0D5C3A]">Verify</span>
+                    Diaspora<span className="text-emerald-700">Verify</span>
                   </span>
                   {isAuthenticated && currentUser ? (
-                    <span className="text-[9px] uppercase font-bold tracking-[0.2em] px-2 py-0.5 rounded-full bg-[#171310] text-[#f5eee6] border border-[#b89a62]/30 hidden sm:inline-block font-mono">
+                    <span className="text-[9px] uppercase font-bold tracking-[0.2em] px-2 py-0.5 rounded-full bg-slate-900 text-white border border-slate-700 hidden sm:inline-block font-mono">
                       {currentNormalizedRole.toUpperCase()}
                     </span>
                   ) : (
-                    <span className="text-[9px] uppercase font-bold tracking-[0.2em] px-2 py-0.5 rounded-full bg-[#f4f0ea] text-[#8a6d2b] border border-[#c9b08a]/40 hidden sm:inline-block font-mono">
+                    <span className="text-[9px] uppercase font-bold tracking-[0.2em] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 hidden sm:inline-block font-mono">
                       KENYA PILOT
                     </span>
                   )}
@@ -350,11 +350,11 @@ export const Navbar: React.FC = () => {
                         setCurrencyMenuOpen(false);
                       }}
                       className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center justify-between hover:bg-[#faf8f5] cursor-pointer ${
-                        currency === curr ? 'text-[#8a6d2b] bg-[#f4f0ea]' : 'text-[#171310]'
+                        currency === curr ? 'text-emerald-700 bg-emerald-50/70' : 'text-[#171310]'
                       }`}
                     >
                       <span>{curr}</span>
-                      {currency === curr && <Check className="w-3.5 h-3.5 text-[#8a6d2b]" />}
+                      {currency === curr && <Check className="w-3.5 h-3.5 text-emerald-600" />}
                     </button>
                   ))}
                 </div>
@@ -380,9 +380,9 @@ export const Navbar: React.FC = () => {
                 </button>
                 <button
                   onClick={() => handleNav('/new-request')}
-                  className="px-3.5 py-1.5 rounded-xl bg-[#171310] hover:bg-[#26221d] border border-[#b89a62]/40 text-[#f5eee6] font-bold text-xs uppercase tracking-[0.12em] shadow-xs transition-all flex items-center gap-1.5 cursor-pointer group"
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-[0.12em] shadow-xs transition-all flex items-center gap-1.5 cursor-pointer group"
                 >
-                  <UserPlus className="w-3.5 h-3.5 text-[#c9b08a] group-hover:scale-110 transition-transform" />
+                  <UserPlus className="w-3.5 h-3.5 text-white" />
                   <span>Get Started</span>
                 </button>
               </div>
