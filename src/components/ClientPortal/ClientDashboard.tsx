@@ -98,20 +98,26 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
         </div>
 
         {/* INTERACTIVE ONBOARDING WALKTHROUGH & SYSTEM GUIDE */}
-        <section className="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950 text-white rounded-3xl p-6 sm:p-7 border border-slate-800 shadow-md">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+        <section className="relative overflow-hidden rounded-3xl border border-[#b89a62]/35 bg-[#12100e]/95 text-[#faf8f5] p-6 sm:p-7 shadow-[0_8px_32px_rgba(0,0,0,0.14)] backdrop-blur-xl">
+          {/* Ambient gold glow */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full bg-[#b89a62]/15 blur-3xl"
+          />
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#b89a62]/20 pb-5 relative z-10">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
-                <Compass className="w-5 h-5 text-emerald-400" />
+              <div className="w-10 h-10 rounded-xl bg-[#b89a62]/20 text-[#c9b08a] border border-[#b89a62]/30 flex items-center justify-center font-bold shrink-0">
+                <Compass className="w-5 h-5 text-[#c9b08a]" />
               </div>
               <div>
-                <h3 className="font-bold text-base text-white tracking-tight flex flex-wrap items-center gap-2">
+                <h3 className="font-bold text-base text-[#faf8f5] tracking-tight flex flex-wrap items-center gap-2">
                   <span>How Your Verification Works in Mashinani</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-semibold uppercase">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#b89a62]/15 text-[#c9b08a] border border-[#b89a62]/30 font-semibold uppercase tracking-wider">
                     4-Step System
                   </span>
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-[#d6cec3] mt-0.5 font-light">
                   End-to-end transparency before you release funds to fundis or contractors.
                 </p>
               </div>
@@ -123,7 +129,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   detail: { prompt: 'Help me navigate through the system' }
                 }));
               }}
-              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-2xs cursor-pointer self-start sm:self-auto shrink-0"
+              className="px-3.5 py-2 rounded-xl bg-[#b89a62] hover:bg-[#a78632] text-[#171310] text-xs font-bold transition flex items-center gap-2 shadow-xs cursor-pointer self-start sm:self-auto shrink-0 tracking-wide"
             >
               <Bot className="w-4 h-4" />
               <span>Ask Balozi AI Guide</span>
@@ -131,20 +137,20 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
           </div>
 
           {/* 4 Interactive Flow Steps */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-5 relative z-10">
             {/* Step 1 */}
             <div 
               onClick={onNavigateToNewRequest}
-              className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer group"
+              className="p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-[#b89a62]/20 hover:border-[#b89a62]/45 transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                <span className="font-mono font-bold text-emerald-400">Step 01</span>
-                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+              <div className="flex items-center justify-between text-xs text-[#a8a199] mb-2">
+                <span className="font-mono font-bold text-[#c9b08a]">Step 01</span>
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#c9b08a]" />
               </div>
-              <h4 className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
+              <h4 className="font-bold text-sm text-[#faf8f5] group-hover:text-[#c9b08a] transition-colors">
                 Submit Site Details
               </h4>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+              <p className="text-xs text-[#d6cec3] mt-1 leading-relaxed font-light">
                 Enter your site location in Kiambu, Machakos, Kajiado, or Nairobi and specify milestones to check.
               </p>
             </div>
@@ -156,16 +162,16 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   detail: { prompt: 'How does the agency work?' }
                 }));
               }}
-              className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer group"
+              className="p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-[#b89a62]/20 hover:border-[#b89a62]/45 transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                <span className="font-mono font-bold text-emerald-400">Step 02</span>
-                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+              <div className="flex items-center justify-between text-xs text-[#a8a199] mb-2">
+                <span className="font-mono font-bold text-[#c9b08a]">Step 02</span>
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#c9b08a]" />
               </div>
-              <h4 className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
+              <h4 className="font-bold text-sm text-[#faf8f5] group-hover:text-[#c9b08a] transition-colors">
                 HQ Dispatches Verifier
               </h4>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+              <p className="text-xs text-[#d6cec3] mt-1 leading-relaxed font-light">
                 Nairobi HQ matches a vetted, conflict-cleared verifier (#FD-XXXX) under strict double-blind privacy.
               </p>
             </div>
@@ -173,16 +179,16 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
             {/* Step 3 */}
             <div 
               onClick={() => navigate('/requests')}
-              className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer group"
+              className="p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-[#b89a62]/20 hover:border-[#b89a62]/45 transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                <span className="font-mono font-bold text-emerald-400">Step 03</span>
-                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+              <div className="flex items-center justify-between text-xs text-[#a8a199] mb-2">
+                <span className="font-mono font-bold text-[#c9b08a]">Step 03</span>
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#c9b08a]" />
               </div>
-              <h4 className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
+              <h4 className="font-bold text-sm text-[#faf8f5] group-hover:text-[#c9b08a] transition-colors">
                 Boots on the Ground
               </h4>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+              <p className="text-xs text-[#d6cec3] mt-1 leading-relaxed font-light">
                 Verifier travels to Mashinani, takes GPS timestamped photos, measures works, and counts materials.
               </p>
             </div>
@@ -190,16 +196,16 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
             {/* Step 4 */}
             <div 
               onClick={() => navigate('/reports')}
-              className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer group"
+              className="p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-[#b89a62]/20 hover:border-[#b89a62]/45 transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                <span className="font-mono font-bold text-emerald-400">Step 04</span>
-                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+              <div className="flex items-center justify-between text-xs text-[#a8a199] mb-2">
+                <span className="font-mono font-bold text-[#c9b08a]">Step 04</span>
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#c9b08a]" />
               </div>
-              <h4 className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
+              <h4 className="font-bold text-sm text-[#faf8f5] group-hover:text-[#c9b08a] transition-colors">
                 Dossier & Stop-Payment
               </h4>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+              <p className="text-xs text-[#d6cec3] mt-1 leading-relaxed font-light">
                 Review verified findings and approve payout, or trigger Stop-Payment if work does not match!
               </p>
             </div>
