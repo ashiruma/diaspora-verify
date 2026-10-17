@@ -136,7 +136,7 @@ export function HomePage({
               onClick={handleStart}
               className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#0D5C3A] hover:bg-[#094229] text-white font-bold text-xs uppercase tracking-[0.16em] shadow-[0_10px_26px_-10px_rgba(13,92,58,0.5)] transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 cursor-pointer"
             >
-              <span>Book Site Inspection</span>
+              <span>Book an Appointment</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -155,7 +155,7 @@ export function HomePage({
               <span>Zero-Conflict Operatives</span>
             </span>
             <span className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#a78632]" />
+              <MapPin className="w-4 h-4 text-[#0D5C3A]" />
               <span>4 Active Pilot Hubs</span>
             </span>
             <span className="flex items-center gap-2">
@@ -163,7 +163,7 @@ export function HomePage({
               <span>SHA-256 Tamper-Proof Evidence</span>
             </span>
             <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#a78632]" />
+              <CheckCircle2 className="w-4 h-4 text-[#0D5C3A]" />
               <span>100% Anti-Collusion Anonymity</span>
             </span>
           </div>
@@ -175,7 +175,7 @@ export function HomePage({
       ========================================================================= */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
-          <span className="text-[11px] font-mono font-bold tracking-[0.25em] uppercase text-[#a78632]">
+          <span className="text-[11px] font-mono font-bold tracking-[0.25em] uppercase text-[#0D5C3A]">
             The System Architecture
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl font-normal text-[#171310] tracking-tight">
@@ -188,7 +188,7 @@ export function HomePage({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
           {/* 1. The Diaspora Client */}
-          <div className="bg-white rounded-3xl p-7 sm:p-8 border border-[#e8e2d8] shadow-xs flex flex-col justify-between space-y-6 hover:border-[#b89a62]/50 hover:shadow-md transition-all">
+          <div className="bg-white rounded-3xl p-7 sm:p-8 border border-[#e8e2d8] shadow-xs flex flex-col justify-between space-y-6 hover:border-emerald-600/40 hover:shadow-md transition-all">
             <div className="space-y-4">
               <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 border border-blue-200/80 flex items-center justify-center font-bold text-lg">
                 <Globe className="w-5 h-5 text-blue-600" />
@@ -619,7 +619,7 @@ export function HomePage({
               onClick={handleStart}
               className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white hover:bg-emerald-50 text-[#0D5C3A] font-bold text-xs uppercase tracking-[0.16em] shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
             >
-              <span>Book Site Verification</span>
+              <span>Book an Appointment</span>
               <ArrowRight className="w-4 h-4" />
             </button>
             <button
