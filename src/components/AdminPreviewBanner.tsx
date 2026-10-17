@@ -34,7 +34,7 @@ export const AdminPreviewBanner: React.FC = () => {
           onClick={handleExit}
           className="bg-slate-950 text-white hover:bg-slate-900 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer whitespace-nowrap"
         >
-          Exit Preview ✕
+          Exit Preview
         </button>
       </div>
     </div>

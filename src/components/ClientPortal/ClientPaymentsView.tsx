@@ -89,7 +89,7 @@ export const ClientPaymentsView: React.FC = () => {
             <span>{toastMessage}</span>
           </div>
           <button onClick={() => setToastMessage(null)} className="text-white/80 hover:text-white font-bold">
-            ✕
+            Close
           </button>
         </div>
       )}

@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-[50vh] flex items-center justify-center p-6 text-center">
           <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-xl font-bold">
-              ⚠️
+              System Error
             </div>
             <div className="space-y-1">
               <h2 className="text-lg font-bold text-slate-900">Network Connection Issue</h2>

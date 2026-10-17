@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   XCircle,
   Hammer,
+  Globe,
 } from "lucide-react";
 import { useVerification } from "../context/VerificationContext";
 import type { CurrencyCode } from "../types";
@@ -184,7 +185,7 @@ export function HomePage({
           <div className="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-sm flex flex-col justify-between space-y-5 hover:border-[#0D5C3A]/40 transition-colors">
             <div className="space-y-4">
               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-700 border border-blue-200/80 flex items-center justify-center font-bold text-lg">
-                🌍
+                <Globe className="w-5 h-5 text-blue-600" />
               </div>
               <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
                 Character 1 · Abroad
@@ -203,7 +204,7 @@ export function HomePage({
           <div className="bg-gradient-to-b from-slate-900 to-slate-950 text-white rounded-2xl p-7 border border-slate-800 shadow-md flex flex-col justify-between space-y-5">
             <div className="space-y-4">
               <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-lg">
-                🛡️
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
               </div>
               <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                 Character 2 · The Bridge
@@ -222,7 +223,7 @@ export function HomePage({
           <div className="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-sm flex flex-col justify-between space-y-5 hover:border-[#0D5C3A]/40 transition-colors">
             <div className="space-y-4">
               <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 border border-amber-200/80 flex items-center justify-center font-bold text-lg">
-                📍
+                <MapPin className="w-5 h-5 text-amber-700" />
               </div>
               <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2 py-0.5 rounded">
                 Character 3 · Boots on Site

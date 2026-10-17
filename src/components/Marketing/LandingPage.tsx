@@ -222,19 +222,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <ul className="space-y-3 text-xs text-rose-950">
               <li className="flex items-start gap-2">
-                <span className="font-bold text-rose-600 text-sm">✕</span>
+                <span className="font-bold text-rose-600 text-xs font-mono">MISSING</span>
                 <span>Contractor sends blurry WhatsApp photos shot from misleading angles hiding incomplete walls.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-rose-600 text-sm">✕</span>
+                <span className="font-bold text-rose-600 text-xs font-mono">MISSING</span>
                 <span>You release KES 450,000 for Milestone 3, only to find cement was diverted and foundation is unpoured.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-rose-600 text-sm">✕</span>
+                <span className="font-bold text-rose-600 text-xs font-mono">MISSING</span>
                 <span>Family members feel uncomfortable challenging workers, leading to strained relationships and delayed work.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-rose-600 text-sm">✕</span>
+                <span className="font-bold text-rose-600 text-xs font-mono">MISSING</span>
                 <span>Land bought from abroad turns out to have missing beacons, road access disputes, or squatters.</span>
               </li>
             </ul>
@@ -247,19 +247,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <ul className="space-y-3 text-xs text-emerald-950">
               <li className="flex items-start gap-2">
-                <span className="font-bold text-emerald-600 text-sm">✓</span>
+                <span className="font-bold text-emerald-600 text-xs font-mono">VERIFIED</span>
                 <span>Independent, vetted county inspector arrives on site and logs automated GPS ground check-in.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-emerald-600 text-sm">✓</span>
+                <span className="font-bold text-emerald-600 text-xs font-mono">VERIFIED</span>
                 <span>Repeat-angle photographs with cryptographic SHA-256 hashing to prove exact timestamped progress.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-emerald-600 text-sm">✓</span>
+                <span className="font-bold text-emerald-600 text-xs font-mono">VERIFIED</span>
                 <span>Physical count of bagged materials and verified discrepancy alerts (Stop-Payment advisory).</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-bold text-emerald-600 text-sm">✓</span>
+                <span className="font-bold text-emerald-600 text-xs font-mono">VERIFIED</span>
                 <span>You hold 100% control of your funds: release payments only when physical milestones are verified.</span>
               </li>
             </ul>

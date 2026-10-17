@@ -99,7 +99,7 @@ export const EvidenceGallery: React.FC<EvidenceGalleryProps> = ({
                 {item.sha256Hash && (
                   <div className="absolute top-2 right-2">
                     <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] shadow" title="Cryptographically verified SHA-256">
-                      ✓
+                      Selected
                     </span>
                   </div>
                 )}

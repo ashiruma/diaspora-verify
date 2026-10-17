@@ -488,7 +488,7 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
           onClick={onCancel}
           className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
         >
-          ✕ Cancel
+          Cancel
         </button>
       }
     >
@@ -622,7 +622,7 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                         <div className="text-xs text-slate-500 leading-snug">{p.tagline}</div>
                       </div>
                       <div className="pt-3 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
-                        {isSelected ? '✓ Selected Pillar' : 'Select Pillar →'}
+                        {isSelected ? 'Selected Pillar' : 'Select Pillar →'}
                       </div>
                     </button>
                   );
@@ -1670,7 +1670,7 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {evidenceRequested.map((ev, i) => (
                       <span key={i} className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 text-[11px] font-medium">
-                        ✓ {ev}
+                        {ev}
                       </span>
                     ))}
                   </div>

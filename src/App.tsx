@@ -43,6 +43,7 @@ const ContactPage = lazy(() => import('./components/Public/ContactPage').then(m 
 const RareLeavesPage = lazy(() => import('./pages/RareLeavesPage').then(m => ({ default: m.RareLeavesPage })));
 const DevelopersPage = lazy(() => import('./pages/DevelopersPage').then(m => ({ default: m.DevelopersPage })));
 const CedarlinePage = lazy(() => import('./pages/CedarlinePage').then(m => ({ default: m.CedarlinePage })));
+const AiAssistantButton = lazy(() => import('./components/AiAssistant/AiAssistantButton').then(m => ({ default: m.AiAssistantButton })));
 
 const RouteLoadingFallback = () => (
   <div className="min-h-[50vh] flex items-center justify-center p-8" aria-busy="true" aria-label="Loading page">
@@ -348,6 +349,11 @@ function AppRoutes() {
           <StandardReportModal request={reportModalRequest} onClose={closeReportModal} />
         </Suspense>
       )}
+
+      {/* Global Role-Aware AI Assistant & Platform Guide */}
+      <Suspense fallback={null}>
+        <AiAssistantButton />
+      </Suspense>
     </>
   );
 }

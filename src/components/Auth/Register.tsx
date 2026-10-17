@@ -38,14 +38,14 @@ export const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const dialCodes = [
-    { code: '+44', country: 'UK', flag: '🇬🇧' },
-    { code: '+1', country: 'US / Canada', flag: '🇺🇸' },
-    { code: '+971', country: 'UAE', flag: '🇦🇪' },
-    { code: '+49', country: 'Germany (EU)', flag: '🇩🇪' },
-    { code: '+33', country: 'France (EU)', flag: '🇫🇷' },
-    { code: '+61', country: 'Australia', flag: '🇦🇺' },
-    { code: '+254', country: 'Kenya', flag: '🇰🇪' },
-    { code: '+27', country: 'South Africa', flag: '🇿🇦' },
+    { code: '+44', country: 'UK', flag: 'UK' },
+    { code: '+1', country: 'US / Canada', flag: 'US' },
+    { code: '+971', country: 'UAE', flag: 'UAE' },
+    { code: '+49', country: 'Germany (EU)', flag: 'DE' },
+    { code: '+33', country: 'France (EU)', flag: 'FR' },
+    { code: '+61', country: 'Australia', flag: 'AU' },
+    { code: '+254', country: 'Kenya', flag: 'KE' },
+    { code: '+27', country: 'South Africa', flag: 'ZA' },
   ];
 
   const countries = [

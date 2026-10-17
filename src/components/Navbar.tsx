@@ -496,14 +496,14 @@ export const Navbar: React.FC = () => {
                             ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-xs ring-1 ring-amber-300 font-black'
                             : 'bg-slate-900 text-white'
                         }`}>
-                          {isFounder ? '👑' : (currentUser?.name?.[0]?.toUpperCase() || 'U')}
+                          {isFounder ? 'F' : (currentUser?.name?.[0]?.toUpperCase() || 'U')}
                         </div>
                         <div className="text-left hidden sm:block leading-tight">
                           <div className="text-xs font-bold text-slate-900 truncate max-w-[110px]">
                             {currentUser?.name?.split(' ')[0] || 'Account'}
                           </div>
                           <div className={`text-[10px] font-medium capitalize ${isFounder ? 'text-amber-800 font-bold flex items-center gap-1' : 'text-slate-400'}`}>
-                            {isFounder ? '👑 Founder' : currentNormalizedRole}
+                            {isFounder ? 'Founder' : currentNormalizedRole}
                           </div>
                         </div>
                         <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -515,7 +515,7 @@ export const Navbar: React.FC = () => {
                             <div className="text-[10px] font-bold uppercase tracking-wider">
                               {isFounder ? (
                                 <span className="text-amber-700 flex items-center gap-1">
-                                  <span>👑 Founder & Chief Executive</span>
+                                  <span>Founder & Chief Executive</span>
                                 </span>
                               ) : currentNormalizedRole === 'admin' ? (
                                 <span className="text-slate-400">HQ Operations Administrator</span>

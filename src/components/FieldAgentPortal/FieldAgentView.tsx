@@ -109,7 +109,7 @@ export const FieldAgentView: React.FC = () => {
       const liveGPS = req.location?.gpsCoords || '-1.2612, 36.8044';
       const result = await performCheckIn(req.id, liveGPS, checkInNotes);
       if (result.success) {
-        setToastMessage(`✓ GPS Ground Check-in recorded! Verified distance: ${result.distanceMeters}m from site marker.`);
+        setToastMessage(`GPS Ground Check-in recorded! Verified distance: ${result.distanceMeters}m from site marker.`);
       } else {
         setToastMessage(`Check-in notice: ${result.message}`);
       }
@@ -164,7 +164,7 @@ export const FieldAgentView: React.FC = () => {
     }
     const res = advanceRequestStatus(req.id, 'EVIDENCE_SUBMITTED', 'Field agent completed on-ground audit and submitted evidence dossier.');
     if (res.success) {
-      setToastMessage(`✓ Mission ${req.id} dossier successfully submitted to Nairobi HQ Operations QA Desk!`);
+      setToastMessage(`Mission ${req.id} dossier successfully submitted to Nairobi HQ Operations QA Desk!`);
     } else {
       setToastMessage(res.error || 'Submission failed.');
     }
@@ -323,7 +323,7 @@ export const FieldAgentView: React.FC = () => {
               <span>Performance Summary</span>
             </div>
             <div className="text-xl font-bold text-slate-900 flex items-center gap-1">
-              4.96 <span className="text-amber-500 text-sm">★★★★★</span>
+              4.96 <span className="text-amber-500 text-sm">5.0 Rating</span>
             </div>
             <div className="text-[10px] text-slate-500">
               54 verified audits · 100% Conflict clearance
@@ -826,7 +826,7 @@ export const FieldAgentView: React.FC = () => {
                           : 'bg-slate-100 text-slate-600 hover:bg-emerald-100 hover:text-emerald-800'
                       }`}
                     >
-                      ✓ Passed
+                      Passed
                     </button>
                     <button
                       onClick={() => handleSetChecklistStatus(item.id, 'flagged')}

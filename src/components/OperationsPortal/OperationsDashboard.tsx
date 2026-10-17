@@ -482,13 +482,13 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
   };
 
   const geoCountryMap = {
-    'United Kingdom': { flag: '🇬🇧', tag: 'UK' },
-    'United States': { flag: '🇺🇸', tag: 'USA' },
-    'Canada': { flag: '🇨🇦', tag: 'CA' },
-    'UAE & Gulf': { flag: '🇦🇪', tag: 'UAE' },
-    'Germany & EU': { flag: '🇩🇪', tag: 'DE/EU' },
-    'Australia': { flag: '🇦🇺', tag: 'AU' },
-    'Other Diaspora': { flag: '🌍', tag: 'Global' },
+    'United Kingdom': { flag: 'UK', tag: 'UK' },
+    'United States': { flag: 'USA', tag: 'USA' },
+    'Canada': { flag: 'CA', tag: 'CA' },
+    'UAE & Gulf': { flag: 'UAE', tag: 'UAE' },
+    'Germany & EU': { flag: 'DE/EU', tag: 'DE/EU' },
+    'Australia': { flag: 'AU', tag: 'AU' },
+    'Other Diaspora': { flag: 'Global', tag: 'Global' },
   };
 
   const geoBreakdown = Object.entries(geoCountryMap).map(([countryName, meta]) => {
@@ -559,7 +559,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-2xl shadow-md text-white font-bold flex-shrink-0">
-                  👑
+                  F
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -1459,7 +1459,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                             </span>
                             {localMatches.length > 0 && (
                               <span className="text-emerald-700 font-semibold text-[11px]">
-                                ✓ {localMatches.length} vetted verifiers in {req.location.county}
+                                {localMatches.length} vetted verifiers in {req.location.county}
                               </span>
                             )}
                           </div>
@@ -1537,7 +1537,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
             <div className="rounded-3xl border border-amber-300 bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-emerald-500/10 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-2xl shadow-xs shrink-0">
-                  👑
+                  F
                 </div>
                 <div>
                   <div className="text-xs font-black uppercase tracking-wider text-amber-950 font-mono flex items-center gap-2">
@@ -1686,13 +1686,13 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                   className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 outline-none"
                 >
                   <option value="all">All Jurisdictions</option>
-                  <option value="United Kingdom">🇬🇧 United Kingdom</option>
-                  <option value="United States">🇺🇸 United States</option>
-                  <option value="Canada">🇨🇦 Canada</option>
-                  <option value="UAE & Gulf">🇦🇪 UAE & Gulf</option>
-                  <option value="Germany & EU">🇩🇪 Germany & EU</option>
-                  <option value="Australia">🇦🇺 Australia</option>
-                  <option value="Other Diaspora">🌍 Other Diaspora</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="United States">United States</option>
+                  <option value="Canada">Canada</option>
+                  <option value="UAE & Gulf">UAE & Gulf</option>
+                  <option value="Germany & EU">Germany & EU</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Other Diaspora">Other Diaspora</option>
                 </select>
               </div>
             </div>
@@ -1732,7 +1732,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                         <tr key={client.id} className={`hover:bg-slate-50/70 transition-colors ${isFounderAccount ? 'bg-amber-50/50 border-l-4 border-l-amber-500' : ''}`}>
                           <td className="p-3 font-bold text-slate-900">
                             <div className="flex items-center gap-2">
-                              <span className="text-base">{isFounderAccount ? '👑' : geoMeta.flag}</span>
+                              <span className="text-base">{isFounderAccount ? 'FOUNDER' : geoMeta.flag}</span>
                               <div>
                                 <div className="flex items-center gap-1.5">
                                   <span>{client.name}</span>
@@ -1754,7 +1754,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                             </div>
                             {client.isRegisteredUser && !isFounderAccount && (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-900 border border-amber-200 uppercase font-mono mt-0.5">
-                                ✨ New Member
+                                New Member
                               </span>
                             )}
                           </td>
@@ -1772,7 +1772,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                                   onClick={() => handleCopyContact(client.email, client.email)}
                                   className="text-[10px] text-blue-600 hover:text-blue-800 ml-1 font-semibold cursor-pointer"
                                 >
-                                  {copiedContact === client.email ? '✓' : 'Copy'}
+                                  {copiedContact === client.email ? 'Copied' : 'Copy'}
                                 </button>
                               </div>
                               <div className="flex items-center gap-1.5 text-slate-600 text-[11px]">
@@ -1795,7 +1795,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                           <td className="p-3">
                             {isFounderAccount ? (
                               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-950 border border-amber-300 uppercase">
-                                👑 Founder Clearance
+                                Founder Clearance
                               </span>
                             ) : (
                               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">
@@ -1969,13 +1969,13 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                 {[
-                  { code: 'KES', name: 'Kenyan Shilling', flag: '🇰🇪', rail: 'M-Pesa STK / Paybill' },
-                  { code: 'USD', name: 'US Dollar', flag: '🇺🇸', rail: 'Stripe / Cards / ACH' },
-                  { code: 'GBP', name: 'British Pound', flag: '🇬🇧', rail: 'UK Faster Payments' },
-                  { code: 'EUR', name: 'Euro', flag: '🇪🇺', rail: 'SEPA / Cards' },
-                  { code: 'AED', name: 'UAE Dirham', flag: '🇦🇪', rail: 'Gulf Debit Cards' },
-                  { code: 'CAD', name: 'Canadian Dollar', flag: '🇨🇦', rail: 'Interac / Cards' },
-                  { code: 'AUD', name: 'Australian Dollar', flag: '🇦🇺', rail: 'Cards / Wire' },
+                  { code: 'KES', name: 'Kenyan Shilling', flag: 'KE', rail: 'M-Pesa STK / Paybill' },
+                  { code: 'USD', name: 'US Dollar', flag: 'USD', rail: 'Stripe / Cards / ACH' },
+                  { code: 'GBP', name: 'British Pound', flag: 'GBP', rail: 'UK Faster Payments' },
+                  { code: 'EUR', name: 'Euro', flag: 'EUR', rail: 'SEPA / Cards' },
+                  { code: 'AED', name: 'UAE Dirham', flag: 'AED', rail: 'Gulf Debit Cards' },
+                  { code: 'CAD', name: 'Canadian Dollar', flag: 'CAD', rail: 'Interac / Cards' },
+                  { code: 'AUD', name: 'Australian Dollar', flag: 'AUD', rail: 'Cards / Wire' },
                 ].map((curr) => {
                   const currData = currencyTotals.find(c => c.currency === curr.code);
                   return (
@@ -2359,7 +2359,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                                 onClick={() => handleCopyContact(c.phone, `${c.name} phone`)}
                                 className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
                               >
-                                {copiedContact === `${c.name} phone` ? '✓' : 'Copy'}
+                                {copiedContact === `${c.name} phone` ? 'Copied' : 'Copy'}
                               </button>
                             </div>
                           </td>
@@ -2370,7 +2370,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                                 onClick={() => handleCopyContact(c.email, `${c.name} email`)}
                                 className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
                               >
-                                {copiedContact === `${c.name} email` ? '✓' : 'Copy'}
+                                {copiedContact === `${c.name} email` ? 'Copied' : 'Copy'}
                               </button>
                             </div>
                           </td>
@@ -2457,7 +2457,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                                 onClick={() => handleCopyContact(agent.phone, `${agent.name} phone`)}
                                 className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
                               >
-                                {copiedContact === `${agent.name} phone` ? '✓' : 'Copy'}
+                                {copiedContact === `${agent.name} phone` ? 'Copied' : 'Copy'}
                               </button>
                             </div>
                           </td>
@@ -2468,12 +2468,12 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                                 onClick={() => handleCopyContact(agent.email, `${agent.name} email`)}
                                 className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
                               >
-                                {copiedContact === `${agent.name} email` ? '✓' : 'Copy'}
+                                {copiedContact === `${agent.name} email` ? 'Copied' : 'Copy'}
                               </button>
                             </div>
                           </td>
                           <td className="p-3 font-medium text-slate-700">{agent.badgeLevel}</td>
-                          <td className="p-3 font-semibold text-emerald-700">★ {agent.rating} ({agent.totalInspections})</td>
+                          <td className="p-3 font-semibold text-emerald-700">Rating:  {agent.rating} ({agent.totalInspections})</td>
                           <td className="p-3">
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                               SIGNED & VERIFIED
@@ -2537,7 +2537,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                                 onClick={() => handleCopyContact(gc.phone, `${gc.name} phone`)}
                                 className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
                               >
-                                {copiedContact === `${gc.name} phone` ? '✓' : 'Copy'}
+                                {copiedContact === `${gc.name} phone` ? 'Copied' : 'Copy'}
                               </button>
                             </div>
                           </td>
@@ -2611,7 +2611,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                           onClick={() => handleCopyContact(officer.phone, officer.name)}
                           className="text-[10px] text-blue-600 hover:text-blue-800 font-bold"
                         >
-                          {copiedContact === officer.name ? '✓' : 'Copy'}
+                          {copiedContact === officer.name ? 'Copied' : 'Copy'}
                         </button>
                       </div>
                       <div className="text-slate-600 truncate text-[11px]">{officer.email}</div>
@@ -2726,7 +2726,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                   <div>
                     <h3 className="font-bold text-sm text-slate-900">{agt.name}</h3>
                     <div className="text-xs text-blue-600 font-semibold">{agt.badgeLevel}</div>
-                    <div className="text-[11px] text-slate-400">★ {agt.rating} • {agt.totalInspections} field audits</div>
+                    <div className="text-[11px] text-slate-400">Rating:  {agt.rating} • {agt.totalInspections} field audits</div>
                   </div>
                 </div>
 
@@ -3144,7 +3144,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                   </span>
                   {isPlatformFounder(currentUser) && (
                     <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-900 border border-purple-200">
-                      👑 Founder Privilege
+                      Founder Privilege
                     </span>
                   )}
                 </div>
@@ -3434,7 +3434,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                             )}
                           </div>
                           <div className="text-[11px] text-slate-500">
-                            ★ {agt.rating} • {agt.totalInspections} audits • {agt.badgeLevel}
+                            Rating:  {agt.rating} • {agt.totalInspections} audits • {agt.badgeLevel}
                           </div>
                         </div>
                       </div>

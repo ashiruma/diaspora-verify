@@ -80,7 +80,7 @@ export const ClientProfileView: React.FC = () => {
             }`}>
               {isFounder ? (
                 <>
-                  <span>👑</span>
+                  <span>Founder</span>
                   <span>Founder Executive Clearance Active</span>
                 </>
               ) : (
@@ -93,7 +93,7 @@ export const ClientProfileView: React.FC = () => {
 
             <h2 className="text-2xl font-bold tracking-tight md:text-3xl text-slate-900 flex items-center gap-2">
               <span>{isFounder ? 'Founder Executive Profile & Oversight' : isAdmin ? 'Admin Profile & Security Credentials' : 'Account & Security Settings'}</span>
-              {isFounder && <span className="text-2xl">👑</span>}
+              {isFounder && <span className="text-xs font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-bold uppercase">Founder</span>}
             </h2>
 
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
@@ -116,7 +116,7 @@ export const ClientProfileView: React.FC = () => {
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                👑 Founder (Chrispine Abala Ashiruma)
+                Founder (Chrispine Abala Ashiruma)
               </button>
               <button
                 type="button"
@@ -180,7 +180,7 @@ export const ClientProfileView: React.FC = () => {
             <span>{toastMessage}</span>
           </div>
           <button onClick={() => setToastMessage(null)} className="text-white/80 hover:text-white font-bold">
-            ✕
+            Close
           </button>
         </div>
       )}

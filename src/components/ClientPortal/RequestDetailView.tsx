@@ -333,7 +333,7 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
             </div>
           </div>
           <div className="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-bold">
-            ✓ Physical Proximity Verified ({req.checkInRecord.distanceMeters || 12}m from target)
+            Physical Proximity Verified ({req.checkInRecord.distanceMeters || 12}m from target)
           </div>
         </div>
       )}
@@ -677,7 +677,7 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
                     <div className="font-bold text-sm text-slate-900">{req.assignedAgent.name}</div>
                     <div className="text-slate-500 text-[11px]">{req.assignedAgent.badgeLevel}</div>
                     <div className="text-emerald-700 font-semibold text-[10px]">
-                      ★ {req.assignedAgent.rating} ({req.assignedAgent.totalInspections} audits)
+                      Rating: {req.assignedAgent.rating} ({req.assignedAgent.totalInspections} audits)
                     </div>
                   </div>
                 </div>

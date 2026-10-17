@@ -213,7 +213,7 @@ export const EvidenceViewerModal: React.FC<EvidenceViewerModalProps> = ({
                 onClick={handleCopyHash}
                 className="mt-1 text-[10px] text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
               >
-                <span>{copiedHash ? '✓ Hash Copied!' : 'Copy SHA-256 Digest'}</span>
+                <span>{copiedHash ? 'Hash Copied!' : 'Copy SHA-256 Digest'}</span>
               </button>
             </div>
 

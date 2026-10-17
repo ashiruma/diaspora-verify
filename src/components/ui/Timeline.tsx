@@ -95,7 +95,7 @@ export const Timeline: React.FC<TimelineProps> = ({ steps, className = '' }) => 
                     : 'bg-white text-slate-400 border-2 border-slate-300'
                 }`}
               >
-                {isCompleted ? '✓' : idx + 1}
+                {isCompleted ? 'Done' : idx + 1}
               </div>
               <div className="space-y-0.5 text-left">
                 <div className={`text-xs font-bold ${isCurrent ? 'text-slate-900' : 'text-slate-700'}`}>

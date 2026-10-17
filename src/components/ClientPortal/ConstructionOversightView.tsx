@@ -509,7 +509,7 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
                       onClick={() => setIsVideoPlaying(!isVideoPlaying)}
                       className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur text-white flex items-center justify-center mx-auto transition-transform hover:scale-110"
                     >
-                      {isVideoPlaying ? '❚❚' : '▶'}
+                      {isVideoPlaying ? 'Pause' : 'Play'}
                     </button>
                     <div className="text-white text-xs font-bold">
                       {videoMarkers[activeVideoMarkerIndex]?.title}

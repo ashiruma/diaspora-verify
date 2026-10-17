@@ -86,7 +86,7 @@ export const ViewAsModal: React.FC<ViewAsModalProps> = ({ isOpen, onClose }) => 
             className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer shrink-0"
             aria-label="Close dialog"
           >
-            ✕
+            Close
           </button>
         </div>
 

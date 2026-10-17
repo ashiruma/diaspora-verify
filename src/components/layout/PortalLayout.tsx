@@ -10,6 +10,7 @@ import {
   Download,
   FileCheck2,
   FileText,
+  Check,
   Globe,
   Hammer,
   LogOut,
@@ -26,10 +27,12 @@ import {
   Wallet,
   X,
   Activity,
+  Bot,
 } from 'lucide-react';
 import type { CurrencyCode } from '../../types';
 import { AdminPreviewBanner } from '../AdminPreviewBanner';
 import { isPlatformFounder } from '../../auth/authorization';
+import { AiAssistantModal } from '../AiAssistant/AiAssistantModal';
 
 export interface PortalLayoutProps {
   children: React.ReactNode;
@@ -96,6 +99,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   const {
     currentUser,
@@ -140,7 +144,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
 
   const roleLabel = isFounder ? 'Founder & Executive' : isAdmin ? 'Operations' : isAgent ? 'Field Agent' : 'Client Portal';
   const subLinkTarget = isAdmin ? '/admin' : isAgent ? '/agent' : '/dashboard';
-  const subLinkLabel = isFounder ? '👑 Founder Cockpit' : isAdmin ? '← Operations Desk' : isAgent ? '← Field Missions' : '← Dashboard';
+  const subLinkLabel = isFounder ? 'Founder Cockpit' : isAdmin ? '← Operations Desk' : isAgent ? '← Field Missions' : '← Dashboard';
 
   // Navigation Items Renderer
   const renderSidebarNav = () => {
@@ -226,6 +230,12 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             onClick={() => handleNav('settings', true)}
           />
           <NavItem
+            icon={Bot}
+            label="Ops AI Copilot"
+            badge="Safeguard"
+            onClick={() => setAiModalOpen(true)}
+          />
+          <NavItem
             icon={User}
             label="Account & Profile"
             active={location.pathname === '/profile'}
@@ -280,6 +290,12 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
             label="Nairobi HQ Dispatch"
             badge="Live"
             onClick={() => handleNav('/agent#dispatch')}
+          />
+          <NavItem
+            icon={Bot}
+            label="Field Site Copilot"
+            badge="Assistance"
+            onClick={() => setAiModalOpen(true)}
           />
         </>
       );
@@ -353,6 +369,12 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
           onClick={() => handleNav('/disputes')}
         />
         <NavItem
+          icon={Bot}
+          label="Balozi AI Assistant"
+          badge="Guide"
+          onClick={() => setAiModalOpen(true)}
+        />
+        <NavItem
           icon={User}
           label="Account & Profile"
           active={location.pathname === '/profile'}
@@ -362,10 +384,10 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
     );
   };
 
-  const userInitial = isFounder ? '👑' : (currentUser?.name?.[0]?.toUpperCase() || (isAdmin ? 'A' : isAgent ? 'F' : 'C'));
+  const userInitial = isFounder ? 'F' : (currentUser?.name?.[0]?.toUpperCase() || (isAdmin ? 'A' : isAgent ? 'F' : 'C'));
   const userDisplayName = currentUser?.name || (isAdmin ? 'Administrator' : isAgent ? 'Field Verifier' : 'Client');
   const userSubtitle = isFounder
-    ? '👑 Founder & CEO'
+    ? 'Founder & CEO'
     : isAdmin
     ? 'Admin HQ'
     : isAgent
@@ -660,7 +682,7 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
                       }`}
                     >
                       <span>{c}</span>
-                      {currency === c && <span>✓</span>}
+                      {currency === c && <Check className="w-3.5 h-3.5" />}
                     </button>
                   ))}
                 </div>
@@ -702,6 +724,16 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
               </button>
             )}
 
+            {/* Role-Aware AI Assistant Button */}
+            <button
+              onClick={() => setAiModalOpen(true)}
+              className="flex h-10 items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3 text-xs font-bold text-[#0D5C3A] shadow-2xs hover:bg-emerald-100 transition-colors cursor-pointer"
+              title="Open AI Assistant & Platform Guide"
+            >
+              <Bot className="w-4 h-4 text-[#0D5C3A]" />
+              <span className="hidden sm:inline">AI Assistant</span>
+            </button>
+
             {/* Custom Injected Actions (e.g. + New Verification) */}
             {actions}
           </div>
@@ -712,6 +744,9 @@ export const PortalLayout: React.FC<PortalLayoutProps> = ({
           {children}
         </div>
       </main>
+
+      {/* Role-Aware AI Assistant Modal */}
+      <AiAssistantModal isOpen={aiModalOpen} onClose={() => setAiModalOpen(false)} />
     </div>
   );
 };
