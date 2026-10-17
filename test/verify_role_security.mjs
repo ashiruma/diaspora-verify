@@ -188,11 +188,13 @@ describe('DiasporaVerify Strict Role Security & IDOR Isolation Invariants', () =
   });
 
   test('Security Rule 9: Bi-Directional Zero-Contact-Leak Safeguarding Invariant', () => {
-    // Ground truth: Client must never see agent phone/email; Agent must never see client phone/email
+    // Ground truth: Client must never see agent phone/email/real name; Agent must never see client phone/email/real name
     const contextSource = fs.readFileSync(path.resolve('src/context/VerificationContext.tsx'), 'utf-8');
     assert.ok(contextSource.includes('PROTECTED BY HQ DISPATCH'), 'Client and Agent data masking must be enforced in VerificationContext');
     assert.ok(contextSource.includes('verifier.dispatch@diasporaverify.co.ke'), 'Agent email must be replaced with dispatch relay');
     assert.ok(contextSource.includes('client.relay@diasporaverify.co.ke'), 'Client email must be replaced with client relay');
+    assert.ok(contextSource.includes('Vetted Verifier (#FD-'), 'Agent personal name must be masked into anonymous Vetted Verifier identifier for clients');
+    assert.ok(contextSource.includes('Diaspora Client (#CL-'), 'Client personal name must be masked into anonymous Diaspora Client identifier for agents');
 
     // Verify Safeguarding notice is present in agent and client views
     const agentViewSource = fs.readFileSync(path.resolve('src/components/FieldAgentPortal/FieldAgentView.tsx'), 'utf-8');

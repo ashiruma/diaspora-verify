@@ -17,9 +17,10 @@ import { normalizeRole } from '../../auth/authorization';
 interface AiAssistantModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialPrompt?: string;
 }
 
-export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({ isOpen, onClose }) => {
+export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({ isOpen, onClose, initialPrompt }) => {
   const navigate = useNavigate();
   const { currentUser, clientRequests, agentRequests, activeRequest } = useVerification();
   const rawRole = currentUser?.role || 'client';
@@ -56,44 +57,66 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({ isOpen, onCl
 
   const headerInfo = getRoleHeader();
 
-  // Initialize initial greeting when opened
+  // Initialize initial greeting or handle initialPrompt when opened
   useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      const initialGreeting: AiMessage = {
-        id: 'init-1',
-        sender: 'assistant',
-        timestamp: new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }),
-        content:
-          role === 'admin'
-            ? 'Operations intelligence online. I monitor bi-directional data leak protection, assist in verifier matching, and summarize incoming inspection dossiers. How can I help today?'
-            : role === 'agent'
-            ? 'Field Copilot ready. I can assist you with your active mission checklist, repeat photo angles, boundary beacon rules, and obstacle reporting to Nairobi HQ.'
-            : 'Jambo! I am your DiasporaVerify Assistant. I can help you navigate the system, book a site inspection, explain milestone checklists, or connect you with a human coordinator.',
-        suggestedPrompts:
-          role === 'admin'
-            ? [
-                'Scan platform for data leaks',
-                'Check unassigned diaspora requests',
-                'Review who joined recently',
-                'Open financial cockpit',
-              ]
-            : role === 'agent'
-            ? [
-                'Review my active missions',
-                'What photos are required for foundation?',
-                'Site access is blocked by watchman',
-                'How do I record GPS check-in?',
-              ]
-            : [
-                'How do I book a site inspection?',
-                'Where do I view my active requests?',
-                'Check construction milestone progress',
-                'Speak to a human operations coordinator',
-              ],
-      };
-      setMessages([initialGreeting]);
+    if (isOpen) {
+      if (initialPrompt) {
+        // Automatically send the initial prompt
+        const userMessage: AiMessage = {
+          id: `usr-${Date.now()}`,
+          sender: 'user',
+          timestamp: new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }),
+          content: initialPrompt,
+        };
+        setMessages([userMessage]);
+        setIsTyping(true);
+        setTimeout(() => {
+          const response = AiAssistantService.handleQuery(initialPrompt, {
+            role,
+            user: currentUser,
+            requests: role === 'agent' ? agentRequests : clientRequests,
+            activeRequest,
+          });
+          setMessages([userMessage, response]);
+          setIsTyping(false);
+        }, 350);
+      } else if (messages.length === 0) {
+        const initialGreeting: AiMessage = {
+          id: 'init-1',
+          sender: 'assistant',
+          timestamp: new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }),
+          content:
+            role === 'admin'
+              ? 'Operations intelligence online. I monitor bi-directional data leak protection, assist in verifier matching, and summarize incoming inspection dossiers. How can I help today?'
+              : role === 'agent'
+              ? 'Field Copilot ready. I can assist you with your active mission checklist, repeat photo angles, boundary beacon rules, and obstacle reporting to Nairobi HQ.'
+              : 'Jambo! I am your DiasporaVerify Assistant. I can help you navigate the system, explain how our ground verifiers work, book a site inspection, or connect you with a human coordinator.',
+          suggestedPrompts:
+            role === 'admin'
+              ? [
+                  'Ensure platform is running smoothly and there are no data leaks',
+                  'Review who joined recently',
+                  'Check unassigned diaspora requests',
+                  'Open financial cockpit',
+                ]
+              : role === 'agent'
+              ? [
+                  'Remind me about my active projects',
+                  'What photos are required for foundation?',
+                  'Site access is blocked by watchman',
+                  'Standard photo evidence requirements',
+                ]
+              : [
+                  'How does the agency work?',
+                  'Help me navigate through the system',
+                  'What is the status of my project?',
+                  'Speak to a human operations coordinator',
+                ],
+        };
+        setMessages([initialGreeting]);
+      }
     }
-  }, [isOpen, messages.length, role]);
+  }, [isOpen, initialPrompt, role]);
 
   // Auto-scroll to bottom of conversation
   useEffect(() => {

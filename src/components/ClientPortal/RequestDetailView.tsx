@@ -658,21 +658,15 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
           {/* Step 2: Assigned Agent Card */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Step 2: Named Ground Accountability
+              Step 2: Vetted Ground Accountability
             </h3>
 
             {req.assignedAgent ? (
               <div className="space-y-3 text-xs">
                 <div className="flex items-center gap-3">
-                  <img
-                    src={req.assignedAgent.avatarUrl}
-                    alt={req.assignedAgent.name}
-                    width={48}
-                    height={48}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow-sm"
-                  />
+                  <div className="w-12 h-12 rounded-full bg-emerald-50 border-2 border-emerald-500 flex items-center justify-center text-emerald-700 shadow-sm shrink-0">
+                    <ShieldCheck className="w-6 h-6 text-emerald-600" />
+                  </div>
                   <div>
                     <div className="font-bold text-sm text-slate-900">{req.assignedAgent.name}</div>
                     <div className="text-slate-500 text-[11px]">{req.assignedAgent.badgeLevel}</div>
@@ -702,7 +696,7 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
                 <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200 text-[10px] text-blue-900 flex items-start gap-2">
                   <ShieldCheck className="w-3.5 h-3.5 text-blue-700 flex-shrink-0 mt-0.5" />
                   <p className="leading-snug">
-                    <strong>Safeguarding & Anti-Collusion Standard:</strong> Verifier personal phone & email are protected by Nairobi HQ. All instructions, photos, and reports are audited by Nairobi QA to preserve 100% audit independence.
+                    <strong>Safeguarding & Anti-Collusion Standard:</strong> Verifier personal identity, phone & email are protected by Nairobi HQ. All instructions, photos, and reports are audited by Nairobi QA to preserve 100% audit independence.
                   </p>
                 </div>
               </div>

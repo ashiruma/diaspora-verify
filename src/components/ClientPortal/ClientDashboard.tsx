@@ -14,7 +14,7 @@ import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
 import { useNavigate } from 'react-router-dom';
 import { PortalLayout } from '../layout/PortalLayout';
-import { CheckCircle2, TrendingUp, Wallet, MoreHorizontal, FileCheck2 } from 'lucide-react';
+import { CheckCircle2, TrendingUp, Wallet, MoreHorizontal, FileCheck2, Compass, Bot } from 'lucide-react';
 
 interface ClientDashboardProps {
   onSelectRequest: (id: string) => void;
@@ -96,6 +96,115 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
             </button>
           </div>
         </div>
+
+        {/* INTERACTIVE ONBOARDING WALKTHROUGH & SYSTEM GUIDE */}
+        <section className="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950 text-white rounded-3xl p-6 sm:p-7 border border-slate-800 shadow-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
+                <Compass className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-white tracking-tight flex flex-wrap items-center gap-2">
+                  <span>How Your Verification Works in Mashinani</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-semibold uppercase">
+                    4-Step System
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  End-to-end transparency before you release funds to fundis or contractors.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('open-ai-assistant', {
+                  detail: { prompt: 'Help me navigate through the system' }
+                }));
+              }}
+              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-2xs cursor-pointer self-start sm:self-auto shrink-0"
+            >
+              <Bot className="w-4 h-4" />
+              <span>Ask Balozi AI Guide</span>
+            </button>
+          </div>
+
+          {/* 4 Interactive Flow Steps */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-5">
+            {/* Step 1 */}
+            <div 
+              onClick={onNavigateToNewRequest}
+              className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                <span className="font-mono font-bold text-emerald-400">Step 01</span>
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+              </div>
+              <h4 className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
+                Submit Site Details
+              </h4>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                Enter your site location in Kiambu, Machakos, Kajiado, or Nairobi and specify milestones to check.
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div 
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('open-ai-assistant', {
+                  detail: { prompt: 'How does the agency work?' }
+                }));
+              }}
+              className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                <span className="font-mono font-bold text-emerald-400">Step 02</span>
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+              </div>
+              <h4 className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
+                HQ Dispatches Verifier
+              </h4>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                Nairobi HQ matches a vetted, conflict-cleared verifier (#FD-XXXX) under strict double-blind privacy.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div 
+              onClick={() => navigate('/requests')}
+              className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                <span className="font-mono font-bold text-emerald-400">Step 03</span>
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+              </div>
+              <h4 className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
+                Boots on the Ground
+              </h4>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                Verifier travels to Mashinani, takes GPS timestamped photos, measures works, and counts materials.
+              </p>
+            </div>
+
+            {/* Step 4 */}
+            <div 
+              onClick={() => navigate('/reports')}
+              className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                <span className="font-mono font-bold text-emerald-400">Step 04</span>
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+              </div>
+              <h4 className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
+                Dossier & Stop-Payment
+              </h4>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                Review verified findings and approve payout, or trigger Stop-Payment if work does not match!
+              </p>
+            </div>
+          </div>
+        </section>
 
         {/* KPI CARDS (Matches Cockpit Grid Structure) */}
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

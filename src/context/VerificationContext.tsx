@@ -503,7 +503,41 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     localStorage.setItem(DISPUTES_KEY, JSON.stringify(disputes));
   }, [disputes]);
 
-  const activeRequest = requests.find(r => r.id === activeRequestId) || requests[0] || undefined;
+  const rawActiveRequest = requests.find(r => r.id === activeRequestId) || requests[0] || undefined;
+
+  const activeRequest = React.useMemo(() => {
+    if (!rawActiveRequest || !currentUser) return rawActiveRequest;
+    const effectiveRole = viewAsSession.active ? viewAsSession.viewRole : normalizeRole(currentUser.role);
+    if (effectiveRole === 'admin') {
+      return rawActiveRequest;
+    }
+    if (effectiveRole === 'client') {
+      if (!rawActiveRequest.assignedAgent) return rawActiveRequest;
+      const agentSuffix = rawActiveRequest.assignedAgent.id ? rawActiveRequest.assignedAgent.id.slice(-4).toUpperCase() : 'HQ';
+      return {
+        ...rawActiveRequest,
+        assignedAgent: {
+          ...rawActiveRequest.assignedAgent,
+          name: `Vetted Verifier (#FD-${agentSuffix})`,
+          phone: '[PROTECTED BY HQ DISPATCH]',
+          email: 'verifier.dispatch@diasporaverify.co.ke'
+        }
+      };
+    }
+    if (effectiveRole === 'agent') {
+      const clientSuffix = rawActiveRequest.id.slice(-4).toUpperCase();
+      return {
+        ...rawActiveRequest,
+        client: {
+          ...rawActiveRequest.client,
+          name: `Diaspora Client (#CL-${clientSuffix})`,
+          phone: '[PROTECTED BY HQ DISPATCH]',
+          email: 'client.relay@diasporaverify.co.ke'
+        }
+      };
+    }
+    return rawActiveRequest;
+  }, [rawActiveRequest, currentUser, viewAsSession]);
 
   const clientRequests = React.useMemo(() => {
     if (!currentUser) return [];
@@ -518,12 +552,14 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         (viewAsSession.active && viewAsSession.viewRole === 'client' && r.client?.name?.toLowerCase() === viewAsSession.targetName?.toLowerCase())
       )
       .map(r => {
-        // Enforce Safeguarding Boundary: Clients are prohibited from accessing agent private phone/email
+        // Enforce Safeguarding Boundary: Clients are prohibited from accessing agent private phone/email and personal legal name
         if (!r.assignedAgent) return r;
+        const agentSuffix = r.assignedAgent.id ? r.assignedAgent.id.slice(-4).toUpperCase() : 'HQ';
         return {
           ...r,
           assignedAgent: {
             ...r.assignedAgent,
+            name: `Vetted Verifier (#FD-${agentSuffix})`,
             phone: '[PROTECTED BY HQ DISPATCH]',
             email: 'verifier.dispatch@diasporaverify.co.ke'
           }
@@ -544,11 +580,13 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         (viewAsSession.active && viewAsSession.viewRole === 'agent' && r.assignedAgent?.name?.toLowerCase() === viewAsSession.targetName?.toLowerCase())
       )
       .map(r => {
-        // Enforce Safeguarding Boundary: Agents are prohibited from accessing client contact details
+        // Enforce Safeguarding Boundary: Agents are prohibited from accessing client contact details and personal legal name
+        const clientSuffix = r.id.slice(-4).toUpperCase();
         return {
           ...r,
           client: {
             ...r.client,
+            name: `Diaspora Client (#CL-${clientSuffix})`,
             phone: '[PROTECTED BY HQ DISPATCH]',
             email: 'client.relay@diasporaverify.co.ke'
           }
