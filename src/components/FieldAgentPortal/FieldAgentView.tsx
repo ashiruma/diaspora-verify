@@ -15,7 +15,8 @@ import {
   Award,
   RefreshCw,
   AlertCircle,
-  Smartphone
+  Smartphone,
+  ArrowRight
 } from '../Icons';
 import { StatusBadge } from '../CommonBadges';
 import { EmptyState } from '../ui/EmptyState';
@@ -260,7 +261,7 @@ export const FieldAgentView: React.FC = () => {
   return (
     <PortalLayout
       title="Field Verifier Workspace"
-      subtitle="Thursday, 8 October 2026 · Nairobi Hub"
+      subtitle="On-Ground Mission Execution, GPS Check-In & Cryptographic Evidence Capture"
       role="agent"
       activeTab="agent"
     >
@@ -450,9 +451,10 @@ export const FieldAgentView: React.FC = () => {
 
             <button
               onClick={() => setSelectedReqId(upcomingJob.id)}
-              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto cursor-pointer"
             >
-              <span>Switch to this Task →</span>
+              <span>Switch to this Task</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

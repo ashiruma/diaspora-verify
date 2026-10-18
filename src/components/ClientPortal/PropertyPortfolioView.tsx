@@ -5,7 +5,8 @@ import {
   MapPin, 
   Plus, 
   ArrowRight,
-  X
+  X,
+  ExternalLink
 } from '../Icons';
 import { KENYA_COUNTIES } from '../../data/mockData';
 import type { PropertyRecord } from '../../types';
@@ -41,7 +42,7 @@ export const PropertyPortfolioView: React.FC<PropertyPortfolioViewProps> = ({ on
   const handleCreateProperty = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !town.trim()) {
-      alert('Please provide property title and town.');
+      setToastMessage('Please provide property title and town.');
       return;
     }
 
@@ -85,7 +86,7 @@ export const PropertyPortfolioView: React.FC<PropertyPortfolioViewProps> = ({ on
   return (
     <PortalLayout
       title="Property Portfolio"
-      subtitle="Thursday, 8 October 2026 · Geotagged Real Estate Assets"
+      subtitle="Geotagged Real Estate Assets, Title Verification & Boundary Monitoring"
       role="client"
       activeTab="properties"
       actions={
@@ -95,7 +96,8 @@ export const PropertyPortfolioView: React.FC<PropertyPortfolioViewProps> = ({ on
             className="flex h-10 items-center gap-1.5 rounded-xl border border-[#155c48]/30 bg-[#e8f0ec] hover:bg-[#d8e8de] text-[#0f4838] px-3.5 text-xs font-bold shadow-2xs transition-colors"
           >
             <span className="hidden sm:inline">Cedarline Market</span>
-            <span>Listings ↗</span>
+            <span>Listings</span>
+            <ExternalLink className="w-3.5 h-3.5" />
           </Link>
           <button
             onClick={() => setAddModalOpen(true)}

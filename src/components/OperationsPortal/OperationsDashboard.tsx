@@ -36,6 +36,7 @@ import { REGISTERED_USERS_KEY } from '../../auth/demoUsers';
 import { Activity } from 'lucide-react';
 import { CockpitContent } from './OperationsCockpit';
 import { PortalLayout } from '../layout/PortalLayout';
+import { downloadIcsFile } from '../../services/appointmentService';
 
 export type OperationsTab = 
   | 'operations' 
@@ -50,6 +51,7 @@ export type OperationsTab =
   | 'analytics' 
   | 'services' 
   | 'settings'
+  | 'appointments'
   | 'activity';
 
 export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }> = ({ onOpenReport }) => {
@@ -68,6 +70,8 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
     auditLogs, 
     advanceRequestStatus, 
     startViewAs, 
+    appointments,
+    cancelAppointment,
     seedSampleData, 
     resetAllData 
   } = useVerification();
@@ -88,6 +92,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
     if (param === 'analytics' || param === 'map') return 'analytics';
     if (param === 'services') return 'services';
     if (param === 'settings' || param === 'audit') return 'settings';
+    if (param === 'appointments' || param === 'consultations' || param === 'bookings') return 'appointments';
     return 'operations';
   };
 
@@ -538,18 +543,19 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
     analytics: 'Regional Ground Intelligence & Operations Map',
     services: 'Service Catalogue & Scope Definitions',
     settings: 'Audit Trail & Compliance Control Log',
+    appointments: 'Diaspora Consultations & Appointment Schedule',
     activity: 'Platform Activity & Live Operations Stream',
   };
 
   return (
     <PortalLayout
       title={tabTitles[activeTab] || 'Operations Center'}
-      subtitle="Thursday, 8 October 2026 · Nairobi HQ"
+      subtitle="Nairobi HQ Operations Command Desk · Centralized Verification Dispatch & QA Sign-Off"
       role="admin"
       activeTab={activeTab}
       onNavigateTab={(tab: string) => handleTabChange(tab as OperationsTab)}
       onRefresh={() => setToastMessage('Operations dashboard data refreshed.')}
-      onExport={() => alert('Exporting Operations Audit Report...')}
+      onExport={() => setToastMessage('Exporting Operations Audit Report...')}
     >
       <div className="space-y-6">
 
@@ -760,6 +766,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
             { id: 'payments' as OperationsTab, label: 'Money In & Out', count: null },
             { id: 'clients' as OperationsTab, label: 'Client Base', count: clientsList.length },
             { id: 'contacts' as OperationsTab, label: 'Contacts', count: null },
+            { id: 'appointments' as OperationsTab, label: 'Consultations', count: appointments.length },
             { id: 'assignments' as OperationsTab, label: 'Assignments', count: unassignedList.length },
             { id: 'agents' as OperationsTab, label: 'Verifiers', count: agents.length },
             { id: 'reports' as OperationsTab, label: 'Reports & QA', count: null },
@@ -3107,7 +3114,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                 type="button"
                 onClick={() => {
                   seedSampleData();
-                  alert('Sample benchmark test case loaded for Admin QA evaluation.');
+                  setToastMessage('Sample benchmark test case loaded for Admin QA evaluation.');
                 }}
                 className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow-sm cursor-pointer"
               >
@@ -3118,7 +3125,7 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                 onClick={() => {
                   if (confirm('Are you sure you want to purge all local requests and restore pristine production state?')) {
                     resetAllData();
-                    alert('All collections purged to pristine production state.');
+                    setToastMessage('All collections purged to pristine production state.');
                   }
                 }}
                 className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition cursor-pointer"
@@ -3358,6 +3365,167 @@ export const OperationsDashboard: React.FC<{ onOpenReport: (req: any) => void }>
                   </div>
                 );
               })}
+          </div>
+        </div>
+      )}
+
+      {/* TAB: DIASPORA APPOINTMENTS & CONSULTATION SCHEDULE */}
+      {activeTab === 'appointments' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {/* Header Card */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-900 border border-emerald-200 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                    NAIROBI OPERATIONS DESK SCHEDULE
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold font-display text-slate-900 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-emerald-700" />
+                  <span>Diaspora Consultations & Appointment Bookings</span>
+                </h3>
+                <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
+                  Scheduled intake briefings with Kenyans living abroad. Sessions are synchronized between the client's home timezone and Nairobi Operations Desk (EAT).
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate('/book')}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer self-start md:self-auto"
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Open Booking Page</span>
+              </button>
+            </div>
+
+            {/* Metric KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                <span className="text-[10px] font-bold uppercase text-slate-400">Total Consultations</span>
+                <div className="text-2xl font-bold font-mono text-slate-900 mt-0.5">
+                  {appointments.length}
+                </div>
+                <span className="text-[11px] text-slate-500">Persisted booking records</span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/70">
+                <span className="text-[10px] font-bold uppercase text-emerald-800">Confirmed Upcoming</span>
+                <div className="text-2xl font-bold font-mono text-emerald-900 mt-0.5">
+                  {appointments.filter(a => a.status === 'confirmed').length}
+                </div>
+                <span className="text-[11px] text-emerald-700">Awaiting coordinator briefing</span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200/70">
+                <span className="text-[10px] font-bold uppercase text-blue-800">Diaspora Hubs Active</span>
+                <div className="text-2xl font-bold font-mono text-blue-900 mt-0.5">
+                  {new Set(appointments.map(a => a.clientTimezone)).size}
+                </div>
+                <span className="text-[11px] text-blue-700">Global regions scheduled</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bookings Table Card */}
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <h4 className="text-sm font-bold text-slate-900">
+                Scheduled Appointments Ledger ({appointments.length})
+              </h4>
+              <span className="text-xs text-slate-400 font-mono">
+                Kenya Operations Desk EAT
+              </span>
+            </div>
+
+            {appointments.length === 0 ? (
+              <div className="p-12 text-center text-xs text-slate-400">
+                No consultations currently booked.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                    <tr>
+                      <th className="p-3.5">Ref / Status</th>
+                      <th className="p-3.5">Client & Diaspora Location</th>
+                      <th className="p-3.5">Scheduled Slot (Local / Nairobi)</th>
+                      <th className="p-3.5">Scope & Location</th>
+                      <th className="p-3.5">Channel</th>
+                      <th className="p-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {appointments.map((apt) => (
+                      <tr key={apt.id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="p-3.5">
+                          <div className="font-mono font-bold text-slate-800">{apt.id}</div>
+                          <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            apt.status === 'confirmed'
+                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                              : apt.status === 'completed'
+                              ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                              : 'bg-rose-50 text-rose-800 border border-rose-200'
+                          }`}>
+                            {apt.status}
+                          </span>
+                        </td>
+                        <td className="p-3.5">
+                          <div className="font-bold text-slate-900">{apt.clientName}</div>
+                          <div className="text-[11px] text-slate-500">{apt.clientCityAbroad}</div>
+                          <div className="text-[10px] text-slate-400 font-mono mt-0.5">{apt.clientEmail} · {apt.clientPhone}</div>
+                        </td>
+                        <td className="p-3.5">
+                          <div className="font-bold text-slate-900">{apt.scheduledSlotLocal}</div>
+                          <div className="text-[11px] font-mono text-emerald-800 font-semibold">= {apt.scheduledSlotNairobi}</div>
+                          <div className="text-[10px] text-slate-400 mt-0.5">{apt.scheduledDate}</div>
+                        </td>
+                        <td className="p-3.5">
+                          <span className="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-semibold text-[10px] capitalize">
+                            {apt.consultationTopic.replace('_', ' ')}
+                          </span>
+                          <div className="font-medium text-slate-700 mt-0.5">{apt.targetCounty} County</div>
+                          {apt.targetTownVillage && (
+                            <div className="text-[10px] text-slate-400">{apt.targetTownVillage}</div>
+                          )}
+                        </td>
+                        <td className="p-3.5">
+                          <span className="font-mono font-semibold uppercase text-slate-700">
+                            {apt.meetingChannel.replace('_', ' ')}
+                          </span>
+                          {apt.briefNotes && (
+                            <div className="text-[10px] text-slate-500 max-w-xs truncate mt-0.5" title={apt.briefNotes}>
+                              {apt.briefNotes}
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-3.5 text-right space-x-1.5 whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => downloadIcsFile(apt)}
+                            className="px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-[11px] font-semibold cursor-pointer"
+                            title="Download calendar event file"
+                          >
+                            ICS
+                          </button>
+                          {apt.status === 'confirmed' && (
+                            <button
+                              type="button"
+                              onClick={() => cancelAppointment(apt.id)}
+                              className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-semibold cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}

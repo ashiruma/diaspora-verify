@@ -392,3 +392,32 @@ export interface OrganizationRecord {
   billingEmail: string;
   createdAt: string;
 }
+
+export interface DiasporaTimezoneDef {
+  id: string; // e.g. 'europe_london'
+  city: string; // e.g. 'London, United Kingdom'
+  region: string; // e.g. 'UK & Western Europe'
+  iana: string; // e.g. 'Europe/London'
+  standardAbbr: string; // e.g. 'BST'
+  utcOffsetHours: number; // e.g. 1
+  nairobiDiffHours: number; // Nairobi is UTC+3, so London (UTC+1) is -2 hours from Nairobi
+}
+
+export interface AppointmentRecord {
+  id: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  clientTimezone: string;
+  clientCityAbroad: string;
+  consultationTopic: ServiceCategory | 'general_intake';
+  targetCounty: string;
+  targetTownVillage?: string;
+  scheduledDate: string; // YYYY-MM-DD
+  scheduledSlotLocal: string; // e.g. "03:00 PM BST"
+  scheduledSlotNairobi: string; // e.g. "05:00 PM EAT"
+  meetingChannel: 'google_meet' | 'zoom' | 'whatsapp' | 'phone';
+  briefNotes?: string;
+  status: 'confirmed' | 'rescheduled' | 'completed' | 'cancelled';
+  createdAt: string;
+}

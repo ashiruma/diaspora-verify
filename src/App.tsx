@@ -43,6 +43,7 @@ const ContactPage = lazy(() => import('./components/Public/ContactPage').then(m 
 const RareLeavesPage = lazy(() => import('./pages/RareLeavesPage').then(m => ({ default: m.RareLeavesPage })));
 const DevelopersPage = lazy(() => import('./pages/DevelopersPage').then(m => ({ default: m.DevelopersPage })));
 const CedarlinePage = lazy(() => import('./pages/CedarlinePage').then(m => ({ default: m.CedarlinePage })));
+const AppointmentBookingPage = lazy(() => import('./pages/AppointmentBookingPage').then(m => ({ default: m.AppointmentBookingPage })));
 const AiAssistantButton = lazy(() => import('./components/AiAssistant/AiAssistantButton').then(m => ({ default: m.AiAssistantButton })));
 
 const RouteLoadingFallback = () => (
@@ -128,6 +129,8 @@ function AppRoutes() {
           <Route path="/sample-report" element={<SampleReportPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/book" element={<AppointmentBookingPage />} />
+          <Route path="/book-appointment" element={<AppointmentBookingPage />} />
           <Route path="/rare-leaves" element={<RareLeavesPage />} />
           <Route path="/developers" element={<DevelopersPage />} />
           <Route path="/cedarline" element={<CedarlinePage />} />

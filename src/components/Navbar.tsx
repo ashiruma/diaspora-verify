@@ -23,7 +23,8 @@ import {
   Globe, 
   Building2, 
   Compass,
-  Clock 
+  Clock,
+  Calendar
 } from './Icons';
 import type { CurrencyCode } from '../types';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -379,11 +380,11 @@ export const Navbar: React.FC = () => {
                   <span>Sign In</span>
                 </button>
                 <button
-                  onClick={() => handleNav('/new-request')}
+                  onClick={() => handleNav('/book')}
                   className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-[0.12em] shadow-xs transition-all flex items-center gap-1.5 cursor-pointer group"
                 >
-                  <UserPlus className="w-3.5 h-3.5 text-white" />
-                  <span>Get Started</span>
+                  <Calendar className="w-3.5 h-3.5 text-white" />
+                  <span>Book Appointment</span>
                 </button>
               </div>
             ) : (
@@ -849,10 +850,10 @@ export const Navbar: React.FC = () => {
                   <span>Sign In</span>
                 </button>
                 <button
-                  onClick={() => handleNav('/new-request')}
+                  onClick={() => handleNav('/book')}
                   className="flex-1 py-2 text-center rounded-xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-500 cursor-pointer"
                 >
-                  Get Started
+                  Book Appointment
                 </button>
               </div>
             </>

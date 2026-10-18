@@ -105,7 +105,7 @@ export const CorporateDashboard: React.FC = () => {
   return (
     <PortalLayout
       title="Corporate Oversight Desk"
-      subtitle="Thursday, 8 October 2026 · Institutional Portfolio Due Diligence"
+      subtitle="Institutional Portfolio Due Diligence, Sacco Land Audits & Batch Verifications"
       role="corporate"
       activeTab="corporate"
     >

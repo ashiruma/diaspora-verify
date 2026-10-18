@@ -969,7 +969,7 @@ export const RequestDetailView: React.FC<RequestDetailViewProps> = ({ onBack, on
                     }, 1200);
                   }
                 } catch (err: any) {
-                  alert(`Payment error: ${err?.message || 'Gateway error'}`);
+                  setToastMessage(`Payment error: ${err?.message || 'Gateway error'}`);
                   setIsProcessingPayment(false);
                 }
               }}

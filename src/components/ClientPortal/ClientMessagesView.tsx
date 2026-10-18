@@ -86,7 +86,7 @@ export const ClientMessagesView: React.FC = () => {
   return (
     <PortalLayout
       title="Nairobi HQ Dispatch Relay"
-      subtitle="Thursday, 8 October 2026 · End-to-End Masked Communication"
+      subtitle="Centralized Operations Coordinator Relay & Masked Dispatch"
       role="client"
       activeTab="messages"
     >

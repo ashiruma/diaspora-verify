@@ -21,8 +21,10 @@ interface StandardReportModalProps {
 }
 
 export const StandardReportModal: React.FC<StandardReportModalProps> = ({ request, onClose }) => {
-  const { currency } = useVerification();
+  const { currency, currentUser } = useVerification();
   const [showCalculationDetails, setShowCalculationDetails] = useState(false);
+  const isAgent = currentUser?.role === 'agent';
+  const isClient = currentUser?.role === 'client';
 
   const handlePrint = () => {
     window.print();
@@ -118,9 +120,13 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
             <div className="space-y-1">
               <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Client (Abroad)</div>
-              <div className="font-bold text-slate-900 text-sm">{request.client.name}</div>
+              <div className="font-bold text-slate-900 text-sm">
+                {isAgent ? 'Diaspora Client (#CL-8491)' : request.client.name}
+              </div>
               <div className="text-slate-600">{request.client.locationAbroad}</div>
-              <div className="text-slate-500 text-[11px]">{request.client.email}</div>
+              <div className="text-slate-500 text-[11px] font-mono">
+                {isAgent ? 'client.relay@diasporaverify.co.ke' : request.client.email}
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -132,8 +138,10 @@ export const StandardReportModal: React.FC<StandardReportModalProps> = ({ reques
 
             <div className="space-y-1">
               <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Assigned Field Verifier</div>
-              <div className="font-bold text-slate-900">{request.assignedAgent?.name || 'Assigned Officer'}</div>
-              <div className="text-slate-600">{request.assignedAgent?.badgeLevel}</div>
+              <div className="font-bold text-slate-900">
+                {isClient ? `Vetted Verifier (#FD-${request.assignedAgent?.id?.replace(/[^0-9]/g, '') || '7102'})` : (request.assignedAgent?.name || 'Vetted Ground Verifier')}
+              </div>
+              <div className="text-slate-600">{request.assignedAgent?.badgeLevel || 'Senior Ground Verifier'}</div>
               <div className="text-emerald-700 font-semibold text-[11px] flex items-center gap-1">
                 <Award className="w-3 h-3" />
                 Conflict of Interest Cleared

@@ -48,17 +48,15 @@ export function HomePage({
   };
 
   const handleStart = () => {
-    if (onGetStarted) {
+    if (onGetStarted && currentUser?.role === 'admin') {
       onGetStarted();
-    } else if (currentUser?.role === "admin") {
-      navigate("/admin");
-    } else if (currentUser?.role === "agent") {
-      navigate("/agent");
-    } else if (currentUser?.role === "client") {
-      navigate("/dashboard");
     } else {
-      navigate("/contact?type=quote");
+      navigate("/book");
     }
+  };
+
+  const handleQuote = () => {
+    navigate("/contact?type=quote");
   };
 
   const handleServices = (categorySlug?: string) => {
@@ -140,11 +138,18 @@ export function HomePage({
               <ArrowRight className="w-4 h-4" />
             </button>
 
+            <button
+              onClick={handleQuote}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-white hover:bg-[#faf8f5] border border-[#e8e2d8] text-[#171310] font-bold text-xs uppercase tracking-[0.16em] shadow-xs transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Get Itemized Quote</span>
+            </button>
+
             <a
               href="#how-it-works"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white hover:bg-[#faf8f5] border border-[#e8e2d8] text-[#171310] font-bold text-xs uppercase tracking-[0.16em] shadow-xs transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-transparent hover:bg-[#f4f0ea]/60 text-[#57534E] hover:text-[#171310] font-bold text-xs uppercase tracking-[0.16em] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <span>See How It Works ↓</span>
+              <span>How It Works ↓</span>
             </a>
           </div>
 

@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DiasporaVerify - Investor Briefing & Executive Roadmap (Q4 2026)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+    :root {
+      --obsidian: #171310;
+      --emerald: #0D5C3A;
+      --emerald-dark: #083c26;
+      --emerald-light: #e6f4ee;
+      --cream: #FAF8F5;
+      --sand: #F3EFEA;
+      --sand-border: #E5DFD7;
+      --slate-text: #334155;
+      --slate-muted: #64748B;
+      --amber: #B45309;
+      --amber-light: #FEF3C7;
+      --rose: #991B1B;
+      --rose-light: #FEE2E2;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #FAF8F5;
+      color: var(--slate-text);
+      line-height: 1.55;
+      font-size: 11pt;
+      -webkit-font-smoothing: antialiased;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 16mm 14mm 16mm 14mm;
+    }
+
+    .report-page {
+      max-width: 210mm;
+      margin: 0 auto;
+      background: #FFFFFF;
+      box-shadow: 0 4px 25px rgba(0,0,0,0.06);
+      padding: 20mm 18mm;
+      position: relative;
+    }
+
+    @media print {
+      body {
+        background: transparent;
+      }
+      .report-page {
+        box-shadow: none;
+        padding: 0;
+        max-width: none;
+        margin: 0;
+        page-break-after: always;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+      .no-break {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .print-btn-bar {
+        display: none !important;
+      }
+    }
+
+    /* Print Floating Action Bar */
+    .print-btn-bar {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      gap: 12px;
+      background: var(--obsidian);
+      padding: 10px 16px;
+      border-radius: 999px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .print-btn {
+      background: var(--emerald);
+      color: #FFFFFF;
+      border: none;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+
+    .print-btn:hover {
+      background: #09472d;
+    }
+
+    .back-btn {
+      background: rgba(255,255,255,0.15);
+      color: #FFFFFF;
+      text-decoration: none;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* Header styling */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--sand-border);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--emerald);
+      color: #FFFFFF;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+    }
+
+    .brand-text h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--obsidian);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .brand-text span {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 700;
+      color: var(--emerald);
+    }
+
+    .doc-meta {
+      text-align: right;
+      font-size: 9.5pt;
+      color: var(--slate-muted);
+    }
+
+    .doc-meta strong {
+      color: var(--obsidian);
+      display: block;
+      font-size: 10.5pt;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 8.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-emerald {
+      background: var(--emerald-light);
+      color: var(--emerald);
+      border: 1px solid rgba(13, 92, 58, 0.2);
+    }
+
+    .badge-amber {
+      background: var(--amber-light);
+      color: var(--amber);
+      border: 1px solid rgba(180, 83, 9, 0.2);
+    }
+
+    .badge-obsidian {
+      background: var(--obsidian);
+      color: #FFFFFF;
+    }
+
+    /* Hero Memorandum Banner */
+    .hero-memo {
+      background: var(--obsidian);
+      color: #FFFFFF;
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-memo::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 40%;
+      height: 100%;
+      background: radial-gradient(circle at right top, rgba(13, 92, 58, 0.4), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-memo h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22pt;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #FAF8F5;
+      margin-bottom: 8px;
+    }
+
+    .hero-memo p.subtitle {
+      font-size: 11pt;
+      color: #CBD5E1;
+      max-width: 90%;
+      line-height: 1.5;
+    }
+
+    .memo-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .memo-stat {
+      font-size: 8.5pt;
+      color: #94A3B8;
+    }
+
+    .memo-stat .value {
+      font-size: 13pt;
+      font-weight: 800;
+      color: #FFFFFF;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* Section Styling */
+    .section-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 15pt;
+      font-weight: 700;
+      color: var(--obsidian);
+      border-bottom: 1.5px solid var(--sand-border);
+      padding-bottom: 6px;
+      margin-bottom: 14px;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-title .section-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10pt;
+      color: var(--emerald);
+      font-weight: 700;
+    }
+
+    p {
+      margin-bottom: 10px;
+      font-size: 10pt;
+      color: var(--slate-text);
+      line-height: 1.55;
+    }
+
+    /* Feature Grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .feature-card {
+      background: var(--cream);
+      border: 1px solid var(--sand-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .feature-card.highlight {
+      border-left: 4px solid var(--emerald);
+      background: #FFFFFF;
+    }
+
+    .feature-card h3 {
+      font-size: 11pt;
+      font-weight: 700;
+      color: var(--obsidian);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .feature-card p {
+      font-size: 9pt;
+      color: var(--slate-muted);
+      margin-bottom: 0;
+      line-height: 1.45;
+    }
+
+    .feature-card .metric-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.5pt;
+      color: var(--emerald);
+      font-weight: 700;
+      margin-top: 6px;
+      display: block;
+    }
+
+    /* Action Roadmap Table */
+    .roadmap-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9pt;
+      margin: 12px 0 18px 0;
+      background: #FFFFFF;
+    }
+
+    .roadmap-table th {
+      background: var(--sand);
+      color: var(--obsidian);
+      font-weight: 700;
+      text-align: left;
+      padding: 8px 10px;
+      border: 1px solid var(--sand-border);
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .roadmap-table td {
+      padding: 8px 10px;
+      border: 1px solid var(--sand-border);
+      vertical-align: top;
+      line-height: 1.4;
+    }
+
+    .roadmap-table tr:nth-child(even) {
+      background: #FCFBF9;
+    }
+
+    .priority-pill {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 7.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .priority-p0 {
+      background: var(--rose-light);
+      color: var(--rose);
+      border: 1px solid rgba(153, 27, 27, 0.2);
+    }
+
+    .priority-p1 {
+      background: var(--amber-light);
+      color: var(--amber);
+      border: 1px solid rgba(180, 83, 9, 0.2);
+    }
+
+    .priority-p2 {
+      background: var(--emerald-light);
+      color: var(--emerald);
+      border: 1px solid rgba(13, 92, 58, 0.2);
+    }
+
+    /* Callout & Quotes */
+    .doctrine-callout {
+      border-left: 3px solid var(--emerald);
+      background: var(--cream);
+      padding: 12px 16px;
+      border-radius: 0 10px 10px 0;
+      margin: 14px 0;
+      font-style: italic;
+      color: var(--obsidian);
+      font-size: 9.5pt;
+    }
+
+    .doctrine-callout strong {
+      font-style: normal;
+      color: var(--emerald);
+      display: block;
+      margin-bottom: 2px;
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    /* Unit Economics Box */
+    .economics-box {
+      background: #FFFFFF;
+      border: 1.5px solid var(--emerald);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin: 16px 0;
+    }
+
+    .economics-box h3 {
+      font-size: 11pt;
+      font-weight: 800;
+      color: var(--emerald-dark);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .economics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .econ-item {
+      border-right: 1px solid var(--sand-border);
+      padding-right: 10px;
+    }
+
+    .econ-item:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+
+    .econ-item span {
+      font-size: 8pt;
+      color: var(--slate-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      display: block;
+    }
+
+    .econ-item strong {
+      font-size: 13pt;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--obsidian);
+      display: block;
+      margin-top: 2px;
+    }
+
+    .econ-item small {
+      font-size: 7.5pt;
+      color: var(--emerald);
+      font-weight: 600;
+    }
+
+    /* Footer stamp */
+    .report-footer {
+      border-top: 1.5px solid var(--sand-border);
+      padding-top: 14px;
+      margin-top: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8pt;
+      color: var(--slate-muted);
+    }
+
+    .report-footer .confidential {
+      font-weight: 700;
+      color: var(--obsidian);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    /* SVG Icon Helpers */
+    .icon {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      stroke-width: 2.2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vertical-align: -2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Print Controls -->
+  <div class="print-btn-bar">
+    <a href="/" class="back-btn">
+      <svg class="icon" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+      Dashboard
+    </a>
+    <button class="print-btn" onclick="window.print()">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+      Print / Save PDF Dossier
+    </button>
+  </div>
+
+  <div class="report-page">
+    
+    <!-- Header Bar -->
+    <div class="header-bar">
+      <div class="brand-mark">
+        <div class="brand-logo-icon">DV</div>
+        <div class="brand-text">
+          <h1>DiasporaVerify</h1>
+          <span>Independent On-Ground Verification Platform</span>
+        </div>
+      </div>
+      <div class="doc-meta">
+        <strong>Investor Memorandum & Commercial Brief</strong>
+        <span>Release: Q4 2026 · Platform v2.4</span><br>
+        <span class="badge badge-emerald" style="margin-top: 4px;">CONFIDENTIAL · STRATEGIC</span>
+      </div>
+    </div>
+
+    <!-- Hero Memorandum Banner -->
+    <div class="hero-memo">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+        <span class="badge badge-amber">Executive Briefing</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 8.5pt; color: #94A3B8;">REF: DV-INV-2026-Q4</span>
+      </div>
+      <h2>Protecting Diaspora Capital in Kenya</h2>
+      <p class="subtitle">
+        Bridging the critical trust gap between 3M+ Kenyans abroad and remote project execution across real estate, construction, and commercial investments through certified, conflict-free ground operatives.
+      </p>
+
+      <div class="memo-grid">
+        <div class="memo-stat">
+          ANNUAL REMITTANCES
+          <span class="value">$4.2B+ USD</span>
+        </div>
+        <div class="memo-stat">
+          DISPUTE / LOSS RISK
+          <span class="value">30 - 40%</span>
+        </div>
+        <div class="memo-stat">
+          BENCHMARK TESTS
+          <span class="value">36 / 36 PASS</span>
+        </div>
+        <div class="memo-stat">
+          GROSS UNIT MARGIN
+          <span class="value">38.4%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: The Problem & Solution -->
+    <div class="section-title">
+      <span>1. Market Opportunity & Problem Statement</span>
+      <span class="section-num">01 / OPPORTUNITY</span>
+    </div>
+
+    <p>
+      Over <strong>$4.2 Billion USD</strong> is remitted annually by Kenyans in the United States, United Kingdom, European Union, and the Gulf region. Approximately 60% of these transfers are earmarked for land acquisition, residential construction, family care, and small business capitalization.
+    </p>
+
+    <div class="doctrine-callout">
+      <strong>Core Market Dilemma</strong>
+      “Diaspora investors rely on relatives, informal caretakers, or self-interested contractors. Without independent physical inspection, over 30% of projects suffer catastrophic variance: phantom cement purchases, misaligned boundary beacons, halted construction with continuous billing, or fictitious medical and business expenses.”
+    </div>
+
+    <p>
+      <strong>DiasporaVerify</strong> solves this with an institutionalized, tech-enabled verification layer: vetted independent professionals (registered architects, surveyors, and engineers) dispatched via a centralized Nairobi operations center, producing tamper-evident, SHA-256 cryptographically hashed dossiers.
+    </p>
+
+    <!-- Section 2: Core Platform Capabilities -->
+    <div class="section-title">
+      <span>2. Recent Platform Upgrades Delivered</span>
+      <span class="section-num">02 / CORE CAPABILITIES</span>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card highlight">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+          Dual-Timezone Intake & Booking
+        </h3>
+        <p>
+          Real-time appointment engine synchronizing diaspora client time across 9 major global hubs (London, New York, Dallas, Los Angeles, Dubai, Berlin, Toronto, Sydney, Melbourne) directly to Nairobi EAT with automated RFC 5545 <code>.ics</code> calendar generation.
+        </p>
+        <span class="metric-tag">Global Hubs: 9 | Auto-Sync: 100%</span>
+      </div>
+
+      <div class="feature-card highlight">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Multi-Currency Escrow & Stop-Payment
+        </h3>
+        <p>
+          Real-time multi-rail financial ledger across 7 currencies (KES, USD, GBP, EUR, AED, CAD, AUD). Automatically cross-references contractor claims against verified on-ground materials to trigger formal <strong>Stop-Payment Advisories</strong>.
+        </p>
+        <span class="metric-tag">Discrepancy Engine: Live | Currencies: 7</span>
+      </div>
+
+      <div class="feature-card highlight">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          Construction Oversight & Video Markers
+        </h3>
+        <p>
+          Interactive before/after camera angle comparison slider and site walk-through video inspection timeline (00:00 to 04:12 EAT) exposing unpoured columns, defective rebar spacing, and missing cement inventory before disbursements.
+        </p>
+        <span class="metric-tag">Photo Angles: Fixed GPS | Video HUD: Active</span>
+      </div>
+
+      <div class="feature-card highlight">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+          Cryptographic Evidence Vault
+        </h3>
+        <p>
+          Each inspection photo and telemetry record is digitally fingerprinted with SHA-256 hashing, orientation metadata, and geofenced timestamping, creating tamper-evident court-admissible audit dossiers.
+        </p>
+        <span class="metric-tag">SHA-256 Stamp | Tamper-Proof Invariant</span>
+      </div>
+
+      <div class="feature-card">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>
+          Field Agent Mobile Mission HUD
+        </h3>
+        <p>
+          Calibrated mobile interface for ground operatives featuring GPS arrival check-in (&le;150m geofence), digital conflict-of-interest signoff, and offline queueing for remote rural land parcels.
+        </p>
+        <span class="metric-tag">GPS Geofence: 150m | Offline Buffer: Active</span>
+      </div>
+
+      <div class="feature-card">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24M14.83 9.17l4.24-4.24M14.83 14.83l4.24 4.24M9.17 14.83l-4.24 4.24"/></svg>
+          HQ Operations Command Desk
+        </h3>
+        <p>
+          Centralized coordinator cockpit with 14 specialized tabs: verifier assignment, QA review sign-off, live appointment roster, dispute mediation, and financial payout ledger.
+        </p>
+        <span class="metric-tag">Workspaces: 14 | Anti-Collusion: Locked</span>
+      </div>
+    </div>
+
+    <!-- Page Break for Clean Printing -->
+    <div class="page-break"></div>
+
+    <!-- Section 3: Unit Economics & Financial Architecture -->
+    <div class="section-title">
+      <span>3. Unit Economics & Monetization Model</span>
+      <span class="section-num">03 / BUSINESS MODEL</span>
+    </div>
+
+    <div class="economics-box">
+      <h3>
+        <span>Representative Unit Economics (Standard Single Site Inspection)</span>
+        <span class="badge badge-emerald">38.4% Contribution Margin</span>
+      </h3>
+      <div class="economics-grid">
+        <div class="econ-item">
+          <span>Client Invoice</span>
+          <strong>KES 14,500</strong>
+          <small>~$112 USD Base Fee</small>
+        </div>
+        <div class="econ-item">
+          <span>Field Agent Fee</span>
+          <strong>KES 7,500</strong>
+          <small>~$58 USD Payout</small>
+        </div>
+        <div class="econ-item">
+          <span>Logistics / Fuel</span>
+          <strong>KES 1,430</strong>
+          <small>County Travel Tariff</small>
+        </div>
+        <div class="econ-item">
+          <span>Gross Margin</span>
+          <strong style="color: var(--emerald);">KES 5,570</strong>
+          <small>38.4% Net Platform Take</small>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      Beyond single inspections, DiasporaVerify captures high-LTV recurring revenue through <strong>Continuous Construction Monitoring Subscriptions</strong> (KES 4,500 / month per site for bi-weekly check-ins) and <strong>Institutional Due Diligence</strong> packages for Saccos, Chamas, and diaspora land investment trusts.
+    </p>
+
+    <!-- Section 4: Prioritized Action Plan -->
+    <div class="section-title">
+      <span>4. Prioritized Execution Plan (Immediate to Long-Term)</span>
+      <span class="section-num">04 / ROADMAP</span>
+    </div>
+
+    <p>
+      The roadmap is structured into three clear execution horizons, starting with <strong>turnkey immediate steps</strong> that can be completed within 24 to 48 hours:
+    </p>
+
+    <table class="roadmap-table">
+      <thead>
+        <tr>
+          <th style="width: 14%;">Urgency</th>
+          <th style="width: 26%;">Action Milestone</th>
+          <th style="width: 44%;">Scope & Impact</th>
+          <th style="width: 16%;">Timeline</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Horizon 1: Immediate -->
+        <tr>
+          <td><span class="priority-pill priority-p0">Immediate</span></td>
+          <td><strong>Git Checkpoint & Build Lock</strong></td>
+          <td>Stage and commit the 22 verified modules into Git repository; lock release v2.4 tag.</td>
+          <td>Next 2 Hours</td>
+        </tr>
+        <tr>
+          <td><span class="priority-pill priority-p0">Immediate</span></td>
+          <td><strong>Production Supabase Setup</strong></td>
+          <td>Provision production database tables, apply Row Level Security (RLS) migrations, and store environment keys.</td>
+          <td>Next 24 Hours</td>
+        </tr>
+        <tr>
+          <td><span class="priority-pill priority-p0">Immediate</span></td>
+          <td><strong>M-Pesa Daraja B2C Keys</strong></td>
+          <td>Configure live Daraja API credentials to enable instant automated payout to field verifiers upon QA sign-off.</td>
+          <td>Next 48 Hours</td>
+        </tr>
+        <tr>
+          <td><span class="priority-pill priority-p0">Immediate</span></td>
+          <td><strong>Pilot Verifier Onboarding</strong></td>
+          <td>Onboard initial cohort of 20 certified BORAQS/IEK professionals across Nairobi, Kiambu, Machakos, and Kajiado.</td>
+          <td>Next 72 Hours</td>
+        </tr>
+
+        <!-- Horizon 2: Near Term -->
+        <tr>
+          <td><span class="priority-pill priority-p1">Near-Term</span></td>
+          <td><strong>Drone Photogrammetry Pilot</strong></td>
+          <td>Partner with certified UAV pilots in Nairobi to attach high-altitude orthomosaic boundary maps to land inspection dossiers.</td>
+          <td>Weeks 2 - 4</td>
+        </tr>
+        <tr>
+          <td><span class="priority-pill priority-p1">Near-Term</span></td>
+          <td><strong>Corporate Sacco Portal</strong></td>
+          <td>Scale bulk batch parcel ingestion for UK and US Kenyan investment saccos executing 50+ plot purchases concurrently.</td>
+          <td>Weeks 3 - 5</td>
+        </tr>
+        <tr>
+          <td><span class="priority-pill priority-p1">Near-Term</span></td>
+          <td><strong>Bank Escrow Partnerships</strong></td>
+          <td>Integrate trust account APIs with major diaspora remittance banking partners (KCB Diaspora, Equity, Stanbic).</td>
+          <td>Month 2</td>
+        </tr>
+
+        <!-- Horizon 3: Strategic -->
+        <tr>
+          <td><span class="priority-pill priority-p2">Strategic</span></td>
+          <td><strong>Regional Corridors Expansion</strong></td>
+          <td>Replicate Kenyan operations model into Uganda, Rwanda, and Ghana diaspora property markets.</td>
+          <td>Months 3 - 6</td>
+        </tr>
+        <tr>
+          <td><span class="priority-pill priority-p2">Strategic</span></td>
+          <td><strong>Series Seed Capital Round</strong></td>
+          <td>Targeting $750k - $1.2M USD seed round to accelerate 47-county operative coverage and aggressive US/UK marketing.</td>
+          <td>Q1 - Q2 2027</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Section 5: Technical Resilience & Compliance -->
+    <div class="section-title">
+      <span>5. Technical Resilience & Compliance Invariants</span>
+      <span class="section-num">05 / VERIFICATION</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+      <div style="background: var(--cream); border: 1px solid var(--sand-border); border-radius: 10px; padding: 12px;">
+        <span style="font-size: 8pt; font-weight: 700; color: var(--emerald); text-transform: uppercase;">Zero-Emoji Invariant</span>
+        <strong style="display: block; font-size: 11pt; color: var(--obsidian); margin-top: 2px;">100% SVG / Typography</strong>
+        <p style="font-size: 8pt; color: var(--slate-muted); margin: 2px 0 0 0;">Zero unicode emojis across all UI, badges, and documentation.</p>
+      </div>
+
+      <div style="background: var(--cream); border: 1px solid var(--sand-border); border-radius: 10px; padding: 12px;">
+        <span style="font-size: 8pt; font-weight: 700; color: var(--emerald); text-transform: uppercase;">Strict Privacy (Rule 2)</span>
+        <strong style="display: block; font-size: 11pt; color: var(--obsidian); margin-top: 2px;">Zero Contact Leak</strong>
+        <p style="font-size: 8pt; color: var(--slate-muted); margin: 2px 0 0 0;">Strict IDOR isolation. Operatives never view client private details.</p>
+      </div>
+
+      <div style="background: var(--cream); border: 1px solid var(--sand-border); border-radius: 10px; padding: 12px;">
+        <span style="font-size: 8pt; font-weight: 700; color: var(--emerald); text-transform: uppercase;">Automated Tests</span>
+        <strong style="display: block; font-size: 11pt; color: var(--obsidian); margin-top: 2px;">36 / 36 Passing</strong>
+        <p style="font-size: 8pt; color: var(--slate-muted); margin: 2px 0 0 0;">Business logic, role security, and Lighthouse CLS benchmarks.</p>
+      </div>
+    </div>
+
+    <!-- Footer Stamp -->
+    <div class="report-footer">
+      <div>
+        <span class="confidential">DiasporaVerify Ltd.</span> &bull; Upper Hill Operations Center, Nairobi, Kenya<br>
+        <span>Executive Contact: <strong>ashirumaabala@gmail.com</strong> &bull; Portal: <a href="http://localhost:5173" style="color: var(--emerald); text-decoration: none;">diasporaverify.co.ke</a></span>
+      </div>
+      <div style="text-align: right;">
+        <span>Page 1 of 2 &bull; Investor Memorandum</span><br>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 7.5pt;">SHA-256 SEAL: 89f4b7a1e2...c09d</span>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

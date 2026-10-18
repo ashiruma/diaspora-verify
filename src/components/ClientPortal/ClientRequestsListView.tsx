@@ -50,7 +50,7 @@ export const ClientRequestsListView: React.FC = () => {
   return (
     <PortalLayout
       title="My Verification Requests"
-      subtitle="Thursday, 8 October 2026 · Kenya Ground Missions"
+      subtitle="Live Tracking of Active & Completed Due Diligence Missions Across Kenya"
       role="client"
       activeTab="requests"
       actions={

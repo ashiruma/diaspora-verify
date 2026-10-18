@@ -46,7 +46,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
   return (
     <PortalLayout
       title="Client Portal Overview"
-      subtitle="Thursday, 8 October 2026 · Nairobi Ground Operations"
+      subtitle="Nairobi Ground Operations & Real-Time Evidence Stream"
       role="client"
       activeTab="dashboard"
       actions={

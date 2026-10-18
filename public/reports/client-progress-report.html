@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DiasporaVerify - Client Transformation & Progress Dossier</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+    :root {
+      --obsidian: #171310;
+      --emerald: #0D5C3A;
+      --emerald-dark: #083c26;
+      --emerald-light: #e6f4ee;
+      --cream: #FAF8F5;
+      --sand: #F3EFEA;
+      --sand-border: #E5DFD7;
+      --slate-text: #334155;
+      --slate-muted: #64748B;
+      --amber: #B45309;
+      --amber-light: #FEF3C7;
+      --rose: #991B1B;
+      --rose-light: #FEE2E2;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #FAF8F5;
+      color: var(--slate-text);
+      line-height: 1.55;
+      font-size: 10.5pt;
+      -webkit-font-smoothing: antialiased;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 15mm 14mm 15mm 14mm;
+    }
+
+    .report-page {
+      max-width: 210mm;
+      margin: 0 auto;
+      background: #FFFFFF;
+      box-shadow: 0 4px 25px rgba(0,0,0,0.06);
+      padding: 18mm 16mm;
+      position: relative;
+    }
+
+    @media print {
+      body {
+        background: transparent;
+      }
+      .report-page {
+        box-shadow: none;
+        padding: 0;
+        max-width: none;
+        margin: 0;
+        page-break-after: always;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+      .no-break {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .print-btn-bar {
+        display: none !important;
+      }
+    }
+
+    /* Floating Action Bar */
+    .print-btn-bar {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      gap: 12px;
+      background: var(--obsidian);
+      padding: 10px 16px;
+      border-radius: 999px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .print-btn {
+      background: var(--emerald);
+      color: #FFFFFF;
+      border: none;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+
+    .print-btn:hover {
+      background: #09472d;
+    }
+
+    .back-btn {
+      background: rgba(255,255,255,0.15);
+      color: #FFFFFF;
+      text-decoration: none;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* Header styling */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--sand-border);
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo-icon {
+      width: 42px;
+      height: 42px;
+      background: var(--emerald);
+      color: #FFFFFF;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .brand-text h1 {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--obsidian);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .brand-text span {
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 700;
+      color: var(--emerald);
+    }
+
+    .doc-meta {
+      text-align: right;
+      font-size: 9pt;
+      color: var(--slate-muted);
+    }
+
+    .doc-meta strong {
+      color: var(--obsidian);
+      display: block;
+      font-size: 10pt;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 8pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-emerald {
+      background: var(--emerald-light);
+      color: var(--emerald);
+      border: 1px solid rgba(13, 92, 58, 0.2);
+    }
+
+    .badge-rose {
+      background: var(--rose-light);
+      color: var(--rose);
+      border: 1px solid rgba(153, 27, 27, 0.2);
+    }
+
+    .badge-amber {
+      background: var(--amber-light);
+      color: var(--amber);
+      border: 1px solid rgba(180, 83, 9, 0.2);
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: var(--obsidian);
+      color: #FFFFFF;
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 45%;
+      height: 100%;
+      background: radial-gradient(circle at right top, rgba(13, 92, 58, 0.45), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-banner h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 21pt;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #FAF8F5;
+      margin-bottom: 8px;
+    }
+
+    .hero-banner p.subtitle {
+      font-size: 10.5pt;
+      color: #CBD5E1;
+      max-width: 90%;
+      line-height: 1.5;
+    }
+
+    /* Section Styling */
+    .section-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 14pt;
+      font-weight: 700;
+      color: var(--obsidian);
+      border-bottom: 1.5px solid var(--sand-border);
+      padding-bottom: 6px;
+      margin-bottom: 14px;
+      margin-top: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-title .section-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9pt;
+      color: var(--emerald);
+      font-weight: 700;
+    }
+
+    /* Transformation Comparison Table */
+    .comparison-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 14px 0 20px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--sand-border);
+      font-size: 9.5pt;
+    }
+
+    .comparison-table th {
+      padding: 10px 14px;
+      font-weight: 800;
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 1.5px solid var(--sand-border);
+    }
+
+    .comparison-table th.col-aspect {
+      background: var(--sand);
+      color: var(--obsidian);
+      width: 22%;
+    }
+
+    .comparison-table th.col-before {
+      background: #FFF1F2;
+      color: #9F1239;
+      width: 39%;
+      border-left: 1px solid #FFE4E6;
+    }
+
+    .comparison-table th.col-now {
+      background: #ECFDF5;
+      color: #065F46;
+      width: 39%;
+      border-left: 1px solid #D1FAE5;
+    }
+
+    .comparison-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--sand-border);
+      vertical-align: top;
+      line-height: 1.45;
+    }
+
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .comparison-table td.col-aspect {
+      background: #FCFBF9;
+      font-weight: 700;
+      color: var(--obsidian);
+    }
+
+    .comparison-table td.col-before {
+      background: #FFFBFB;
+      color: #475569;
+      border-left: 1px solid var(--sand-border);
+    }
+
+    .comparison-table td.col-now {
+      background: #F7FEFA;
+      color: #0F172A;
+      font-weight: 500;
+      border-left: 1px solid #E2E8F0;
+    }
+
+    .pill-fail {
+      display: inline-block;
+      padding: 2px 6px;
+      background: #FEE2E2;
+      color: #991B1B;
+      border-radius: 4px;
+      font-size: 7.5pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .pill-pass {
+      display: inline-block;
+      padding: 2px 6px;
+      background: #D1FAE5;
+      color: #065F46;
+      border-radius: 4px;
+      font-size: 7.5pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    /* Feature Deep Dive Grid */
+    .pillar-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .pillar-card {
+      background: var(--cream);
+      border: 1px solid var(--sand-border);
+      border-radius: 12px;
+      padding: 14px 14px;
+      position: relative;
+    }
+
+    .pillar-card.active {
+      border-top: 3px solid var(--emerald);
+      background: #FFFFFF;
+    }
+
+    .pillar-card h3 {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: var(--obsidian);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pillar-card p {
+      font-size: 8.5pt;
+      color: var(--slate-muted);
+      line-height: 1.45;
+      margin-bottom: 0;
+    }
+
+    .pillar-card .proof-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8pt;
+      font-weight: 700;
+      color: var(--emerald);
+      margin-top: 8px;
+      display: block;
+    }
+
+    /* Client Scenario Box */
+    .scenario-box {
+      background: #FFFFFF;
+      border: 1.5px solid var(--sand-border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin: 16px 0;
+    }
+
+    .scenario-box h3 {
+      font-size: 11pt;
+      font-weight: 800;
+      color: var(--obsidian);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .scenario-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .step-card {
+      background: var(--sand);
+      border-radius: 8px;
+      padding: 10px 10px;
+      font-size: 8.5pt;
+    }
+
+    .step-card strong {
+      display: block;
+      color: var(--emerald);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8pt;
+      margin-bottom: 2px;
+    }
+
+    .step-card span {
+      color: var(--obsidian);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .step-card p {
+      font-size: 7.5pt;
+      color: var(--slate-muted);
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    /* Doctrine Callout */
+    .doctrine-callout {
+      border-left: 3px solid var(--emerald);
+      background: var(--cream);
+      padding: 12px 16px;
+      border-radius: 0 10px 10px 0;
+      margin: 14px 0;
+      font-style: italic;
+      color: var(--obsidian);
+      font-size: 9.5pt;
+    }
+
+    .doctrine-callout strong {
+      font-style: normal;
+      color: var(--emerald);
+      display: block;
+      margin-bottom: 2px;
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    /* Footer stamp */
+    .report-footer {
+      border-top: 1.5px solid var(--sand-border);
+      padding-top: 14px;
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8pt;
+      color: var(--slate-muted);
+    }
+
+    .report-footer .confidential {
+      font-weight: 700;
+      color: var(--obsidian);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    /* SVG Icon Helpers */
+    .icon {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      stroke-width: 2.2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vertical-align: -2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Print Controls -->
+  <div class="print-btn-bar">
+    <a href="/dashboard" class="back-btn">
+      <svg class="icon" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+      Client Portal
+    </a>
+    <button class="print-btn" onclick="window.print()">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+      Print / Save Client Dossier
+    </button>
+  </div>
+
+  <div class="report-page">
+    
+    <!-- Header Bar -->
+    <div class="header-bar">
+      <div class="brand-mark">
+        <div class="brand-logo-icon">DV</div>
+        <div class="brand-text">
+          <h1>DiasporaVerify</h1>
+          <span>Client Transparency & Due Diligence Standard</span>
+        </div>
+      </div>
+      <div class="doc-meta">
+        <strong>The Diaspora Investor Handbook</strong>
+        <span>Where We Were &bull; Where We Are Right Now</span><br>
+        <span class="badge badge-emerald" style="margin-top: 4px;">CLIENT PROTECTION STANDARD v2.4</span>
+      </div>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+        <span class="badge badge-amber">Client Due Diligence Brief</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 8.5pt; color: #94A3B8;">AUDIT TRAIL #DV-CLIENT-2026</span>
+      </div>
+      <h2>Protecting Every Shilling You Remit Home</h2>
+      <p class="subtitle">
+        For years, building or investing in Kenya from London, Dallas, Dubai, or Toronto meant taking blind leaps of faith. DiasporaVerify replaces hearsay and WhatsApp snapshots with calibrated on-ground verification, cryptographic evidence, and stop-payment safeguards.
+      </p>
+    </div>
+
+    <!-- Section 1: The Core Transformation (Before vs Now) -->
+    <div class="section-title">
+      <span>1. The Transformation: Where We Were vs. Where We Are Right Now</span>
+      <span class="section-tag">01 / BEFORE & AFTER</span>
+    </div>
+
+    <p style="margin-bottom: 12px;">
+      Compare the traditional risks of remote investing with the institutional safeguards now active on your DiasporaVerify portal:
+    </p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th class="col-aspect">Key Area</th>
+          <th class="col-before">Where We Were (The Old Way)</th>
+          <th class="col-now">Where We Are Right Now (DiasporaVerify Standard)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-aspect">1. Photographic Evidence</td>
+          <td class="col-before">
+            <span class="pill-fail">Unverified</span><br>
+            Blurry WhatsApp photos sent by contractors or relatives. Impossible to tell when, where, or even whose house was in the picture. No timestamp or GPS coordinate.
+          </td>
+          <td class="col-now">
+            <span class="pill-pass">Cryptographic Proof</span><br>
+            Every image is stamped with <strong>SHA-256 digital hashing</strong>, camera orientation angles, and geocoded coordinates. Certified immutable and tamper-evident.
+          </td>
+        </tr>
+
+        <tr>
+          <td class="col-aspect">2. On-Site Presence</td>
+          <td class="col-before">
+            <span class="pill-fail">Zero Accountability</span><br>
+            People claimed they "went to the plot" while sitting in a restaurant in Nairobi. No way to confirm physical site arrival.
+          </td>
+          <td class="col-now">
+            <span class="pill-pass">GPS Geofenced Check-In</span><br>
+            Field verifiers must physically enter within <strong>150 meters</strong> of your parcel's survey beacons to execute arrival check-in and unlock the inspection checklist.
+          </td>
+        </tr>
+
+        <tr>
+          <td class="col-aspect">3. Contractor Payments</td>
+          <td class="col-before">
+            <span class="pill-fail">Blind Wire Transfers</span><br>
+            Contractor demands: <em>"Send KES 450,000 for the slab today or work stops."</em> You send the full amount only to find out 80 bags of cement were stolen.
+          </td>
+          <td class="col-now">
+            <span class="pill-pass">Stop-Payment Safeguards</span><br>
+            The portal audits materials stock and work-in-progress. If variance occurs, our desk issues an explicit <strong>Stop-Payment Advisory</strong> and authorizes partial release (verified materials only).
+          </td>
+        </tr>
+
+        <tr>
+          <td class="col-aspect">4. Inspector Independence</td>
+          <td class="col-before">
+            <span class="pill-fail">Collusion & Bribery</span><br>
+            Contractors bribe family members or caretakers with "lunch" to confirm incomplete or shoddy work as complete.
+          </td>
+          <td class="col-now">
+            <span class="pill-pass">Rule 2 Zero-Contact Leak</span><br>
+            Operatives sign legally binding Conflict of Interest disclosures. Strict bi-directional PII masking ensures verifiers and contractors never collude or bypass Nairobi HQ.
+          </td>
+        </tr>
+
+        <tr>
+          <td class="col-aspect">5. Booking & Timezones</td>
+          <td class="col-before">
+            <span class="pill-fail">Frustrating Delays</span><br>
+            Endless back-and-forth messages across 7 to 11 hour timezone gaps trying to agree on when someone can visit your land.
+          </td>
+          <td class="col-now">
+            <span class="pill-pass">Dual-Timezone Synchronizer</span><br>
+            Real-time appointment calendar automatically syncing your local time (UK, USA, UAE, EU, Australia) with Nairobi EAT and sending calendar invites (.ics).
+          </td>
+        </tr>
+
+        <tr>
+          <td class="col-aspect">6. Multi-Currency Ledger</td>
+          <td class="col-before">
+            <span class="pill-fail">Hidden FX Tariffs</span><br>
+            Obscure bank conversion rates, double currency hops, and zero itemized tax receipts for diaspora income tax deductions.
+          </td>
+          <td class="col-now">
+            <span class="pill-pass">7 Diaspora Currencies</span><br>
+            Instant transparent conversions across KES, USD, GBP, EUR, AED, CAD, and AUD with official downloadable PDF tax receipts.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Page Break for Clean Printing -->
+    <div class="page-break"></div>
+
+    <!-- Section 2: What You Can Access Right Now -->
+    <div class="section-title">
+      <span>2. Active Features on Your Portal Today</span>
+      <span class="section-tag">02 / LIVE CAPABILITIES</span>
+    </div>
+
+    <div class="pillar-grid">
+      <div class="pillar-card active">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          Before/After Slider
+        </h3>
+        <p>
+          Compare consecutive site visits from fixed camera angles. Slide across to verify if walling or columns progressed or stalled.
+        </p>
+        <span class="proof-tag">View: /construction</span>
+      </div>
+
+      <div class="pillar-card active">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2"/></svg>
+          Video Walkthroughs
+        </h3>
+        <p>
+          Watch calibrated 4-minute site video inspections with timestamp markers pointing out rebar spacing, cracks, and materials storage.
+        </p>
+        <span class="proof-tag">View: /construction</span>
+      </div>
+
+      <div class="pillar-card active">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+          Stop-Payment Desk
+        </h3>
+        <p>
+          One-click instructions to your contractor: Authorize Partial (verified work), Pause Disbursement, or Enforce Dispute Hold.
+        </p>
+        <span class="proof-tag">View: /payments</span>
+      </div>
+
+      <div class="pillar-card active">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+          Global Bookings
+        </h3>
+        <p>
+          Schedule consultations with our Nairobi desk in your local timezone with synchronized calendar reminders.
+        </p>
+        <span class="proof-tag">View: /book</span>
+      </div>
+
+      <div class="pillar-card active">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Evidence Vault
+        </h3>
+        <p>
+          Browse certified inspection dossiers filtered by county, status, or category, complete with printable PDF exports.
+        </p>
+        <span class="proof-tag">View: /reports</span>
+      </div>
+
+      <div class="pillar-card active">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          Formal Disputes
+        </h3>
+        <p>
+          If an operative or contractor's report seems questionable, escalate directly to Senior Coordinators for free re-inspection.
+        </p>
+        <span class="proof-tag">View: /disputes</span>
+      </div>
+    </div>
+
+    <!-- Section 3: Live Verification Walkthrough Scenario -->
+    <div class="section-title">
+      <span>3. How a Real Verification Works: Step by Step</span>
+      <span class="section-tag">03 / WORKFLOW</span>
+    </div>
+
+    <div class="scenario-box">
+      <h3>
+        <span>Example: Kajiado County Residential Villa Milestone 3 (Ref: DV-2026-KJD-0104)</span>
+        <span class="badge badge-emerald">Real System Case</span>
+      </h3>
+      <p style="font-size: 8.5pt; color: var(--slate-text); margin-bottom: 6px;">
+        Here is how DiasporaVerify protected a client residing in London from losing KES 300,000 on an unverified slab claim:
+      </p>
+
+      <div class="scenario-steps">
+        <div class="step-card">
+          <strong>STEP 01: CLAIM</strong>
+          <span>Contractor Invoiced</span>
+          <p>Contractor requested KES 450,000 claiming first floor lintel beam and slab reinforcement was 100% complete.</p>
+        </div>
+        <div class="step-card">
+          <strong>STEP 02: DISPATCH</strong>
+          <span>Ground Operative</span>
+          <p>BORAQS-registered structural inspector arrived on site; verified entry within 35m of survey beacons via GPS.</p>
+        </div>
+        <div class="step-card">
+          <strong>STEP 03: AUDIT</strong>
+          <span>Variance Found</span>
+          <p>Physical inspection revealed formwork was only 40% complete; 80 bags of cement (KES 68,000) were missing from the shed.</p>
+        </div>
+        <div class="step-card">
+          <strong>STEP 04: ACTION</strong>
+          <span>Stop-Payment</span>
+          <p>Client authorized KES 150,000 for verified materials only, holding KES 300,000 until rebar inspection passed.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: What You Can Do Right Now -->
+    <div class="section-title">
+      <span>4. What You Can Do Immediately on the Platform</span>
+      <span class="section-tag">04 / IMMEDIATE ACTIONS</span>
+    </div>
+
+    <div style="background: var(--cream); border: 1.5px solid var(--emerald); border-radius: 12px; padding: 16px 18px; margin-bottom: 18px;">
+      <h4 style="font-size: 10.5pt; font-weight: 800; color: var(--emerald-dark); margin-bottom: 8px;">
+        3 Things You Can Try in Your Account Right Now:
+      </h4>
+      <ol style="margin-left: 18px; font-size: 9pt; color: var(--slate-text); line-height: 1.6;">
+        <li>
+          <strong>Inspect Construction Discrepancies</strong>: Go to <a href="http://localhost:5173/construction" style="color: var(--emerald); font-weight: 700;">/construction</a> to test the before/after photo slider, watch the 4-minute geotagged video inspection, and simulate releasing partial payments.
+        </li>
+        <li>
+          <strong>Book an Operations Appointment</strong>: Go to <a href="http://localhost:5173/book" style="color: var(--emerald); font-weight: 700;">/book</a> to pick a consultation time in your local city timezone (UK, USA, UAE, etc.) and download your calendar invitation.
+        </li>
+        <li>
+          <strong>Review the Escrow Ledger</strong>: Go to <a href="http://localhost:5173/payments" style="color: var(--emerald); font-weight: 700;">/payments</a> to switch between 7 global currencies, view itemized inspection fees, and inspect the official printable tax receipt.
+        </li>
+      </ol>
+    </div>
+
+    <div class="doctrine-callout">
+      <strong>Our Service Boundary Commitment</strong>
+      “DiasporaVerify is an independent observation authority. We never manage your builders, touch your construction capital, or act as biased brokers. We exist strictly to give you eyes on the ground, verified data, and peace of mind.”
+    </div>
+
+    <!-- Footer Stamp -->
+    <div class="report-footer">
+      <div>
+        <span class="confidential">DiasporaVerify Ltd.</span> &bull; Upper Hill Central Command, Nairobi, Kenya<br>
+        <span>Diaspora Client Desk: <strong>client.relay@diasporaverify.co.ke</strong> &bull; Portal: <a href="http://localhost:5173" style="color: var(--emerald); text-decoration: none;">diasporaverify.co.ke</a></span>
+      </div>
+      <div style="text-align: right;">
+        <span>Client Progress Report &bull; Edition Q4 2026</span><br>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 7.5pt;">SECURED BY DIASPORAVERIFY SHA-256</span>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

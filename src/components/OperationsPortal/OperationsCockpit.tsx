@@ -657,7 +657,7 @@ export default function Dashboard({
   return (
     <PortalLayout
       title="Operations overview"
-      subtitle="Thursday, 8 October 2026 · Nairobi HQ"
+      subtitle="Real-Time Dispatch Health, Live Bottlenecks & Ground SLA Monitor"
       role="admin"
       activeTab={activeTab}
       onNavigateTab={handleNav}

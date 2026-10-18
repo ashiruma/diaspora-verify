@@ -43,7 +43,7 @@ export const DisputesView: React.FC = () => {
   const handleCreateDispute = (e: React.FormEvent) => {
     e.preventDefault();
     if (!disputeDescription.trim()) {
-      alert('Please explain the reason for the dispute.');
+      setToastMessage('Please explain the reason for the dispute.');
       return;
     }
 
@@ -67,7 +67,7 @@ export const DisputesView: React.FC = () => {
   return (
     <PortalLayout
       title="Disputes & Escalations"
-      subtitle="Thursday, 8 October 2026 · Formal Accountability Desk"
+      subtitle="Formal Accountability, Re-Inspection Appeals & Senior Coordinator Mediation"
       role={activeRole === 'admin' ? 'admin' : 'client'}
       activeTab="disputes"
     >

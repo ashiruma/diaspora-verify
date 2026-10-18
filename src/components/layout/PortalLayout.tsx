@@ -86,7 +86,7 @@ function NavItem({ icon: Icon, label, active, badge, onClick }: NavItemProps) {
 export const PortalLayout: React.FC<PortalLayoutProps> = ({
   children,
   title,
-  subtitle = 'Thursday, 8 October 2026 · Nairobi HQ',
+  subtitle = 'Nairobi Ground Operations & Diaspora Trust Desk',
   role,
   activeTab,
   onNavigateTab,

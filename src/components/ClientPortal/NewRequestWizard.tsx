@@ -24,7 +24,8 @@ import {
   Download,
   X,
   ShieldCheck,
-  Clock
+  Clock,
+  Calendar
 } from '../Icons';
 import type { ServiceCategory, ServiceOfferModel, CurrencyCode } from '../../types';
 import { KENYA_COUNTIES, FORMAT_CURRENCY } from '../../data/mockData';
@@ -167,6 +168,7 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
   const [step, setStep] = useState(1);
   const [draftSavedToast, setDraftSavedToast] = useState(false);
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Quote identifier generated deterministically for review
   const [quoteId] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
@@ -375,19 +377,20 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setValidationError(null);
     if (!agreedToBoundaries) {
-      alert('Please acknowledge the service boundaries and independence doctrine to proceed.');
+      setValidationError('Please acknowledge the service boundaries and independence doctrine to proceed.');
       return;
     }
 
     // Rule 13 Safeguarding Invariant
     if (category === 'family' || category === 'person') {
       if (!familyConsentConfirmed) {
-        alert('Family Welfare requests require explicit confirmation of care recipient consent or legal guardian authority.');
+        setValidationError('Family Welfare requests require explicit confirmation of care recipient consent or legal guardian authority.');
         return;
       }
       if (!familyEmergencyContact.trim()) {
-        alert('Please provide a named emergency contact and phone number in Kenya for family care requests.');
+        setValidationError('Please provide a named emergency contact and phone number in Kenya for family care requests.');
         return;
       }
     }
@@ -480,7 +483,7 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
   return (
     <PortalLayout
       title="Book Ground Verification"
-      subtitle="Thursday, 8 October 2026 · 5-Step Intake & Instant Quoting"
+      subtitle="5-Step Verification Intake, Transparent Quoting & Ground Protocol Setup"
       role="client"
       activeTab="new-request"
       actions={
@@ -498,6 +501,23 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
         <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs border border-slate-700 animate-fadeIn">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>Draft request saved securely to your browser.</span>
+        </div>
+      )}
+
+      {/* Validation Error Banner */}
+      {validationError && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-900 px-4 py-3 rounded-2xl flex items-center justify-between text-xs animate-fadeIn">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span className="font-semibold">{validationError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setValidationError(null)}
+            className="text-rose-600 hover:text-rose-900 p-1 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -1755,6 +1775,21 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
                     ? 'Authenticated as client · Reference and dispatch tracking will activate immediately.' 
                     : 'You will be prompted to create your client account to track the dispatched verifier.'}
                 </p>
+
+                {/* Optional Live Consultation Option */}
+                <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-left">
+                  <div className="flex items-center gap-2 text-emerald-950 font-medium">
+                    <Calendar className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>Prefer a live briefing first?</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/book')}
+                    className="text-xs font-bold text-emerald-800 hover:text-emerald-950 underline cursor-pointer text-left sm:text-right"
+                  >
+                    Schedule 20-min Diaspora consultation →
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1776,8 +1811,9 @@ export const NewRequestWizard: React.FC<NewRequestWizardProps> = ({ onSuccess, o
               <button
                 type="button"
                 onClick={() => {
+                  setValidationError(null);
                   if (step === 2 && !town.trim()) {
-                    alert('Please enter the town or area name in Kenya.');
+                    setValidationError('Please enter the town or area name in Kenya.');
                     return;
                   }
                   setStep(prev => prev + 1);

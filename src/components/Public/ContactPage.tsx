@@ -8,7 +8,8 @@ import {
   Send, 
   CheckCircle2, 
   AlertTriangle,
-  ArrowLeft
+  ArrowLeft,
+  Calendar
 } from '../Icons';
 import { Footer } from './Footer';
 import { COVERAGE_POLICY } from '../../data/coverageData';
@@ -32,13 +33,17 @@ export const ContactPage: React.FC = () => {
   });
 
   useEffect(() => {
+    if (searchParams.get('type') === 'appointment') {
+      navigate('/book', { replace: true });
+      return;
+    }
     if (paramCategory) {
       setForm(prev => ({ ...prev, category: paramCategory }));
     }
     if (paramCounty) {
       setForm(prev => ({ ...prev, county: paramCounty }));
     }
-  }, [paramCategory, paramCounty]);
+  }, [paramCategory, paramCounty, searchParams, navigate]);
 
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -130,6 +135,26 @@ export const ContactPage: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Direct Consultation Link Banner */}
+                <div className="p-4 rounded-2xl bg-[#0D5C3A] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                      <Calendar className="w-4 h-4 text-emerald-300" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-white text-xs">Want to speak directly with our Operations Desk?</div>
+                      <div className="text-[11px] text-emerald-100/90">Book a 20-min strategy consultation mapped to your Diaspora timezone.</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/book')}
+                    className="px-4 py-2 rounded-full bg-white text-[#0D5C3A] hover:bg-emerald-50 font-bold text-xs uppercase tracking-wider transition-colors shrink-0 cursor-pointer text-center"
+                  >
+                    Book Appointment →
+                  </button>
+                </div>
 
                 {submitted ? (
                   <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs space-y-3">

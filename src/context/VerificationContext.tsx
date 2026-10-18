@@ -13,8 +13,10 @@ import type {
   AuditLogEntry,
   NotificationItem,
   OrganizationRecord,
-  CheckInRecord
+  CheckInRecord,
+  AppointmentRecord
 } from '../types';
+import { getStoredAppointments, saveAppointmentRecord } from '../services/appointmentService';
 import type { AuthenticatedUser, ViewAsSession, UserRole } from '../auth/authorization';
 import { normalizeRole } from '../auth/authorization';
 import { DEMO_USERS, ADDITIONAL_DEMO_USERS, AUTH_USER_KEY, REGISTERED_USERS_KEY } from '../auth/demoUsers';
@@ -121,6 +123,11 @@ interface VerificationContextType {
   organizations: OrganizationRecord[];
   activeOrgId: string;
   setActiveOrgId: (id: string) => void;
+
+  // Diaspora Consultations & Appointments
+  appointments: AppointmentRecord[];
+  bookAppointment: (data: Omit<AppointmentRecord, 'id' | 'createdAt' | 'status'>) => AppointmentRecord;
+  cancelAppointment: (id: string) => void;
 
   seedSampleData: () => void;
   resetAllData: () => void;
@@ -502,6 +509,32 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     localStorage.setItem(DISPUTES_KEY, JSON.stringify(disputes));
   }, [disputes]);
+
+  const [appointments, setAppointments] = useState<AppointmentRecord[]>(() => {
+    return getStoredAppointments();
+  });
+
+  const bookAppointment = useCallback((data: Omit<AppointmentRecord, 'id' | 'createdAt' | 'status'>): AppointmentRecord => {
+    const newId = `DV-APT-${Math.floor(10000 + Math.random() * 90000)}`;
+    const newRecord: AppointmentRecord = {
+      ...data,
+      id: newId,
+      status: 'confirmed',
+      createdAt: new Date().toISOString()
+    };
+    const updated = saveAppointmentRecord(newRecord);
+    setAppointments(updated);
+    setToastMessage(`Consultation confirmed for ${newRecord.scheduledDate} at ${newRecord.scheduledSlotLocal}! Ref: ${newRecord.id}`);
+    return newRecord;
+  }, []);
+
+  const cancelAppointment = useCallback((id: string) => {
+    setAppointments(prev => {
+      const updated = prev.map(a => a.id === id ? { ...a, status: 'cancelled' as const } : a);
+      localStorage.setItem('diaspora_verify_appointments', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   const rawActiveRequest = requests.find(r => r.id === activeRequestId) || requests[0] || undefined;
 
@@ -1483,6 +1516,9 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         organizations,
         activeOrgId,
         setActiveOrgId,
+        appointments,
+        bookAppointment,
+        cancelAppointment,
         seedSampleData,
         resetAllData,
       }}

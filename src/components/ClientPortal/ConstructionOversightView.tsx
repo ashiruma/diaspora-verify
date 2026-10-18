@@ -62,7 +62,7 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
     return (
       <PortalLayout
         title="Construction Oversight"
-        subtitle="Thursday, 8 October 2026 · Independent Structural & Milestone Audit"
+        subtitle="Independent Structural Milestone Audits, Material Inventories & Stop-Payment Safeguards"
         role="client"
         activeTab="construction"
       >
@@ -118,7 +118,7 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
   return (
     <PortalLayout
       title="Construction Oversight"
-      subtitle="Thursday, 8 October 2026 · Independent Structural & Milestone Audit"
+      subtitle="Independent Structural Milestone Audits, Material Inventories & Stop-Payment Safeguards"
       role="client"
       activeTab="construction"
     >
@@ -403,8 +403,8 @@ export const ConstructionOversightView: React.FC<{ onOpenReport?: () => void }> 
                         className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] z-20 pointer-events-none"
                         style={{ left: `${sliderPosition}%` }}
                       >
-                        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white shadow-lg border-2 border-slate-900 flex items-center justify-center text-slate-800 text-xs font-bold">
-                          ↔
+                        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white shadow-lg border-2 border-slate-900 flex items-center justify-center text-slate-800">
+                          <SplitSquareHorizontal className="w-3.5 h-3.5 text-slate-800" />
                         </div>
                       </div>
                     </div>
